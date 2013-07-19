@@ -1,0 +1,1 @@
+mvn deploy "-DupdateReleaseInfo=true" "-Dmaven.test.skip=true"

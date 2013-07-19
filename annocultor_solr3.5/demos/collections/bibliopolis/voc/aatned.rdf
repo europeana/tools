@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+<!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+<!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+<!ENTITY aat 'http://e-culture.multimedian.nl/ns/getty/aat#'>
+<!ENTITY vp 'http://e-culture.multimedian.nl/ns/getty/vp#'>
+]>
+
+<rdf:RDF
+xmlns:rdf="&rdf;"
+xmlns:rdfs="&rdfs;"
+xmlns:tgn="&aat;"
+xmlns:vp="&vp;"
+>
+
+<rdf:Property rdf:about="&vp;labelPreferred.Singular">
+  <rdfs:subPropertyOf rdf:resource="&vp;labelPreferred"/>
+</rdf:Property>
+
+<rdf:Description rdf:about="http://e-culture.multimedian.nl/ns/getty/aat#300041405">
+	<rdf:type rdf:resource="http://e-culture.multimedian.nl/ns/getty/aat#Concept"/>
+	<rdfs:label>300041405</rdfs:label>
+	<vp:labelPreferred.Singular xml:lang="nl">houtsnede</vp:labelPreferred.Singular>
+	<vp:labelPreferred xml:lang="nl">houtsneden</vp:labelPreferred>
+	<vp:labelPreferred xml:lang="en">woodcuts</vp:labelPreferred>
+</rdf:Description>
+
+</rdf:RDF>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+  Copyright 2007-2012 The Europeana Foundation
+
+  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved 
+  by the European Commission;
+  You may not use this work except in compliance with the Licence.
+  
+  You may obtain a copy of the Licence at:
+  http://joinup.ec.europa.eu/software/page/eupl
+
+  Unless required by applicable law or agreed to in writing, software distributed under 
+  the Licence is distributed on an "AS IS" basis, without warranties or conditions of 
+  any kind, either express or implied.
+  See the Licence for the specific language governing permissions and limitations under 
+  the Licence.
+ -->
+
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+	">
+
+
+      <bean id="corelib_db_mongo" class="com.mongodb.Mongo">
+		<constructor-arg value="refmongo.eanadev.org"/>
+		<constructor-arg value="27017"/>
+	</bean>
+   <bean id="corelib_db_morphia" class="com.google.code.morphia.Morphia"/>
+    <bean id="corelib_db_morphia_datastore" factory-bean="corelib_db_morphia" factory-method="createDatastore">
+        <constructor-arg ref="corelib_db_mongo"/>
+        <constructor-arg value="imageUIMdb"/>
+    </bean> 
+   	<bean id="imageDao" class="eu.europeana.corelib.db.dao.impl.NosqlDaoImpl">
+		<constructor-arg type="java.lang.Class" value="eu.europeana.corelib.db.entity.nosql.ImageCache" />
+		<constructor-arg ref="corelib_db_morphia_datastore"/>
+	</bean>
+    <bean name="thumbnailService" class="eu.europeana.corelib.db.service.impl.ThumbnailServiceImpl"
+    	p:dao-ref="imageDao"/>
+    	
+	<bean id="imageConverter" class="eu.europeana.datamigration.ese2edm.ImageConverter"/>
+	
+   
+
+
+</beans>

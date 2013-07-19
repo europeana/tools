@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<inm:Results productTitle="Inmagic DB/TextWorks" productVersion="7.01"
+    xmlns:inm="http://www.inmagic.com/webpublisher/query">
+    <inm:Recordset setCount="1645">
+        <inm:Record>
+            <inm:NUMMER>1</inm:NUMMER>
+            <inm:REPBIB_LINK/>
+            <inm:TITEL>De wolf en de ezel uit de &quot;Dyalogus creaturarum&quot; gedrukt
+                door Gheraert Leeu, Gouda, 1481</inm:TITEL>
+            <inm:TITEL_EN>&quot;De wolf en de ezel&quot;, from the &quot;Dyalogus
+                creaturarum&quot;, printed by Gheraert Leeu, Gouda, 1481</inm:TITEL_EN>
+            <inm:MAKER>Anoniem : a</inm:MAKER>
+            <inm:MAKER>Leeu, Gheraert : d</inm:MAKER>
+            <inm:MAKER>Pergamenus, Nicolaus : a</inm:MAKER>
+            <inm:MAKER>De Mayneriis, Mayno : a</inm:MAKER>
+            <inm:OBJECT>illustratie</inm:OBJECT>
+            <inm:TECHNIEK>houtsnede</inm:TECHNIEK>
+            <inm:JAAR>1481</inm:JAAR>
+            <inm:DATERING>4 apr. 1481</inm:DATERING>
+            <inm:DETAIL>nee</inm:DETAIL>
+            <inm:ORIGINEEL>[Nicolaus Pergamenus of Mayno de Mayneriis]. - Dyalogus creaturarum dat
+                is twijspraec der creaturen. - Gouda: Gerard Leeu, 1481, dl. 2, fol. o4r</inm:ORIGINEEL>
+            <inm:REPRODUCTIE/>
+            <inm:SIGNATUUR-ORIGINEEL>170 E 26</inm:SIGNATUUR-ORIGINEEL>
+            <inm:SIGNATUUR-REPRODUCTI/>
+            <inm:COLLECTIE/>
+            <inm:CLASSIFICATIE>E</inm:CLASSIFICATIE>
+            <inm:TWEEUW>15</inm:TWEEUW>
+            <inm:TWNAAM/>
+            <inm:TWOND>volksboeken</inm:TWOND>
+            <inm:TWOND>incunabelen</inm:TWOND>
+            <inm:TWOND>houtsnede</inm:TWOND>
+            <inm:TWOND>illustraties</inm:TWOND>
+            <inm:TWGEO>Gouda</inm:TWGEO>
+            <inm:RUBRIEK>1.1.5</inm:RUBRIEK>
+            <inm:OMSCHRIJVING>Illustratie van een anoniem kunstenaar uit een verzameling fabels en
+                exempels, weergegeven in 122 dialogen tussen dieren en mensen met 120 in de 17e eeuw
+                ingekleurde houtsneden. De houtsnede werd in dit soort incunabelen als de meest
+                gangbare illustratietechniek toegepast.</inm:OMSCHRIJVING>
+            <inm:OMSCHRIJVING_EN>Illustration by an anonymous artist from a collection of fables and
+                exempla, rendered in 122 dialogues between animals and humans with 120 woodcuts
+                coloured in the 17th century. In this type of incunabulum the woodcut became the
+                most customary technique for illustrations.</inm:OMSCHRIJVING_EN>
+            <inm:REFERENTIE/>
+            <inm:COPYRIGHT-TEKST1>Den Haag Koninklijke Bibliotheek</inm:COPYRIGHT-TEKST1>
+            <inm:COPYRIGHT-TEKST2/>
+            <inm:COPYRIGHT-REPRO1>Den Haag, Koninklijke Bibliotheek</inm:COPYRIGHT-REPRO1>
+            <inm:COPYRIGHT-REPRO2/>
+            <inm:COPYRIGHT-REPRO3/>
+            <inm:COPYRIGHT-OBJECT1/>
+            <inm:COPYRIGHT-OBJECT2/>
+            <inm:IDENTIFICATIE>170E26_1481-DL2-WO_FOLO4R</inm:IDENTIFICATIE>
+            <inm:AFMETINGEN>11,1 x 7,9 cm.</inm:AFMETINGEN>
+            <inm:OMVANG/>
+            <inm:SERIE/>
+            <inm:GEHEEL-BIJ-DETAIL/>
+            <inm:DETAIL-BIJ-GEHEEL/>
+        </inm:Record>
+        <inm:Record>
+            <inm:NUMMER>3</inm:NUMMER>
+            <inm:REPBIB_LINK/>
+            <inm:TITEL>&apos;Vita splendida&apos; uit &quot;Recht ghebruyck ende
+                misbruck van tydlycke have&quot;, Leiden, 1585</inm:TITEL>
+            <inm:TITEL_EN>&apos;Vita splendida&apos; from &quot;Recht ghebruyck ende
+                misbruyk van tydlycke have&quot;, Leiden, 1585</inm:TITEL_EN>
+            <inm:MAKER>Wierix, Jan : i; g</inm:MAKER>
+            <inm:MAKER>Plantijn, Christoffel : d</inm:MAKER>
+            <inm:MAKER>Coornhert, Dirck Volckerts : a</inm:MAKER>
+            <inm:OBJECT>illustratie</inm:OBJECT>
+            <inm:TECHNIEK>kopergravure</inm:TECHNIEK>
+            <inm:JAAR>1585</inm:JAAR>
+            <inm:DATERING>1585</inm:DATERING>
+            <inm:DETAIL>nee</inm:DETAIL>
+            <inm:ORIGINEEL>Coornhert, Dirck Volkertsz. naar B.G. Furmerus. - Recht ghebruyck ende
+                misbruyck van tydlycke have. - Leiden: Christoffel Plantijn, 1585, nr. XX</inm:ORIGINEEL>
+            <inm:REPRODUCTIE/>
+            <inm:SIGNATUUR-ORIGINEEL>1704 A 29</inm:SIGNATUUR-ORIGINEEL>
+            <inm:SIGNATUUR-REPRODUCTI/>
+            <inm:COLLECTIE/>
+            <inm:CLASSIFICATIE>E</inm:CLASSIFICATIE>
+            <inm:TWEEUW>16</inm:TWEEUW>
+            <inm:TWNAAM/>
+            <inm:TWOND>embleembundels</inm:TWOND>
+            <inm:TWOND>gravure</inm:TWOND>
+            <inm:TWOND>illustraties</inm:TWOND>
+            <inm:TWGEO>Leiden</inm:TWGEO>
+            <inm:TWGEO>Antwerpen</inm:TWGEO>
+            <inm:RUBRIEK>1.1.5</inm:RUBRIEK>
+            <inm:OMSCHRIJVING>Dit emblemataboek was in de Latijnse uitgave in 1575 bij Plantijn in
+                Antwerpen verschenen met 25 gravures gestoken door Jan Wierix. De uitgave van 1585
+                uit Leiden heeft dezelfde kopergravures. Zo rond 1580 begon ook in de Noordelijke
+                Nederlanden de kopergravure de houtsnede voor boekillustraties te verdringen.
+                Antwerpse kunstenaars uit de omgeving van Plantijn, zoals de gebroeders Jan, Antonie
+                en Hieronymus Wierix speelden een grote rol bij de opleving van de illustratiekunst
+                in ons land.</inm:OMSCHRIJVING>
+            <inm:OMSCHRIJVING_EN>This emblem book appeared in the Latin edition in 1575 at
+                Plantin&apos;s in Antwerp, with 25 engravings by Jan Wierix. The 1585 Leiden
+                edition has the same copper engravings. Around 1580, also in the Northern
+                Netherlands, copper engravings began to oust woodcuts for book illustrations.
+                Antwerp artists from the environment of Plantin, such as the brothers Jan, Antonie
+                and Hieronymus Wierix played a large role in the revival of illustrative art in the
+                Netherlands.</inm:OMSCHRIJVING_EN>
+            <inm:REFERENTIE/>
+            <inm:COPYRIGHT-TEKST1>Den Haag Koninklijke Bibliotheek</inm:COPYRIGHT-TEKST1>
+            <inm:COPYRIGHT-TEKST2/>
+            <inm:COPYRIGHT-REPRO1>Den Haag, Koninklijke Bibliotheek</inm:COPYRIGHT-REPRO1>
+            <inm:COPYRIGHT-REPRO2/>
+            <inm:COPYRIGHT-REPRO3/>
+            <inm:COPYRIGHT-OBJECT1/>
+            <inm:COPYRIGHT-OBJECT2/>
+            <inm:IDENTIFICATIE>1704A29_1585_PLXX</inm:IDENTIFICATIE>
+            <inm:AFMETINGEN>11 x 10,2 cm.</inm:AFMETINGEN>
+            <inm:OMVANG/>
+            <inm:SERIE/>
+            <inm:GEHEEL-BIJ-DETAIL/>
+            <inm:DETAIL-BIJ-GEHEEL/>
+        </inm:Record>
+        <inm:Record>
+            <inm:NUMMER>6</inm:NUMMER>
+            <inm:REPBIB_LINK/>
+            <inm:TITEL>Delftse Bijbel, gedrukt in Delft door Jacob Jacobszoon van der Meer en
+                Mauricius Yemantszoon, 1477</inm:TITEL>
+            <inm:TITEL_EN>Delft Bible, printed in Delft by Jacob Jacobszoon van der Meer and
+                Mauricius Yemantszoon, 1477</inm:TITEL_EN>
+            <inm:MAKER>Yemantszoon, Mauricius : d</inm:MAKER>
+            <inm:MAKER>Meer, Jacob Jacobszoon van der : d</inm:MAKER>
+            <inm:OBJECT>tekstbladzijde</inm:OBJECT>
+            <inm:TECHNIEK>boekdruk</inm:TECHNIEK>
+            <inm:JAAR>1477</inm:JAAR>
+            <inm:DATERING>10 jan. 1477</inm:DATERING>
+            <inm:DETAIL>nee</inm:DETAIL>
+            <inm:ORIGINEEL>Bijbel. Oude Testament. - Delft: Jacob Jacobszoon van der Meer en
+                Mauricius Yemantszoon, 10 jan. 1477, dl. 2, p. 1</inm:ORIGINEEL>
+            <inm:REPRODUCTIE/>
+            <inm:SIGNATUUR-ORIGINEEL>169 E 55-56, dl. 2</inm:SIGNATUUR-ORIGINEEL>
+            <inm:SIGNATUUR-REPRODUCTI/>
+            <inm:COLLECTIE/>
+            <inm:CLASSIFICATIE>D</inm:CLASSIFICATIE>
+            <inm:TWEEUW>15</inm:TWEEUW>
+            <inm:TWNAAM/>
+            <inm:TWOND>typografische vormgeving</inm:TWOND>
+            <inm:TWOND>bijbels</inm:TWOND>
+            <inm:TWOND>incunabelen</inm:TWOND>
+            <inm:TWOND>initialen</inm:TWOND>
+            <inm:TWOND>randversieringen</inm:TWOND>
+            <inm:TWOND>rubriceringen</inm:TWOND>
+            <inm:TWGEO>Delft</inm:TWGEO>
+            <inm:RUBRIEK>1.0</inm:RUBRIEK>
+            <inm:OMSCHRIJVING>Eerste bijbel die in het Nederlands verscheen. Hij bevat alleen het
+                Oude Testament, en is een anonieme bewerking van de ook alweer anonieme
+                &apos;Historiebijbel van 1360&apos;. Voorbeeld van een incunabel, waarbij
+                wat betreft de vormgeving het handgeschreven boek nog als voorbeeld diende. Anders
+                dan in vele andere incunabelen worden hier de plaats van ontstaan, de namen van de
+                drukkers en zelfs de dag van de voltooiing in het colofon genoemd.</inm:OMSCHRIJVING>
+            <inm:OMSCHRIJVING_EN>The first Bible to appear in the Dutch language, known as the Delft
+                Bible. It consists of the Old Testament only and is an anonymous adaptation of the -
+                again anonymous - History Bible of 1360. It is an example of an incunabulum where
+                the hand-written book still served as an example for lay-out and design. Contrary to
+                many other incunabula, the place of origin, the names of the printers and even the
+                day of its completion are mentioned in the colophon.</inm:OMSCHRIJVING_EN>
+            <inm:REFERENTIE/>
+            <inm:COPYRIGHT-TEKST1>Den Haag Koninklijke Bibliotheek</inm:COPYRIGHT-TEKST1>
+            <inm:COPYRIGHT-TEKST2/>
+            <inm:COPYRIGHT-REPRO1>Den Haag Koninklijke Bibliotheek</inm:COPYRIGHT-REPRO1>
+            <inm:COPYRIGHT-REPRO2/>
+            <inm:COPYRIGHT-REPRO3/>
+            <inm:COPYRIGHT-OBJECT1/>
+            <inm:COPYRIGHT-OBJECT2/>
+            <inm:IDENTIFICATIE>169E56_1477_P1</inm:IDENTIFICATIE>
+            <inm:AFMETINGEN>27 x 20 cm</inm:AFMETINGEN>
+            <inm:OMVANG/>
+            <inm:SERIE/>
+            <inm:GEHEEL-BIJ-DETAIL/>
+            <inm:DETAIL-BIJ-GEHEEL/>
+        </inm:Record>
+      </inm:Recordset>
+</inm:Results>

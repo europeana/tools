@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+<{% block title %}Duplicates summary{% endblock %}
+
+{% block content %}
+
+<h1> Summary of requests with link duplicates</h1>
+
+<table border="1">
+
+<th>request</th>
+<th>count</th>
+<th>multi</th>
+
+
+    {% for row in items %}
+      <tr>
+        <td><a href="{% url 'dupes_req_summary_start' row.req_id %}">{{ row.name }}</a></td>
+        <td>{{ row.dup_count }}</td>
+        <td>
+        {% if row.tripple %}
+         X
+        {% else %}
+          &nbsp;
+        {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+
+
+</table>
+
+{% endblock %}
+
+
+{% comment %}
+
+{% endcomment %}

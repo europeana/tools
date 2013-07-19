@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <!-- Inherit our applications main module.                      -->
+  <inherits name='eu.europeana.record.management.RecordManager' />
+
+  <!-- Specify the path to any remote services.                   -->
+  <servlet path="/RecordManager/greet" class="eu.europeana.record.management.server.GreetingServiceImpl" />
+
+</module>

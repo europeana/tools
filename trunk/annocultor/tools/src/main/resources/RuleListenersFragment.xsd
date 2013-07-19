@@ -1,0 +1,37 @@
+<!-- 
+This fragment is stored as a separate file and included in each rules' definition.
+Originally it was a shared element 'listeners' but my Oxygen 7.1 mixed it up with
+the built-in listeners and i had to make these listeners, although repeating,
+built-in as well.
+-->
+	<xs:element name="listeners" minOccurs="0" maxOccurs="1">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:sequence>
+						<xs:element name="Declarations" minOccurs="0" maxOccurs="1" type="TypeListener">
+							<xs:annotation>
+								<xs:documentation>// variable and type declarations</xs:documentation>
+							</xs:annotation>
+						</xs:element>					
+						<xs:element name="OnInit" minOccurs="0" maxOccurs="1" type="TypeListener">
+							<xs:annotation>
+								<xs:documentation>protected void init() throws Exception</xs:documentation>
+							</xs:annotation>
+						</xs:element>					
+						<xs:element name="OnPreCondition" minOccurs="0" maxOccurs="1" type="TypeListener">
+							<xs:annotation>
+								<xs:documentation>public boolean onPreCondition(Triple sourceTriple, DataObject sourceDataObject) throws Exception;</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element name="OnInvocation" minOccurs="0" maxOccurs="1" type="TypeListener">
+							<xs:annotation>
+								<xs:documentation>public Triple onInvocation(Triple sourceTriple, DataObject sourceDataObject) throws Exception;</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Sipmanager{% endblock %}
+
+{% block content %}
+
+
+<H1>Opt-out lists</H1>
+
+<table border=1>
+<tr><td>Current in Sugar CRM</td><td>Live portal!</td></tr>
+<tr><td><pre>{{optout_source}}</pre></td><td><pre>{{optout_production}}</pre></td></tr>
+<tr><td>test.europeana.eu</td><td>acceptance.europeana.eu</td></tr>
+<tr><td><pre>{{optout_test}}</pre></td><td><pre>{{optout_acceptance}}</pre></td></tr>
+</table>
+
+<p>
+Remember, even if a change has propagated to that system, it takes 5 mins or so for the portal
+to pick up the new content
+</p>
+
+{% endblock %}
+
+{% comment %}
+{% endcomment %}

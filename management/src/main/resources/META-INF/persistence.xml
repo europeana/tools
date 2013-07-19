@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+	version="2.0" xmlns="http://java.sun.com/xml/ns/persistence">
+
+	<persistence-unit name="users" transaction-type="RESOURCE_LOCAL">
+		<!-- <provider>org.hibernate.ejb.HibernatePersistence</provider> -->
+		<class>eu.europeana.record.management.database.entity.UserObj</class>
+		<class>eu.europeana.record.management.database.entity.LogEntry</class>
+		<class>eu.europeana.record.management.database.entity.SystemObj</class>
+		<class>eu.europeana.record.management.database.entity.Session</class>
+		<properties>
+			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />
+			<property name="javax.persistence.jdbc.url"
+				value="jdbc:postgresql://localhost/recordmanagement" />
+			<property name="hibernate.show_sql" value="true" />
+			<property name="hibernate.format_sql" value="true"/>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+			<property name="hibernate.hbm2ddl.auto" value="validate"/>
+			<property name="javax.persistence.jdbc.user" value="recordmanagement" />
+			<property name="javax.persistence.jdbc.password" value="recordmanagement" />
+			
+			<!-- <property name="eclipselink.ddl-generation" value="drop-and-create-tables" 
+				/> -->
+<!-- 			<property name="eclipselink.ddl-generation" value="drop-and-create-tables" /> -->
+<!-- 			<property name="eclipselink.ddl-generation.output-mode" -->
+<!-- 				value="database" /> -->
+<!-- 			<property name="eclipselink.logging.level" value="FINE" /> -->
+		</properties>
+
+	</persistence-unit>
+	<!-- <persistence-unit name="log_entries" transaction-type="RESOURCE_LOCAL"> -->
+
+	<!-- <class>eu.europeana.record.management.database.entity.LogEntry</class> -->
+	<!-- <properties> -->
+	<!-- <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" 
+		/> -->
+	<!-- <property name="javax.persistence.jdbc.url" -->
+	<!-- value="jdbc:postgresql://localhost/recordmanagement" /> -->
+
+	<!-- <property name="eclipselink.ddl-generation" value="drop-and-create-table" 
+		/> -->
+	<!-- <property name="eclipselink.ddl-generation.output-mode" -->
+	<!-- value="database" /> -->
+	<!-- </properties> -->
+
+	<!-- </persistence-unit> -->
+	<!-- <persistence-unit name="system_entries" transaction-type="RESOURCE_LOCAL"> -->
+
+	<!-- <class>eu.europeana.record.management.database.entity.SystemObj</class> -->
+	<!-- <properties> -->
+	<!-- <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" 
+		/> -->
+	<!-- <property name="javax.persistence.jdbc.url" -->
+	<!-- value="jdbc:postgresql://localhost/recordmanagement" /> -->
+
+	<!-- <property name="eclipselink.ddl-generation" value="drop-and-create-table" 
+		/> -->
+	<!-- <property name="eclipselink.ddl-generation.output-mode" -->
+	<!-- value="database" /> -->
+	<!-- </properties> -->
+
+	<!-- </persistence-unit> -->
+
+
+</persistence> 

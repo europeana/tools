@@ -1,0 +1,286 @@
+#!/usr/bin/env python
+"""
+   Developed for Europeana under EUPL license
+   
+   20120730 v1.1    Jacob.Lundqvist@kb.nl
+   20120627 v1.0    Jacob.Lundqvist@kb.nl
+   
+"""
+
+PROG_VERSION = 'v2.0'
+
+import codecs
+from optparse import OptionParser
+import os
+import subprocess
+import sys
+
+from lib.xmlsplitter import XmlSplitter
+from lib.simplelog import SimpleLog
+
+base_path = os.path.normpath(os.path.dirname(__file__))
+
+
+    
+
+
+
+RECORDS_PER_FILE = 500
+
+RECORD_SEPARATOR = 'rdf:RDF'
+
+
+
+CMD_TIMEOUT = 30
+
+
+# Indicate where saxon and edm2ese.xslt can be found
+SAXON_APP = '%s/saxon9he.jar' % base_path
+EDM2ESE = '%s/carare_edm2ese.xsl' % base_path
+
+
+
+PROG_NAME = 'generate_ese_from_edm'
+#http://code.activestate.com/recipes/577187-python-thread-pool/
+ESE_PART_FILE = 'ese-part'
+
+
+        
+"""
+
+/xml_svn/edm2ese/ECLAP/eclap-format/2022110-1.xml
+/xml_svn/edm2ese/ECLAP/eclap-format/2022110-1.xml
+
+
+/xml_svn/edm2ese/hope/2012-07-26/2022003_CGIL/2022003-1-linesplitted.xml
+
+
+/xml_svn/edm2ese/ECLAP/eclap-format/eclap2edm-v-0-3.xslt
+
+"""
+
+
+
+    
+
+class Edm2Ese(object):
+    
+    
+    def __init__(self, file_in, tmp_dir, log_lvl,pre_xslt):
+        self.log_itm = SimpleLog(log_lvl=log_lvl, log_file='', print_log=True)
+        self.log = self.log_itm.log
+        self.splitter = XmlSplitter(file_in, tmp_dir,
+                                    record_separator='repox:metadata', #RECORD_SEPARATOR,  # xml tag or similar hinting at a new record ie suitable split point
+                                    records_per_file=RECORDS_PER_FILE,
+                                    log_lvl=self.log_itm
+                                    )
+        self.ese_part_name = os.path.join(tmp_dir, ESE_PART_FILE)
+        self.pre_steps = []
+        self.parse_extra_xslt(pre_xslt)
+        
+    def run(self):
+        part_count = self.splitter.split_file()
+        if not part_count:
+            self.fail_abort('The splitting operation did not render any content - aborting')
+        self.edm2ese(part_count)
+        self.final_ese_file(part_count)
+
+    def edm2ese(self, part_count):
+        self.log('=========    Converting parts EDM -> ESE   =====', 1)
+        part_idx = 0
+        while part_idx < part_count:
+            part_idx += 1
+            self.log('\tpart %i / %i' % (part_idx, part_count), 2)
+            src_file = self.splitter.get_part_fname(part_idx)
+            for xslt in self.pre_steps:
+                ddir = os.path.split(src_file)[0]
+                dst_file = os.path.join(ddir, '%s-%s.xml' % (self.no_ext_basename(src_file),
+                                                             self.no_ext_basename(xslt)))
+                result_file = self.convert_file(src_file, dst_file, xslt)
+                src_file = dst_file
+                
+            result_file = self.convert_file(src_file, self.ese_part_fname(part_idx), EDM2ESE)
+            
+            
+         
+    def no_ext_basename(self, fname):
+        basename = os.path.split(fname)[1]
+        return os.path.splitext(basename)[0]
+        
+        
+    def convert_file(self, src_file, dst_file, xslt):
+        self.log('\t\txslt step: %s' % self.no_ext_basename(xslt), 5)
+        
+        if not os.path.exists(src_file):
+            self.fail_abort('Sourcefile missing: %s' % src_file)
+        if not os.path.exists(xslt):
+            self.fail_abort('xslt missing: %s' % xslt)
+            
+        cmd = 'java -Xmx2G -jar %s -s:%s -o:%s -xsl:%s' % ( #
+            SAXON_APP, src_file, dst_file, xslt)
+        if self.log_itm._log_lvl < 6:
+            cmd += ' > /dev/null 2>&1'
+        self.log('Command that will run[%s]' % cmd, 8)
+        if 1:
+            err_code = os.system(cmd)
+            if err_code:
+                print '************ errror!', err_code
+                sys.exit(2)
+        else:
+            retcode, stdout, stderr = self.cmd_execute_output(cmd)
+            if retcode:
+                print '*** cmd', cmd
+                print '*** retcode', retcode
+                print '*** stdout', stdout
+                print '*** stderr', stderr
+                sys.exit(1)
+        if not os.path.exists(dst_file):
+            self.fail_abort('xslt failed to generate expected output file: %s' % dst_file)
+        
+    def final_ese_file(self, part_count):
+        self.log('=========    Joining ESE file   =====', 1)
+        
+        dest_file = os.path.splitext(self.splitter.org_file_name)[0] + '-ese.xml'
+        self.f_out = codecs.open(dest_file, 'w', 'utf-8')
+        self.f_out.writelines((
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',
+            '<metadata xmlns:edm="http://www.europeana.eu/schemas/edm/"\n',
+            '  xmlns:europeana="http://www.europeana.eu"\n',
+            '  xmlns:ore="http://www.openarchives.org/ore/terms/"\n',
+            '  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"\n',
+            '  xmlns:dc="http://purl.org/dc/elements/1.1/"\n',
+            '  xmlns:skos="http://www.w3.org/2004/02/skos/core#"\n',
+            '  xmlns:dcterms="http://purl.org/dc/terms/"\n',
+            '  xmlns:ens="http://www.europeana.eu/schemas/edm/">\n',))
+        i = 0
+        while i < part_count:
+            i += 1
+            self.log('\tjoining ese part %i / %i' % (i, part_count), 2)
+            fname_part = self.ese_part_fname(i)
+            self.log('\t\t%s' % fname_part, 4)
+            self.f_in = codecs.open(fname_part, 'r', 'utf-8')
+            lines = self.f_in.readlines()
+            
+            # remove header lines
+            while not (lines[0].strip() == '<record>'):
+                lines.pop(0)
+            lines.pop() # remove file closure - </metadata>
+            self.f_out.writelines(lines)
+        self.f_out.write('</metadata>\n')
+        self.f_out.close()
+        
+        self.log('\nESE file created: %s' % dest_file, 2)
+        
+    def ese_part_fname(self, idx):
+        fname = '%s-%i.xml' % (self.ese_part_name, idx)
+        return fname
+
+    def fail_abort(self, msg, raise_it=False):
+        self.log('\n**************************************************\n%s' % msg, 1)
+        if raise_it:
+            raise
+        sys.exit(1)
+     
+    def parse_extra_xslt(self, pre_xslts):
+        if not pre_xslts:
+            return
+        for fname in pre_xslts.split(','):
+            if not os.path.exists(fname):
+                self.fail_abort('xslt not found: %s' % fname)
+            if fname in self.pre_steps:
+                self.fail_abort('xslt specified multiple times: %s' % fname)
+            self.pre_steps.append(fname)
+
+    def cmd_execute1(self, cmd):
+        "Returns 0 on success, or error message on failure."
+        result = 0
+        retcode, stdout, stderr = self.cmd_execute_output(cmd)
+        if retcode or stdout or stderr:
+            result = u'retcode: %s' % retcode
+            if stdout:
+                result += u'\nstdout: %s' % stdout
+            if stderr:
+                result += u'\nstderr: %s' % stderr
+        return result
+
+
+    def cmd_execute_output(self, cmd, timeout=CMD_TIMEOUT):
+        "Returns retcode,stdout,stderr."
+        if isinstance(cmd, (list, tuple)):
+            cmd = ' '.join(cmd)
+        self.log('External command: [%s]' % cmd, 9)
+        self._cmd_std_out = u''
+        self._cmd_std_err = u''
+        try:
+            t_fin = time.time() + timeout
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            while p.poll() == None and t_fin > time.time():
+                self._cmd_purge_io_buffers(p)
+                time.sleep(0.1)
+
+            if p.poll() == None:
+                stderr = u'Timeout for command %s' % cmd
+                self.log(u'*** %s' % stderr, 1)
+                self._cmd_purge_io_buffers(p)
+                self.log(u'stdout: %s' % self._cmd_std_out, 1)
+                self.log(u'stderr: %s' % self._cmd_std_err, 1)
+                return 1,u'',stderr
+                
+            self._cmd_purge_io_buffers(p) # do last one to ensure we got everything
+            retcode = p.returncode
+            #stdout = smart_unicode(self._cmd_std_out, errors='replace')
+            #stderr = smart_unicode(self._cmd_std_err, errors='replace')
+            stdout = self._cmd_std_out
+            stderr = self._cmd_std_err
+        except:
+            retcode = 1
+            stdout = u''
+            stderr = u'cmd_execute() exception - shouldnt normally happen'
+        return retcode, stdout, stderr
+    
+    
+    def _cmd_purge_io_buffers(self, p):
+        try:
+            s_out, s_err = p.communicate()
+        except:
+            return
+        if s_out:
+            self._cmd_std_out += s_out
+        if s_err:
+            self._cmd_std_err += s_err
+            
+            
+            
+
+        
+                        
+                        
+                        
+if __name__ == "__main__":
+    usage = """useage: %s [options] input.xml
+    
+    Will convert edm to ese, using a tmpdir to generate chunksized files
+    assumes xslt and java file to be in same dir as this file,
+    if not change top of this file to point to correct location
+    """ % PROG_NAME
+    parser = OptionParser(usage=usage,version='%s %s' % (PROG_NAME, PROG_VERSION))
+    parser.add_option("-t", "--tempdir", dest="tempdir", default='/tmp',
+                      help="location where partial files are created", metavar="FILE")
+    parser.add_option("-p", "--prexslt", dest="prexslt", default='',
+                      help="xslt to use for pre processing, use comma to separate if multiple", metavar="FILE")
+    
+    parser.add_option('-v', '--verbosity', action='store', dest='log', default='2',
+                      type='choice', choices=['0', '1', '2', '3','4','5','6','7','8','9'],
+                      help='Verbosity level; 0=no output, 2=normal output, 9=all output'),
+    
+    
+    (options, args) = parser.parse_args()    
+    
+    if len(args) != 1:
+        parser.error("incorrect number of arguments")
+        
+    sourcefile = args.pop()
+    ese_conv = Edm2Ese(sourcefile, options.tempdir, int(options.log), options.prexslt)
+    ese_conv.run()
+    print 'Done!'
+                        

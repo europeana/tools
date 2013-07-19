@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+
+	<!-- Servlets -->
+	<servlet>
+		<servlet-name>login</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.LoginServiceImpl</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>user</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.UserServiceImpl</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>log</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.LogEntryServiceImpl</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>system</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.SystemServiceImpl</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>record</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.RecordServiceImpl</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>upload</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.UploadServlet</servlet-class>
+	</servlet>
+
+
+	<servlet-mapping>
+		<servlet-name>upload</servlet-name>
+		<url-pattern>/RecordManager/upload</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>record</servlet-name>
+		<url-pattern>/RecordManager/record</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>system</servlet-name>
+		<url-pattern>/RecordManager/system</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>log</servlet-name>
+		<url-pattern>/RecordManager/log</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>login</servlet-name>
+		<url-pattern>/RecordManager/login</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>user</servlet-name>
+		<url-pattern>/RecordManager/user</url-pattern>
+	</servlet-mapping>
+
+	<!-- Default page to serve -->
+	<welcome-file-list>
+		<welcome-file>RecordManager.html</welcome-file>
+	</welcome-file-list>
+
+</web-app>

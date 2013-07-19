@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>{% block title %}No title given{% endblock %}</title>
+{% block extrahead %}{% endblock %}
+</head>
+<body>
+
+<a href="{% url 'top_index' %}">Start</a> &nbsp; 
+
+<a href="/admin">Admin</a> &nbsp; 
+
+<p>&nbsp;</p>
+
+
+{% block content %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+<{% block title %}Duplicates summary{% endblock %}
+
+{% block content %}
+
+<h1> Duplicates for {{ req_name }}</h1>
+
+<a href="{% url 'dupes_req_summary' req_pk 0 %}">first</a>
+<a href="{% url 'dupes_req_summary' req_pk prev %}">prev</a>
+<a href="{% url 'dupes_req_summary' req_pk next %}">next</a>
+<a href="{% url 'dupes_req_summary' req_pk last %}">last</a>
+
+&nbsp;&nbsp;&nbsp; number of pages: {{ pages }}
+
+<table border="1">
+
+    <th>count</th><th>url</th>
+    
+    {% for row in items %}
+      <tr>
+        <td>{{ row.0 }}</td>
+        <td>{{ row.1 }}</td>
+    </tr>
+    {% endfor %}
+
+
+</table>
+
+{% endblock %}
+
+
+{% comment %}
+        <td><a href="{% url 'dupes_req_summary' row.1 %}">{{ row.0 }}</a></td>
+
+{% endcomment %}

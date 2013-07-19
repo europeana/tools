@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Sipmanager{% endblock %}
+
+{% block content %}
+
+
+
+<h3><a href="{% url "stats_req_summary" %}">Link  statistics</a></h3>
+
+<h3><a href="{% url "sipm_monitor" %}">Monitor</a></h3>
+
+
+
+
+{% endblock %}
+
+
+{% comment %}
+<h3><a href="{% url "optout_index" %}">Opt-Out overview</a></h3>
+<h4><a href="{% url "logout" %}">Logout</a></h4>
+{% endcomment %}

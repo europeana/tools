@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %} =================================================================
+
+Sample template to show how the template language should be used
+
+the load i18n must always be present, otherwise translations will not be used
+in that template
+
+
+The first two lines should always be pressent.
+
+blocks are the different fillers that can be used:
+  title  -         page name
+  header_scripts - scripts that should go into the header part of the page
+  content -        main content of page
+  left_side -      navigator etc, things that should go directly under the logo
+
+(There is no meaning in avoiding whitespace between blocks, since what will be
+submitted to the portal is the generated page)
+
+
+Translations general
+write the page in english, mark what should be translated, since the english text
+is the "key" it will be used if no translation is found - ie you dont need to
+translate into english normaly.
+
+There is one gotcha - if a key is used on multiple places and in english the
+wording is the same, but in another language it would be different on one of the
+locations.
+
+The suggested method is to use a different key on the place causing an
+issue, and actually translate that key into english.
+
+
+Normaly its propably better to keep all html & django specific code outside
+the translation process, to avoid that translators breaks the page.
+
+Europeana policy is to only submit text snippets completely without any html
+to translators. Example:
+
+<h1>Europeana: {% trans "think culture" %}</h1>
+
+Another advantage with keeping the translation "keys" short, is reusage, if
+{% trans "think culture" %} is already translated somewhere else, that translation
+will be reused.
+
+---------------------------------------------------------------{% endcomment %}
+
+
+
+{% block title %}Europeana - {% trans "Dummy page" %}{% endblock %}
+
+
+
+
+{% block content %}
+<h1>Europeana: {% trans "think culture" %}</h1>
+
+{% trans "here is an image" %}
+
+<img src="sp/gmail1.jpg" alt="you propably dont have this img ;)"/>
+
+{% trans "Our collection brings together material from over" %}
+
+{% endblock %}

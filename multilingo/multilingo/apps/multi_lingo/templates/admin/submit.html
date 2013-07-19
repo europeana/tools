@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Multilingo Submit</title>
+</head>
+
+<body>
+
+<h3>
+<a href="/">Mainpage</a> 
+<a href="/admin">admin</a> 
+</h3>
+
+
+{% if error_msg %}
+  <h1>Error</h1>
+  <p>{{ error_msg|linebreaks }}</p>
+  {% if notify_dev %}
+  <h2>This is a software error</h2>
+  <p>
+    Please notify dev-team, this should not normaly happen, include error message above
+    (needed for analysing error)
+  </p>
+  {% endif %}
+  
+{% else %}
+
+
+<h1>Pages have been saved</h1>
+<p>
+Commiting the pages to subversion will take a few minutes. 
+Once this has completed a mail will be sent with success/failure to
+</p>
+
+<p>{{ request.user.email }}</p>
+
+<p>
+If you dont recieve a mail to that adr within 10 minutes, please notify
+dev-team - something failed.
+</p>
+
+
+
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Link stats summary{% endblock %}
+
+{% block content %}
+
+<h2>{{ label }} Link stats summary</h2>
+
+Statistics generated: {{ stats_update_time }}
+
+<table border="1">
+      <th>Name</th>
+      <th>Records</th>
+      
+      <th>&nbsp;</th>
+      <th>&nbsp;<br>found</th>
+      <th><a href="{% url 'stats_req' 1 %}">objects</a><br>waiting</th>
+      <th>&nbsp;<br>ratio</th>
+
+      <th>&nbsp;</th>
+      <th>&nbsp;<br>found</th>
+      <th><a href="{% url 'stats_req' 2 %}">shownBy</a><br>waiting</th>
+      <th>&nbsp;<br>ratio</th>
+
+      <th>&nbsp;</th>
+      <th>&nbsp;<br>found</th>
+      <th><a href="{% url 'stats_req' 3 %}">shownAt</a><br>waiting</th>
+      <th>&nbsp;<br>ratio</th>
+
+    {% for item in items %}
+      <tr>
+        <td>{{ item.file_name }}</td>        
+        <td>{{ item.record_count }}</td>
+        
+        <td>&nbsp;</td>
+        <td>{{ item.count_1 }}</td>
+        <td>{{ item.waiting_1 }}</td>
+        <td>{{ item.ratio_1 }}</td>
+        
+        <td>&nbsp;</td>
+        <td>{{ item.count_2 }}</td>
+        <td>{{ item.waiting_2 }}</td>
+        <td>{{ item.ratio_2 }}</td>
+
+        <td>&nbsp;</td>
+        <td>{{ item.count_3 }}</td>
+        <td>{{ item.waiting_3 }}</td>
+        <td>{{ item.ratio_3 }}</td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td><b>Summaries</b></td>
+      <td>{{ summary.record_count }}</td> 
+    <td>&nbsp;</td>
+      <td>{{ summary.ok_1 }}</td> 
+      <td>{{ summary.waiting_1 }}</td> 
+      <td>{{ summary.ratio_1 }}</td> 
+    <td>&nbsp;</td>
+      <td>{{ summary.ok_2 }}</td> 
+      <td>{{ summary.waiting_2 }}</td> 
+      <td>{{ summary.ratio_2 }}</td> 
+    <td>&nbsp;</td>
+      <td>{{ summary.ok_3 }}</td> 
+      <td>{{ summary.waiting_3 }}</td> 
+      <td>{{ summary.ratio_3 }}</td> 
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><b>Records</b></td>
+    <td>&nbsp;</td>
+      <td valign="top"><b>found</b></td>
+      <td valign="top"><b>waiting<br>objects</b></td>
+      <td valign="top"><b>ratio</b></td>
+    <td>&nbsp;</td>
+      <td valign="top"><b>found</b></td>
+      <td valign="top"><b>waiting<br>shown by</b></td>
+      <td valign="top"><b>ratio</b></td>
+    <td>&nbsp;</td>
+      <td valign="top"><b>found</b></td>
+      <td valign="top"><b>waiting<br>shown at</b></td>
+      <td valign="top"><b>ratio</b></td>
+    </tr>
+</table>
+
+{% endblock %}
+
+{% comment %}
+{% endcomment %}

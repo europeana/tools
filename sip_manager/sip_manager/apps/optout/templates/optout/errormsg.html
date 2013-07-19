@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Sipmanager{% endblock %}
+
+{% block content %}
+
+
+<H1>Something failed</H1>
+
+<table border="1"><tr>
+<td>cmd</td><td>{{cmd}}</td>
+</tr><tr>
+<td>stdout</td><td>{{stdout}}</td>
+</tr><tr>
+<td>stderr</td><td>{{stderr}}</td>
+</tr></table>
+
+
+<a href="{% url 'optout_index' %}">Opt-out overview</a> &nbsp; 
+
+
+{% endblock %}
+
+
+{% comment %}
+{% endcomment %}

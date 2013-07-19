@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:ac="http://annocultor.eu/converter/"
+	xmlns:ac_people="http://annocultor.eu/people/"
+	xmlns:ac_report="http://annocultor.eu/report/"
+	xmlns:ac_time="http://annocultor.eu/time/"
+	xmlns:dbpedia="http://dbpedia.org/ontology/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:dcterms="http://purl.org/dc/terms/"
+	xmlns:foaf="http://xmlns.com/foaf/0.1/"
+	xmlns:lib="http://www.swi-prolog.org/rdf/library/"
+	xmlns:oai="http://www.openarchives.org/OAI/2.0/"
+	xmlns:oaidc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:vra="http://www.vraweb.org/vracore/vracore3#"
+	xmlns:xml="http://www.w3.org/XML/1998/namespace">
+<!-- 
+**********************************************************
+This file is a result of conversion to RDF performed using
+AnnoCultor software, available from   http://AnnoCultor.eu
+**********************************************************
+Named graph: dbpedia.selected.concepts
+Description: Selection from DBPedia: various concepts 
+Extracted from http://dbpedia.org/snorql/ 
+Original data is distributed under the GNU General Public License
+
+ -->
+
+<rdf:Description rdf:about="http://dbpedia.org/resource/Art">
+	<skos:prefLabel xml:lang="en">Art</skos:prefLabel>
+	<skos:prefLabel xml:lang="es">Arte</skos:prefLabel>
+	<skos:prefLabel xml:lang="it">Arte</skos:prefLabel>
+	<skos:prefLabel xml:lang="pt">Arte</skos:prefLabel>
+	<skos:prefLabel xml:lang="sv">Konst</skos:prefLabel>
+	<skos:prefLabel xml:lang="de">Kunst</skos:prefLabel>
+	<skos:prefLabel xml:lang="nl">Kunst</skos:prefLabel>
+	<skos:prefLabel xml:lang="no">Kunst</skos:prefLabel>
+	<skos:prefLabel xml:lang="fi">Taide</skos:prefLabel>
+	<skos:prefLabel xml:lang="ru">Искусство</skos:prefLabel>
+	<skos:prefLabel xml:lang="ja">技術知</skos:prefLabel>
+	<skos:prefLabel xml:lang="zh">艺术</skos:prefLabel>
+	<skos:prefLabel xml:lang="ja">芸術</skos:prefLabel>
+</rdf:Description>
+<!-- Resources: 0 
+(if a resource is described in two XML elements rdf:Descriptions then it will be counted twice) -->
+
+</rdf:RDF>

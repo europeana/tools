@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+import codecs
+import os
+import sys
+
+
+DEBUG = False
+
+BUFF_SIZE = 4096
+BASE_LINE_LENGTH = 60
+CRLF = '\r\n'
+LF = '\n'
+CLOSE_LF = '>%s' % LF
+NEW_TAG_LF = '>%s<' % LF
+
+class XmlSplitter(object):
+    def __init__(self, file_in,filter_str='', filter_exception=''):
+        self.file_in = file_in
+        self.filter_str = filter_str
+        self.filter_exception = filter_exception
+        self.file_out = '%s-linesplitted.xml' % os.path.splitext(self.file_in)[0]
+        if DEBUG:
+            codecs.open(self.file_out, 'w', 'utf-8').write('')
+        else:
+            self.h_out = codecs.open(self.file_out, 'w', 'utf-8')
+        
+        
+    def write(self, data, count=-1, do_LF=False):
+        if count < 0 :
+            count = len(data)
+        result = data[max(count,1):] # to handle special case with a lf at pos 0
+        out_str = data[:count]
+
+        if not out_str:
+            return result
+        i = out_str.find(self.filter_str)
+        if i > -1:
+            pass
+        
+        if len(self.filter_str) and (out_str.find(self.filter_str) > -1):
+            if (not self.filter_exception) or (out_str.find(self.filter_exception) < 0):
+                return result
+        
+        if do_LF and (out_str[-1] != LF):
+            out_str += LF
+        if DEBUG:
+            codecs.open(self.file_out, 'a', 'utf-8').write(out_str)
+            print out_str.strip()
+        else:
+            self.h_out.write(out_str)
+        return result
+        
+    def writeln(self, data, count=-1):
+        return self.write(data, count, do_LF=True)
+        
+        
+    def run(self):
+        h_in = codecs.open(self.file_in, 'r', 'utf-8')
+        in_buff = ''
+        while True:
+            if len(in_buff) < (BUFF_SIZE / 2):
+                in_buff += h_in.read(BUFF_SIZE)
+                if not in_buff:
+                    self.write(LF)
+                    break # EOF
+                while in_buff.find(CRLF) > -1:
+                    in_buff = in_buff.replace(CRLF, LF)
+            
+            if 0: # debug, searchng for specific source data
+                i = in_buff.find('skos:prefLabel')
+                if i > -1 and i < 100:
+                    pass
+            
+            data_count = len(in_buff)
+            do_LF = False
+            
+            for s in (LF, '><'):
+                pos = in_buff.find(s)
+                if (pos > -1) and (pos < data_count):
+                    data_count = pos + 1 # include LF
+                    do_LF = True
+                
+            #
+            # Handling >\n< splitting after LF
+            #
+            pos = in_buff.find(NEW_TAG_LF)
+            if (pos > -1) and (pos < data_count):
+                data_count = pos + 2 # include LF
+                do_LF = True
+                    
+            #
+            # For </ sequences we need to traverse past the following >
+            #
+            i = in_buff[:data_count].find('</')
+            if i > -1:
+                j = in_buff[:data_count].find('>', i)
+                if j > -1:
+                    j += 1 # point to after closer
+                    try:
+                        if in_buff[j] == LF:
+                            j += 1
+                    except:
+                        pass # this was last line, so we tried to point beyond EOF, no prob...
+                    if j < data_count:
+                        data_count = i
+                        do_LF = True
+
+            in_buff = self.write(in_buff, data_count, do_LF)
+        if not DEBUG:
+            self.h_out.close()
+        h_in.close()
+        
+        
+        
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print 
+        print 'Syntax: xml-splitter longlined.xml ["filter string"] ["filter exception"]'
+        print "  Will create longlined-linesplitted.xml where line is broken"
+        print "  after each tag"
+        print "  If a filter string is specified all lines matching this string will"
+        print "  be removed (after the linbreaking has occured)."
+        print "  If a filter exception is given all lines matching filter except those"
+        print "  matching exception will be removed."
+        print "  filter string and exception can be wrapped in either"
+        print "  \"\" or ''"
+        print " Example, remove all language tags except the english one"
+        print "  xml-splitter longlined.xml \"<skos:prefLabel xml:lang=\" 'lang=\"en\">'"
+        sys.exit()
+        
+    if len(sys.argv) > 2:
+        filter_str = sys.argv[2]
+    else:
+        filter_str = ''
+    if len(sys.argv) > 3:
+        filter_exception = sys.argv[3]
+    else:
+        filter_exception = ''
+    
+    xs = XmlSplitter(sys.argv[1], filter_str, filter_exception)
+    xs.run()
+    

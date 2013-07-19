@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Object urls summary{% endblock %}
+
+{% block content %}
+
+<h2>{{ label }} Object urls summary</h2>
+
+Statistics generated: {{ stats_update_time }}
+
+<table border="1">
+      <th>Name</th>
+      <th>Uris</th>
+      
+      <th>&nbsp;</th>
+      <th>verified</th>
+      <th>waiting</th>
+      <th>bad</th>
+      <th>ratio</th>
+
+    {% for item in items %}
+      <tr>
+        <td>{{ item.set_name }}</td>        
+        <td>{{ item.record_count }}</td>
+        
+        <td>&nbsp;</td>
+        <td>{{ item.ok_1 }}</td>
+        <td>{{ item.waiting_1 }}</td>
+        <td>{{ item.bad_1 }}</td>       
+        <td>{{ item.ratio_1 }}</td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td><b>Summary</b></td>
+      <td>{{ summary.record_count }}</td>
+      <td>&nbsp;</td>
+      <td>{{ summary.ok_1 }}</td>
+      <td>{{ summary.waiting_1 }}</td>
+      <td>{{ summary.bad_1 }}</td>
+      <td>{{ summary.ratio_1 }}</td>
+    </tr>
+    <tr>
+    </tr>
+</table>
+
+{% endblock %}
+
+{% comment %}
+{% endcomment %}

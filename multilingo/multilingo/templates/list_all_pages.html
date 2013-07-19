@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Europeana Static pages management</title>
+</head>
+<body>
+<h3>The following static pages are available</h3>
+<p>
+  {% for page in pages %}
+    <a href="/{{ portal_prefix }}/{{ page }}">{{ page }}</a>
+    <br/>
+  {% endfor %}
+</p>
+
+<h3>Manage translations</h3>
+To work with translations please go to <a href="/rosetta/pick/">here</a>
+
+
+<p>&nbsp;</p>
+
+<h4>Please note</h4>
+We have fixed the port issue on this server so you no longer need to use the url
+http://sandbox07.isti.cnr.it:8182/<br>
+<p>
+Starting now the more normal form
+<a href="http://sandbox07.isti.cnr.it/">http://sandbox07.isti.cnr.it/</a>
+can be used
+</p>
+</body>
+</html>

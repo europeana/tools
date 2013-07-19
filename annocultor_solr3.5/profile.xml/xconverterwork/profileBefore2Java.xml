@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:inm="http://www.inmagic.com/webpublisher/query" xmlns:geo="http://www.geonames.org/ontology#" xmlns:vra="http://www.vraweb.org/vracore/vracore3#" xmlns:ac="http://annocultor.eu/converter/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://annocultor.eu/schema/XConverter.xsd">
+  <ac:Profile ac:institution="Multimedian e-Culture project" ac:publisherId="000" ac:versionAnnoCultor="2.0" rdf:about="ak">
+  <!-- 
+      Shared definition of parameters and vocabularies are loaded from the corresponding files.
+  -->
+    <ac:parameters rdf:parseType="Collection">
+     	<!--
+		This file defines most common parameters used in demo converters.	
+		It is an XML fragment, and it should be included in xconverters using 
+		
+		<!ENTITY parameters SYSTEM "../../parameters.xml"> 
+		
+		Accordingly, this file has neither XML nor DOCTYPE declarations and 
+		assumes that the ac namespace is properly defined in the including
+		document.
+		
+	-->
+	<ac:Parameter>
+		<ac:name>ANNOCULTOR_VOCABULARY_DIR</ac:name>
+		<ac:value>vocabularies</ac:value>
+	</ac:Parameter>
+ 	<ac:Parameter>
+		<ac:name>ANNOCULTOR_TMP_DIR</ac:name>
+		<ac:value>tmp</ac:value>
+	</ac:Parameter>
+	<ac:Parameter>
+  		<ac:name>ANNOCULTOR_INPUT_DIR</ac:name>
+  		<ac:value>input_source</ac:value>
+	</ac:Parameter>
+	<ac:Parameter>
+  		<ac:name>ANNOCULTOR_OUTPUT_DIR</ac:name>
+  		<ac:value>output_rdf</ac:value>
+	</ac:Parameter>
+	<ac:Parameter>
+		<ac:name>ANNOCULTOR_DOC_DIR</ac:name>
+		<ac:value>doc</ac:value>
+	</ac:Parameter>
+  
+  
+  
+
+    </ac:parameters>
+    <ac:vocabularies rdf:parseType="Collection">
+      <ac:VocabularyOfTerms rdf:about="local">
+        <ac:comment>AK-thesauri</ac:comment>
+        <ac:file>thesauri.rdf</ac:file>
+        <ac:sparqlQuery>
+            SELECT ?code ?label 
+            WHERE 
+            {
+              ?code &lt;http://www.w3.org/2004/02/skos/core#prefLabel&gt; ?label . 
+              FILTER (REGEX(?label, "(.+)"))
+            }
+          </ac:sparqlQuery>
+       </ac:VocabularyOfTerms>
+      
+	<!--
+		This file defines three most common vocabularies used in converters: 
+		
+		terms - based on AAT
+		people - based on ULAN 
+		places - based on Geonames 
+		
+		It is an XML fragment, and it should be included in xconverters using 
+		
+		<!ENTITY vocabularies SYSTEM "../../vocabularies.xml"> 
+		
+		Accordingly, this file has neither XML nor DOCTYPE declarations and 
+		assumes that the ac namespace is properly defined in the including
+		document.
+		
+		This file also assumes that the vocabularyDir parameter
+		is set to the local directory with vocabularies.
+	-->
+<ac:VocabularyOfTime rdf:about="time">
+  <ac:comment>AnnoCultor time ontology</ac:comment>
+  <ac:artifactId>org.semium.vocabularies.time</ac:artifactId>
+  <ac:version>1.0.1</ac:version>
+  <ac:file>*.rdf</ac:file>
+  <ac:sparqlQuery>
+  PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;   
+  SELECT ?code ?label  
+  WHERE { 
+    { ?code skos:prefLabel ?label }  
+  UNION 
+    { ?code skos:altLabel ?label } 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="begin">
+  PREFIX time: &lt;http://semium.org/time/&gt;    
+  SELECT ?code ?endpoint 
+  WHERE { 
+    ?code time:beginDate ?endpoint
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="end">
+  PREFIX time: &lt;http://semium.org/time/&gt;    
+  SELECT ?code ?endpoint 
+  WHERE { 
+    ?code time:endDate ?endpoint
+  }
+  </ac:sparqlQuery>
+</ac:VocabularyOfTime>
+
+<ac:VocabularyOfTerms rdf:about="terms">
+	<ac:comment>general terminology based on GEMET and DBPEDIA</ac:comment>
+    <ac:artifactId>org.semium.vocabularies.concepts</ac:artifactId>
+    <ac:version>1.0.1</ac:version>
+    <ac:file>*.rdf</ac:file>
+	<ac:sparqlQuery>
+	PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; 	
+	SELECT ?code ?label 
+	WHERE {
+      { ?code skos:prefLabel ?label }  
+    UNION 
+      { ?code skos:altLabel ?label } 
+	}
+	</ac:sparqlQuery>
+  <ac:listeners rdf:parseType="Collection"> 
+    <ac:OnNormaliseLabel>
+    	<ac:java>
+//    	  if (caller == NormaliseCaller.query)
+//    	    System.out.println("&gt;terms query&gt;" + label);
+    		return label.toLowerCase();
+    	</ac:java>
+    </ac:OnNormaliseLabel>
+  </ac:listeners>
+</ac:VocabularyOfTerms>
+
+<ac:VocabularyOfPeople rdf:about="people">
+  <ac:comment>directory of people based on DBPedia</ac:comment>
+  <ac:artifactId>org.semium.vocabularies.agents</ac:artifactId>
+  <ac:version>1.0.1</ac:version>
+  <ac:file>*.rdf</ac:file>
+  <ac:sparqlQuery>
+  PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; 	
+  SELECT ?code ?label  
+  WHERE { 
+    { ?code skos:prefLabel ?label }  
+  UNION 
+    { ?code skos:altLabel ?label } 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="birth">
+  PREFIX ulan: &lt;http://e-culture.multimedian.nl/ns/getty/ulan#&gt; 	
+  SELECT ?code ?birth 
+  WHERE { 
+    ?code ulan:birthDate ?birth 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="death">
+  PREFIX ulan: &lt;http://e-culture.multimedian.nl/ns/getty/ulan#&gt; 	
+  SELECT ?code ?death 
+  WHERE { 
+    ?code ulan:birthDate ?death 
+  }
+  </ac:sparqlQuery>
+  <ac:listeners rdf:parseType="Collection"> 
+    <ac:OnNormaliseLabel>
+    	<ac:java>
+ //   	  if (caller == NormaliseCaller.query)
+ //   	    System.out.println("&gt;people query&gt;" + label);
+      	    
+    		return  super.onNormaliseLabel(label.toLowerCase(), caller);
+    	</ac:java>
+    </ac:OnNormaliseLabel>
+  </ac:listeners>
+</ac:VocabularyOfPeople>
+    			
+
+<ac:VocabularyOfPlaces rdf:about="places">
+  <ac:comment>geographical vocabulary based on Geonames</ac:comment>
+  <ac:artifactId>org.semium.vocabularies.places</ac:artifactId>
+  <ac:version>1.0.1</ac:version>
+  <ac:file>../../vocabularies/places/EU/*.rdf</ac:file>
+  <ac:file>../../vocabularies/places/AS/ID.rdf</ac:file>
+  <ac:sparqlQuery>
+  PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; 	
+  SELECT ?code ?label  
+  WHERE { 
+    { ?code skos:prefLabel ?label }  
+  UNION 
+    { ?code skos:altLabel ?label } 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="population">
+  PREFIX places: &lt;http://www.europeana.eu/resolve/ontology/&gt; 	
+  SELECT ?code ?population 
+  WHERE { 
+    ?code places:population ?population 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="division">
+  PREFIX places: &lt;http://www.europeana.eu/resolve/ontology/&gt; 	
+  SELECT ?code ?division 
+  WHERE { 
+    ?code places:division ?division 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="latitude">
+  PREFIX places: &lt;http://www.europeana.eu/resolve/ontology/&gt; 	
+  SELECT ?code ?latitude 
+  WHERE { 
+    ?code places:latitude ?latitude 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="longitude">
+  PREFIX places: &lt;http://www.europeana.eu/resolve/ontology/&gt; 	
+  SELECT ?code ?longitude 
+  WHERE { 
+    ?code places:longitude ?longitude 
+  }
+  </ac:sparqlQuery>
+  <ac:sparqlQuery ac:termProperty="country">
+  PREFIX places: &lt;http://www.europeana.eu/resolve/ontology/&gt; 	
+  SELECT ?code ?country 
+  WHERE { 
+    ?code places:country ?country 
+  }
+  </ac:sparqlQuery>
+  <ac:listeners rdf:parseType="Collection"> 
+    <ac:OnNormaliseLabel>
+    	<ac:java>
+  //  	  if (caller == NormaliseCaller.query)
+  //  	    System.out.println("&gt;places query&gt;" + label);
+    		return label.toLowerCase();
+    	</ac:java>
+    </ac:OnNormaliseLabel>
+  </ac:listeners>
+</ac:VocabularyOfPlaces>
+
+      
+     </ac:vocabularies>
+     <ac:repositories rdf:parseType="Collection">
+       <ac:Repository rdf:about="ak">
+          <ac:datasources rdf:parseType="Collection">
+            <ac:XmlDataSource>
+              <ac:file>ak.xml</ac:file>
+            </ac:XmlDataSource>
+          </ac:datasources>
+        <!-- 
+          Destinations are separate RDF files that will be created.
+          Each property rule has a parameter that specifies where to store the result.
+          Splitting a dataset among several files may be quite useful in practice.
+         -->         
+          <ac:destinations rdf:parseType="Collection">
+            <ac:RdfGraph rdf:about="Works">
+              <ac:comment>Museum objects, one RDF resource per object</ac:comment>
+            </ac:RdfGraph>              
+            <ac:RdfGraph rdf:about="Links">
+              <ac:comment>Links from museum objects to terms from external vocabularies</ac:comment>
+            </ac:RdfGraph>              
+           </ac:destinations>  
+           <ac:objectRules rdf:parseType="Collection">    
+             <ac:ObjectRule>
+               <ac:recordSeparator>/records/object</ac:recordSeparator>
+               <ac:recordIdentifier>/records/object/id</ac:recordIdentifier>
+               <ac:recordInformalIdentifier>Name</ac:recordInformalIdentifier>
+                
+               <ac:propertyRules>                  
+                 <ac:eu.annocultor.rules.RenameLiteralPropertyRule-default>
+                   <ac:srcPath rdf:datatype="ac:Path">Name</ac:srcPath>
+                   <ac:dstProperty rdf:datatype="ac:Property">dc:title</ac:dstProperty>
+                   <ac:dstGraph rdf:datatype="ac:Graph">Works</ac:dstGraph>
+                 </ac:eu.annocultor.rules.RenameLiteralPropertyRule-default>
+
+                 <ac:eu.annocultor.rules.RenameLiteralPropertyRule-default>
+                   <ac:srcPath rdf:datatype="ac:Path">id</ac:srcPath>
+                   <ac:dstProperty rdf:datatype="ac:Property">dc:identifier</ac:dstProperty>
+                   <ac:dstGraph rdf:datatype="ac:Graph">Works</ac:dstGraph>
+                 </ac:eu.annocultor.rules.RenameLiteralPropertyRule-default>
+
+                 <ac:eu.annocultor.rules.BatchRule-autoPropNames>
+                   <ac:rule rdf:datatype="ac:Rule">
+                     <ac:eu.annocultor.rules.RenameLiteralPropertyRule-template>
+                       <ac:dstGraph rdf:datatype="ac:Graph">Works</ac:dstGraph>
+                     </ac:eu.annocultor.rules.RenameLiteralPropertyRule-template>
+                   </ac:rule>
+                   <ac:dstNamespace rdf:datatype="ac:Namespace">dc</ac:dstNamespace>
+                   <ac:srcPath rdf:datatype="ac:Path">Description</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">ExtendedDescription</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">TimePeriod</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">Style</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">Organisation</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">Size</ac:srcPath>
+                   <ac:srcPath rdf:datatype="ac:Path">Image</ac:srcPath>
+                 </ac:eu.annocultor.rules.BatchRule-autoPropNames>
+                  
+                 <ac:eu.annocultor.rules.BatchRule-setPropNames>
+                   <ac:rule rdf:datatype="ac:Rule">
+                     <ac:eu.annocultor.rules.RenameLiteralPropertyRule-template>
+                       <ac:dstGraph rdf:datatype="ac:Graph">Works</ac:dstGraph>
+                     </ac:eu.annocultor.rules.RenameLiteralPropertyRule-template>
+                   </ac:rule>
+                   <ac:map rdf:datatype="ac:Map"> 
+                     <ac:srcValue rdf:datatype="ac:Path">TextSigns</ac:srcValue>
+                     <ac:dstValue rdf:datatype="ac:Property">vra:inscription</ac:dstValue>
+                   </ac:map>
+                   <ac:map rdf:datatype="ac:Map"> 
+                     <ac:srcValue rdf:datatype="ac:Path">MaterialDescription</ac:srcValue>
+                     <ac:dstValue rdf:datatype="ac:Property">vra:material.note</ac:dstValue>
+                   </ac:map>
+                   <ac:map rdf:datatype="ac:Map"> 
+                     <ac:srcValue rdf:datatype="ac:Path">CulturalOrigin</ac:srcValue>
+                     <ac:dstValue rdf:datatype="ac:Property">vra:culture</ac:dstValue>
+                   </ac:map>
+                 </ac:eu.annocultor.rules.BatchRule-setPropNames>
+  
+                 <ac:eu.annocultor.rules.BatchRule-setPropNames>
+                   <ac:rule rdf:datatype="ac:Rule">
+                     <ac:eu.annocultor.tagger.rules.LookupTermRule-noLocalTerms>
+                      <ac:srcPath rdf:datatype="ac:Path">Material</ac:srcPath>
+                      <ac:dstProperty rdf:datatype="ac:Property">dc:material</ac:dstProperty>
+                      <ac:dstGraphLiterals rdf:datatype="ac:Graph">Links</ac:dstGraphLiterals>
+                      <ac:dstGraphLinks rdf:datatype="ac:Graph">Links</ac:dstGraphLinks>
+                      <ac:termsProperty rdf:datatype="ac:Property">dc:material</ac:termsProperty>
+                      <ac:termsSignature rdf:datatype="ac:String">material</ac:termsSignature>
+                      <ac:termsSplitPattern rdf:datatype="ac:String">( *; *)|( *, *)</ac:termsSplitPattern>
+                      <ac:termsVocabulary rdf:datatype="ac:VocabularyOfTerms">local</ac:termsVocabulary>
+                    </ac:eu.annocultor.tagger.rules.LookupTermRule-noLocalTerms>        
+                  </ac:rule>
+                   <ac:map rdf:datatype="ac:Map"> 
+                     <ac:srcValue rdf:datatype="ac:Path">Material</ac:srcValue>
+                     <ac:dstValue rdf:datatype="ac:Property">dc:material</ac:dstValue>
+                   </ac:map>
+                   <ac:map rdf:datatype="ac:Map"> 
+                     <ac:srcValue rdf:datatype="ac:Path">Keyword</ac:srcValue>
+                     <ac:dstValue rdf:datatype="ac:Property">dc:subject</ac:dstValue>
+                   </ac:map>
+                </ac:eu.annocultor.rules.BatchRule-setPropNames>
+                                    
+                 <ac:eu.annocultor.tagger.rules.LookupPlaceRule-noLocalTerms>
+                  <ac:srcPath rdf:datatype="ac:Path">GeographicalOrigin</ac:srcPath>
+                  <ac:dstProperty rdf:datatype="ac:Property">vra:location.creationSite</ac:dstProperty>
+                  <ac:dstGraphLiterals rdf:datatype="ac:Graph">Links</ac:dstGraphLiterals>
+                  <ac:dstGraphLinks rdf:datatype="ac:Graph">Links</ac:dstGraphLinks>
+                   <ac:termsProperty rdf:datatype="ac:Property">vra:location.creationSite</ac:termsProperty>
+                   <ac:termsSignature rdf:datatype="ac:String">creationSite</ac:termsSignature>
+                  <ac:termsSplitPattern rdf:datatype="ac:String">( *; *)|( *, *)</ac:termsSplitPattern>
+                  <ac:termsVocabulary rdf:datatype="ac:VocabularyOfPlaces">places</ac:termsVocabulary>
+                </ac:eu.annocultor.tagger.rules.LookupPlaceRule-noLocalTerms>        
+
+               </ac:propertyRules>                  
+             </ac:ObjectRule>
+           </ac:objectRules>            
+           <ac:maxRecordsToConvert>-1</ac:maxRecordsToConvert>
+         </ac:Repository>
+       </ac:repositories>
+     </ac:Profile>
+   </rdf:RDF>

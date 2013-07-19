@@ -1,0 +1,21 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Ingestion Manager admin' %}{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name">
+    {% trans 'Ingestion Manager administration' %}
+    &nbsp;-&nbsp;
+    <a href="{% url 'stats_req_summary' %}">Statistics</a>
+    &nbsp;-&nbsp;
+    <a href="{% url 'sipm_monitor' %}">Monitor</a>
+    <br>
+    <a href="{% url 'restart_dashboard' %}">Dashboard-restart</a>
+    &nbsp;-&nbsp;
+  </h1>
+
+
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
