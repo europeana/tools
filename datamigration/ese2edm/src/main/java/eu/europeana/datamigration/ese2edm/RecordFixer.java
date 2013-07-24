@@ -36,6 +36,8 @@ import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
+import eu.europeana.corelib.tools.lookuptable.impl.EuropeanaIdMongoServerImpl;
 import eu.europeana.datamigration.ese2edm.converters.EDMWriter;
 import eu.europeana.datamigration.ese2edm.converters.ESEReader;
 import eu.europeana.datamigration.ese2edm.converters.generic.EntityMerger;
@@ -137,14 +139,14 @@ public class RecordFixer {
 			IllegalArgumentException, NoSuchMethodException,
 			IllegalAccessException, InvocationTargetException, MalformedURLException {
 		SolrServer writeServer = new SolrServer();
-		CollectionMongoServer collectionMongoServer = new CollectionMongoServer(new Mongo(
+		CollectionMongoServer collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(),
 				PropertyUtils.getMongoPort()),
 				PropertyUtils.getCollectionDB());
-		EuropeanaIdMongoServer europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
+		EuropeanaIdMongoServer europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(),
 				PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB());
+				PropertyUtils.getEuropeanaIdDB(),"","");
 		europeanaIdMongoServer.createDatastore();
 		instantiateMongoServer();
 		// writeServer.createWriteSolrServer("http://10.101.38.1:8282/solr/");
