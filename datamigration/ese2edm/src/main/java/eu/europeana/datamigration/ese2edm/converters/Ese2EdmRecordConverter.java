@@ -43,6 +43,8 @@ import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
+import eu.europeana.corelib.tools.lookuptable.impl.EuropeanaIdMongoServerImpl;
 import eu.europeana.datamigration.ese2edm.converters.generic.GenericEse2EdmConverter;
 import eu.europeana.datamigration.ese2edm.converters.generic.RecordRemover;
 import eu.europeana.datamigration.ese2edm.enrichment.EuropeanaTagger;
@@ -177,12 +179,12 @@ public class Ese2EdmRecordConverter implements Runnable {
 		// "192.168.34.54",27017), "collections");
 		// europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
 		// "192.168.34.54", 27017), "EuropeanaId");
-		collectionMongoServer = new CollectionMongoServer(new Mongo(
+		collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
 				PropertyUtils.getCollectionDB());
-		europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
+		europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB());
+				PropertyUtils.getEuropeanaIdDB(),"","");
 		europeanaIdMongoServer.createDatastore();
 		// EdmMongoServer mongoServer = new EdmMongoServerImpl(new Mongo(
 		// "192.168.34.54", 27017), "europeana", "", "");
@@ -365,12 +367,12 @@ public class Ese2EdmRecordConverter implements Runnable {
 		// "192.168.34.54",27017), "collections");
 		// europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
 		// "192.168.34.54", 27017), "EuropeanaId");
-		collectionMongoServer = new CollectionMongoServer(new Mongo(
+		collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
 				PropertyUtils.getCollectionDB());
-		europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
+		europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB());
+				PropertyUtils.getEuropeanaIdDB(),"","");
 		// EdmMongoServer mongoServer = new EdmMongoServerImpl(new Mongo(
 		// "192.168.34.54", 27017), "europeana", "", "");
 		instantiateMongoServer();

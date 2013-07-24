@@ -34,6 +34,7 @@ import com.mongodb.MongoException;
 
 import eu.europeana.corelib.tools.lookuptable.Collection;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
 import eu.europeana.datamigration.ese2edm.utils.PropertyUtils;
 
 /**
@@ -44,7 +45,7 @@ import eu.europeana.datamigration.ese2edm.utils.PropertyUtils;
 public class CollectionManager {
 
 	private String filePath;
-	private CollectionMongoServer cm;
+	private CollectionMongoServerImpl cm;
 	/**
 	 * Constructor for CollectionManager
 	 * @param filePath The path where the file with the collections is located
@@ -53,7 +54,7 @@ public class CollectionManager {
 	 */
 	public CollectionManager(String filePath) throws UnknownHostException, MongoException{
 		this.filePath = filePath;
-		 cm = new CollectionMongoServer(
+		 cm = new CollectionMongoServerImpl(
 					new Mongo(PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()), PropertyUtils.getCollectionDB());
 	}
 	

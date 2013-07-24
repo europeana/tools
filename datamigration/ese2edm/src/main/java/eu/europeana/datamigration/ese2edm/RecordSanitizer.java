@@ -24,6 +24,7 @@ import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
 import eu.europeana.datamigration.ese2edm.helpers.HashIncrementor;
 import eu.europeana.datamigration.ese2edm.sanitizers.Sanitizer;
 import eu.europeana.datamigration.ese2edm.utils.PropertyUtils;
@@ -100,7 +101,7 @@ public class RecordSanitizer implements Sanitizer {
 				HttpSolrServer edmSolrServer = new HttpSolrServer(PropertyUtils.getWriteServerUrl());
 				CollectionMongoServer collectionServer;
 				
-					collectionServer = new CollectionMongoServer(new Mongo(
+					collectionServer = new CollectionMongoServerImpl(new Mongo(
 							PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
 							PropertyUtils.getCollectionDB());
 				

@@ -66,6 +66,7 @@ import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
 import eu.europeana.corelib.tools.utils.HashUtils;
 import eu.europeana.datamigration.ese2edm.converters.ESEReader;
 import eu.europeana.datamigration.ese2edm.enums.FieldMapping;
@@ -169,7 +170,7 @@ public class File2MongoImageConverter implements Runnable {
 		if (params.length > 0) {
 			from = Integer.parseInt(params[0]);
 		}
-		collectionMongoServer = new CollectionMongoServer(new Mongo(
+		collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 				"europeana-ese2edm.isti.cnr.it", 27017), "collections");
 		try {
 			edmMongoServer = new EdmMongoServerImpl(new Mongo(

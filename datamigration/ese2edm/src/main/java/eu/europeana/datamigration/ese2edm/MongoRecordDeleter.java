@@ -111,7 +111,7 @@ public class MongoRecordDeleter extends MongoDeleter {
 			List<String> recordsToDelete;
 
 			recordsToDelete = IOUtils.readLines(new FileInputStream(new File(
-					"/home/gmamakis/IPRissues")));
+					args[0])));
 
 			for (String recordToDelete : recordsToDelete) {
 

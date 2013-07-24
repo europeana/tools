@@ -22,13 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -40,30 +37,18 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
-import eu.annocultor.converters.europeana.Entity;
-import eu.europeana.corelib.definitions.solr.entity.Aggregation;
-import eu.europeana.corelib.definitions.solr.entity.EuropeanaAggregation;
-import eu.europeana.corelib.definitions.solr.entity.Proxy;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.solr.entity.AggregationImpl;
-import eu.europeana.corelib.solr.entity.EuropeanaAggregationImpl;
-import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.solr.exceptions.MongoDBException;
 import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
-import eu.europeana.corelib.solr.utils.EDMUtils;
-import eu.europeana.corelib.tools.lookuptable.Collection;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
+import eu.europeana.corelib.tools.lookuptable.impl.EuropeanaIdMongoServerImpl;
 import eu.europeana.corelib.tools.utils.EuropeanaUriUtils;
-import eu.europeana.datamigration.ese2edm.converters.generic.EntityMerger;
-import eu.europeana.datamigration.ese2edm.converters.generic.EuropeanaIdGenerator;
-import eu.europeana.datamigration.ese2edm.converters.generic.FieldCreator;
 import eu.europeana.datamigration.ese2edm.converters.generic.GenericEse2EdmConverter;
 import eu.europeana.datamigration.ese2edm.enrichment.EuropeanaTagger;
-import eu.europeana.datamigration.ese2edm.enums.FieldMapping;
 import eu.europeana.datamigration.ese2edm.exception.EntityNotFoundException;
-import eu.europeana.datamigration.ese2edm.exception.MultipleUniqueFieldsException;
 import eu.europeana.datamigration.ese2edm.server.SolrServer;
 import eu.europeana.datamigration.ese2edm.utils.PropertyUtils;
 
@@ -213,12 +198,12 @@ public class Ese2EdmSolrCollectionChecker implements Runnable {
 		// "192.168.34.54",27017), "collections");
 		// europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
 		// "192.168.34.54", 27017), "EuropeanaId");
-		collectionMongoServer = new CollectionMongoServer(new Mongo(
+		collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
 				PropertyUtils.getCollectionDB());
-		europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
+		europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
 				PropertyUtils.getMongoServer(), PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB());
+				PropertyUtils.getEuropeanaIdDB(),"","");
 		// EdmMongoServer mongoServer = new EdmMongoServerImpl(new Mongo(
 		// "192.168.34.54", 27017), "europeana", "", "");
 		// instantiateMongoServer();

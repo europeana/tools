@@ -52,6 +52,8 @@ import eu.europeana.corelib.solr.server.EdmMongoServer;
 import eu.europeana.corelib.solr.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
+import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
+import eu.europeana.corelib.tools.lookuptable.impl.EuropeanaIdMongoServerImpl;
 import eu.europeana.datamigration.ese2edm.converters.generic.EntityMerger;
 import eu.europeana.datamigration.ese2edm.converters.generic.FieldCreator;
 import eu.europeana.datamigration.ese2edm.converters.generic.GenericEse2EdmConverter;
@@ -139,14 +141,14 @@ public class Ese2EdmConverter implements Runnable {
 		try {
 			// mongoServer = new EdmMongoServerImpl(
 			// new Mongo("10.101.38.1", 27017), "europeana", "", "");
-			collectionMongoServer = new CollectionMongoServer(new Mongo(
+			collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
 					PropertyUtils.getMongoServer(),
 					PropertyUtils.getMongoPort()),
 					PropertyUtils.getCollectionDB());
-			europeanaIdMongoServer = new EuropeanaIdMongoServer(new Mongo(
+			europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
 					PropertyUtils.getMongoServer(),
 					PropertyUtils.getMongoPort()),
-					PropertyUtils.getEuropeanaIdDB());
+					PropertyUtils.getEuropeanaIdDB(),"","");
 			europeanaIdMongoServer.createDatastore();
 			instantiateMongoServer();
 			// writeServer.createWriteSolrServer("http://10.101.38.1:8282/solr/");

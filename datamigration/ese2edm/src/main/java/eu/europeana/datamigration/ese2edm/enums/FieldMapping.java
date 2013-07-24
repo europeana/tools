@@ -124,10 +124,10 @@ public enum FieldMapping {
 			List<ProxyImpl> proxies = (List<ProxyImpl>) fetchEntity(
 					ProxyImpl.class, fullBean);
 			ProxyImpl proxy = getProxy(proxies);
-			proxy.setEdmType(DocType.get(value));
+			proxy.setEdmType(DocType.safeValueOf(value));
 			proxies.set(getProxyIndex(proxies), proxy);
 			fullBean.setProxies(proxies);
-			fullBean.setType(DocType.get(value));
+			fullBean.setType(DocType.safeValueOf(value));
 		}
 	},
 	EUROPEANA_OBJECT("europeana_object", "provider_aggregation_edm_object",
