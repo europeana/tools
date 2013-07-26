@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -48,6 +49,7 @@ import eu.europeana.datamigration.ese2edm.exception.EntityNotFoundException;
 import eu.europeana.datamigration.ese2edm.exception.MultipleUniqueFieldsException;
 import eu.europeana.datamigration.ese2edm.server.SolrServer;
 import eu.europeana.datamigration.ese2edm.utils.PropertyUtils;
+
 //TODO: Refactor all the converte classes
 
 public class RecordFixer {
@@ -55,8 +57,7 @@ public class RecordFixer {
 	private final static EuropeanaTagger tagger = new EuropeanaTagger();
 	static EDMWriter edmWriter;
 	static EdmMongoServer mongoServer;
-	
-	
+
 	{
 		FileHandler hand;
 
@@ -80,6 +81,7 @@ public class RecordFixer {
 		}
 
 	}
+
 	/**
 	 * @param args
 	 */
@@ -93,11 +95,15 @@ public class RecordFixer {
 					HttpSolrServer readServer = new HttpSolrServer(
 							PropertyUtils.getReadServerUrl() + i);
 					ESEReader reader = new ESEReader(readServer);
-					SolrDocument doc = reader.fetchRecord(record);
+					SolrDocument doc = reader
+							.fetchRecord("europeana_uri:"
+									+ ClientUtils
+											.escapeQueryChars("http://www.europeana.eu/resolve/record"
+													+ record));
 					if (doc != null) {
 						convertEse2EdmSolr(doc);
 					}
-					
+
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -133,79 +139,83 @@ public class RecordFixer {
 		}
 
 	}
-	private static SolrInputDocument convertEse2EdmSolr(
-			SolrDocument document) throws UnknownHostException,
-			MongoException, EntityNotFoundException, SecurityException,
+
+	private static SolrInputDocument convertEse2EdmSolr(SolrDocument document)
+			throws UnknownHostException, MongoException,
+			EntityNotFoundException, SecurityException,
 			IllegalArgumentException, NoSuchMethodException,
-			IllegalAccessException, InvocationTargetException, MalformedURLException {
+			IllegalAccessException, InvocationTargetException,
+			MalformedURLException {
 		SolrServer writeServer = new SolrServer();
-		CollectionMongoServer collectionMongoServer = new CollectionMongoServerImpl(new Mongo(
-				PropertyUtils.getMongoServer(),
-				PropertyUtils.getMongoPort()),
+		CollectionMongoServer collectionMongoServer = new CollectionMongoServerImpl(
+				new Mongo(PropertyUtils.getMongoServer(),
+						PropertyUtils.getMongoPort()),
 				PropertyUtils.getCollectionDB());
-		EuropeanaIdMongoServer europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(new Mongo(
-				PropertyUtils.getMongoServer(),
-				PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB(),"","");
+		EuropeanaIdMongoServer europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(
+				new Mongo(PropertyUtils.getMongoServer(),
+						PropertyUtils.getMongoPort()),
+				PropertyUtils.getEuropeanaIdDB(), "", "");
 		europeanaIdMongoServer.createDatastore();
 		instantiateMongoServer();
 		// writeServer.createWriteSolrServer("http://10.101.38.1:8282/solr/");
-		writeServer
-				.createWriteSolrServer(PropertyUtils.getWriteServerUrl());
+		writeServer.createWriteSolrServer(PropertyUtils.getWriteServerUrl());
 
 		edmWriter = new EDMWriter(writeServer, mongoServer);
-			SolrInputDocument inputDocument = new SolrInputDocument();
-			FullBeanImpl fullBean = new FullBeanImpl();
-			
-				Proxy proxy = new ProxyImpl();
-				proxy.setEuropeanaProxy(false);
-				Proxy europeanaProxy = new ProxyImpl();
-				europeanaProxy.setEuropeanaProxy(true);
-				List<Proxy> proxies = new ArrayList<Proxy>();
-				proxies.add(proxy);
-				proxies.add(europeanaProxy);
-				fullBean.setProxies(proxies);
-				Aggregation aggregation = new AggregationImpl();
-				List<Aggregation> aggregations = new ArrayList<Aggregation>();
-				aggregations.add(aggregation);
-				fullBean.setAggregations(aggregations);
-				EuropeanaAggregation europeanaAggregation = new EuropeanaAggregationImpl();
-				fullBean.setEuropeanaAggregation(europeanaAggregation);
-				for (String fieldName : document.getFieldNames()) {
-					try {
-						fullBean = new FieldCreator().createFields(inputDocument, fieldName,
+		SolrInputDocument inputDocument = new SolrInputDocument();
+		FullBeanImpl fullBean = new FullBeanImpl();
+
+		Proxy proxy = new ProxyImpl();
+		proxy.setEuropeanaProxy(false);
+		Proxy europeanaProxy = new ProxyImpl();
+		europeanaProxy.setEuropeanaProxy(true);
+		List<Proxy> proxies = new ArrayList<Proxy>();
+		proxies.add(proxy);
+		proxies.add(europeanaProxy);
+		fullBean.setProxies(proxies);
+		Aggregation aggregation = new AggregationImpl();
+		List<Aggregation> aggregations = new ArrayList<Aggregation>();
+		aggregations.add(aggregation);
+		fullBean.setAggregations(aggregations);
+		EuropeanaAggregation europeanaAggregation = new EuropeanaAggregationImpl();
+		fullBean.setEuropeanaAggregation(europeanaAggregation);
+		for (String fieldName : document.getFieldNames()) {
+			try {
+				fullBean = new FieldCreator()
+						.createFields(inputDocument, fieldName,
 								document.getFieldValue(fieldName), fullBean,
 								collectionMongoServer, europeanaIdMongoServer,
 								document);
-					} catch (MultipleUniqueFieldsException e) {
-						log.log(Level.SEVERE, e.getMessage());
-					}
-				}
-			 
-			try {
-				List<Entity> entities = null;
-				synchronized (tagger) {
-					entities = tagger.tagDocument(inputDocument);
-				}
-				for (FieldMapping enrichmentField : FieldMapping
-						.getFieldMappings()) {
-					inputDocument.removeField(enrichmentField.getEdmField());
-				}
-				if (entities.size() > 0) {
-					fullBean = new EntityMerger().mergeEntities(entities, fullBean, inputDocument);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (MultipleUniqueFieldsException e) {
+				log.log(Level.SEVERE, e.getMessage());
 			}
-			fullBean = edmWriter.saveEntities(fullBean);
+		}
+
+		try {
+			List<Entity> entities = null;
+			synchronized (tagger) {
+				entities = tagger.tagDocument(inputDocument);
+			}
+			for (FieldMapping enrichmentField : FieldMapping.getFieldMappings()) {
+				inputDocument.removeField(enrichmentField.getEdmField());
+			}
+			if (entities.size() > 0) {
+				fullBean = new EntityMerger().mergeEntities(entities, fullBean,
+						inputDocument);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		fullBean = edmWriter.saveEntities(fullBean);
 		mongoServer.getDatastore().save(fullBean);
-			return inputDocument;
-		
-	
+		return inputDocument;
+
 	}
+
 	public static void instantiateMongoServer() {
 		try {
-			if (mongoServer==null||!mongoServer.getDatastore().getMongo().getConnector().isOpen()) {
+			if (mongoServer == null
+					|| !mongoServer.getDatastore().getMongo().getConnector()
+							.isOpen()) {
 				mongoServer = new EdmMongoServerImpl(new Mongo(
 						PropertyUtils.getMongoServer(),
 						PropertyUtils.getMongoPort()),
@@ -222,5 +232,5 @@ public class RecordFixer {
 			e.printStackTrace();
 		}
 	}
-	
+
 }
