@@ -21,9 +21,10 @@ public class RecordFilter {
 					new File(args[0])));
 			List<String> fixedCollections = IOUtils
 					.readLines(new FileInputStream(new File(args[1])));
-			
+			List<String> allRecordsClone = IOUtils.readLines(new FileInputStream(
+					new File(args[0])));
 			for (String collection : fixedCollections) {
-				for (String record : allRecords) {
+				for (String record : allRecordsClone) {
 					if(record.startsWith("/"+collection+"/")){
 						allRecords.remove(record);
 					}
