@@ -45,7 +45,7 @@ public class MongoDatabaseUtils {
 	static JacksonDBCollection<MongoTermList, String> coll;
 	static DB db;
 	static Map<String,Map<String, TermList>> memCache = new HashMap<String,Map<String, TermList>>();
-
+	
 	/**
 	 * Check if DB exists and initialization of the db
 	 * 
@@ -54,10 +54,10 @@ public class MongoDatabaseUtils {
 	
 	
 	
-	public static boolean dbExists() {
+	public static boolean dbExists(String host, int port) {
 		try {
 			if(db==null){
-			Mongo mongo = new Mongo("localhost", 27017);
+			Mongo mongo = new Mongo(host, port);
 			db = mongo.getDB("annocultor_db");
 			if (db.collectionExists("TermList")) {
 				coll = JacksonDBCollection.wrap(db.getCollection("TermList"),
@@ -595,7 +595,6 @@ public class MongoDatabaseUtils {
 		Iterable<TermList> tlList = voc.listAllByCode();
 		int i = 0;
 		for (TermList tl : tlList) {
-			System.out.println("Working on " + ++i);
 			Term firstTerm = tl.getFirst();
 			MongoTermList termList = new MongoTermList();
 			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
@@ -675,7 +674,6 @@ public class MongoDatabaseUtils {
 		int i = 0;
 		// For each term list
 		for (TermList tl : tlList) {
-			System.out.println("Working on " + ++i);
 			// Get the first tirm to create the searchable uri
 			Term firstTerm = tl.getFirst();
 			// Create the mongo term list object

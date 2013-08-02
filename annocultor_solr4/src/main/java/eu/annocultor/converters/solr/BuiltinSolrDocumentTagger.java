@@ -97,8 +97,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-			log.write(message + "\n");
-			log.flush();
+//			log.write(message + "\n");
+//			log.flush();
 		}
 
 	};
@@ -114,8 +114,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-			log.write(message + "\n");
-			log.flush();
+//			log.write(message + "\n");
+//			log.flush();
 		}
 
 	};
@@ -131,8 +131,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-			log.write(message + "\n");
-			log.flush();
+//			log.write(message + "\n");
+//			log.flush();
 		}
 
 	};
@@ -148,8 +148,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-			log.write(message + "\n");
-			log.flush();
+//			log.write(message + "\n");
+//			log.flush();
 		}
 
 	};
@@ -164,7 +164,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 	SolrTagger placesTagger;
 	SolrTagger categoriesTagger;
 	SolrTagger peopleTagger;
-
+	final String DEFAULT_HOST="localhost";
+	final int DEFAULT_PORT=27017;
 	public BuiltinSolrDocumentTagger(String idFieldName, String query,
 			String solrServerFrom, String solrServerTo, int start,
 			PrintWriter log) throws MalformedURLException {
@@ -209,24 +210,24 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 	@Deprecated
 	public void deleteCollection(String collection) throws SolrServerException,
 			IOException {
-		log.println("Deleting collection by query: " + collection);
+//		log.println("Deleting collection by query: " + collection);
 		System.out.println("Deleting collection by query: " + collection);
 		solrServerTo.deleteByQuery(collection);
-		log.println("Deleted collection by query: " + collection);
+//		log.println("Deleted collection by query: " + collection);
 		System.out.println("Deleted collection by query: " + collection);
 		solrServerTo.commit();
 	}
 	
 	@Deprecated
 	public void optimize() throws Exception {
-		log.println("Started optimize...");
+//		log.println("Started optimize...");
 
 		solrServerTo.optimize();
-		log.println("done.\n");
-		log.flush();
+//		log.println("done.\n");
+//		log.flush();
 	}
 
-	public void init(String name) throws Exception {
+	public void init(String name,String...  args) throws Exception {
 
 		task = Factory.makeTask(name, "", "Solr tagging with time and place",
 				Namespaces.ANNOCULTOR_CONVERTER, environment);
@@ -237,7 +238,13 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		objectRule = ObjectRuleImpl.makeObjectRule(task, new Path(""),
 				new Path(""), new Path(""), null, false);
-		if (!MongoDatabaseUtils.dbExists()) {
+		String host = DEFAULT_HOST;
+		int port = DEFAULT_PORT;
+		if(args!=null && args.length>2){
+			host = args[0];
+			port = Integer.parseInt(args[1]);
+		}
+		if (!MongoDatabaseUtils.dbExists(host,port)) {
 			File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 			File baseDir = environment.getVocabularyDir();
 
