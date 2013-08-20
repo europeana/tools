@@ -46,11 +46,11 @@ def ensure_dir_exists(ddir):
 DIR_STATIC_PAGES = os.path.join(settings.SUBMIT_PATH, 'static_pages') # portal2
 ensure_dir_exists(DIR_STATIC_PAGES)
 
-DIR_PROP_FILES = os.path.join(settings.SUBMIT_PATH, 'properties_translated')
-ensure_dir_exists(DIR_PROP_FILES)
+DIR_MESSAGE_KEYS = os.path.join(settings.SUBMIT_PATH, 'message_keys')
+ensure_dir_exists(DIR_MESSAGE_KEYS)
 
-DIR_LOCALES = os.path.join(settings.SUBMIT_PATH, 'translations')
-ensure_dir_exists(DIR_LOCALES)
+DIR_GETTEXT_SRC = os.path.join(settings.SUBMIT_PATH, 'gettext-src')
+ensure_dir_exists(DIR_GETTEXT_SRC)
 
 
 SYNC_INDICATOR = '/tmp/multilingo-sync'

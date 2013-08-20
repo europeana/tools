@@ -29,15 +29,21 @@
 from email.mime.text import MIMEText
 import os
 import smtplib
-from git import *
 
-from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_PROP_FILES, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
+import git
+
+import settings
+
+from gen_utils.submit_base import SYNC_INDICATOR, SubmitBase
 from gen_utils.shell_cmd import cmd_execute
 
 
 MAIL_FILE = '/tmp/multilingomail.txt'
 
-FORCE_RUN = True # only enable when debugging...
+try:
+    FORCE_RUN = settings.FORCE_SUBMIT
+except:
+    FORCE_RUN = False # only enable when debugging...
 
 
 class SubmitCommitter(SubmitBase):
@@ -65,17 +71,11 @@ class SubmitCommitter(SubmitBase):
         self.log('Found sync indicator, commiting changes')
         subj = 'Multilingo submit'
         msg = 'The submit suceeded, portals will mail you as they pick up the changes'
-        for path, label in ((DIR_PROP_FILES, 'message properties portal'),
-                            (DIR_STATIC_PAGES, 'static pages & support media'),
-                            (DIR_LOCALES, 'locale source files'),
-                            ):
-            repo = Repo(path)
-            if not repo.is_dirty():
-                self.log('no changes in %s, nothing to commit' % path)
-                continue
+        repo = git.Repo(settings.SUBMIT_PATH)
+        if repo.is_dirty():
             try:
                 a = b = c = ''
-                self.log('git add -A: %s' % path)
+                self.log('git add -A: %s' % settings.SUBMIT_PATH)
                 a = repo.git.add('-A')
                 self.log('git commit')
                 b = repo.git.commit('-m "multilingo machine commit"')
@@ -88,8 +88,9 @@ class SubmitCommitter(SubmitBase):
                         msg += '[%s] ' % s
                 self.log('Error git push failed: %s' % msg )
                 subj = '*** Error in multilingo push'
-                msg = 'Something went wrong when commiting %s, you could try again in a few minutes, if it still fails, report the bug\n\nDetails: %s' % (label, msg)
-                break
+                msg = 'Something went wrong when commiting portal_translations, you could try again in a few minutes, if it still fails, report the bug\n\nDetails: %s' % msg
+        else:
+            msg = 'No changes needed to be commited'
                 
         for aadr in mail_recievers:
             self.log('will send mail to user:%s' % aadr)

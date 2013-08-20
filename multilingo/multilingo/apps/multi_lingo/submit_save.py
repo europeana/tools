@@ -27,6 +27,13 @@
 
 DJANGO_SITENAME=multilingo
 DJANGO_SETTINGS_MODULE=${DJANGO_SITENAME}.settings
+
+
+
+
+This file saves files from the multilingo environ in the git repository file tree
+
+submitter.py should br run from cron every few mins, will pick up pending commits and process them
 """
 
 import codecs
@@ -40,7 +47,7 @@ from django.template import loader, Context, Template
 from django.utils import translation
 
 from multilingo.gen_utils.shell_cmd import cmd_execute
-from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_PROP_FILES, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
+from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_MESSAGE_KEYS, DIR_GETTEXT_SRC, SYNC_INDICATOR, SubmitBase
 
 from utils import global_environ, SubmitError
 
@@ -64,7 +71,7 @@ GIT_COMMIT_INITIATED_BY = '' # who started the svn commit process
 
 
 #if settings.SUBMIT_IS_GIT:
-#    for d in (DIR_STATIC_PAGES, DIR_PROP_FILES):
+#    for d in (DIR_STATIC_PAGES, DIR_MESSAGE_KEYS):
 #        d_svn = os.path.join(d, '.svn')
 #        if not os.path.exists(d_svn):
 #            raise exceptions.ImproperlyConfigured(
@@ -127,6 +134,7 @@ class SubmitSaver(SubmitBase):
 
         self.log('run(%s)' % self.request.user)
         GIT_COMMIT_INITIATED_BY = self.request.user
+        self.add_webcommitter(settings.SUBMIT_PATH)
         try:
             self.handle_all_static_pages()
             self.handle_support_media()
@@ -142,9 +150,6 @@ class SubmitSaver(SubmitBase):
 
     def handle_all_static_pages(self):
         self.log('handle_all_static_pages()')
-        self.add_webcommitter(DIR_STATIC_PAGES)
-        self.add_webcommitter(DIR_PROP_FILES)
-        
         static_pages = models.TranslatePage.objects.filter(active=True)
         for static_page in static_pages:
             self.static_page_handle('', static_page)
@@ -162,13 +167,13 @@ class SubmitSaver(SubmitBase):
         
 
     def handle_loacle_files(self):
-        self.add_webcommitter(DIR_LOCALES)
+        self.add_webcommitter(DIR_GETTEXT_SRC)
         for dirpath, dirnames, filenames in os.walk(os.path.join(THIS_DIR, 'locale')):
             if dirpath.find('.svn') > -1:
                 continue # skip svn trees
             try:                
                 p = dirpath.split('locale/')[1]
-                destpath = os.path.join(DIR_LOCALES, p)
+                destpath = os.path.join(DIR_GETTEXT_SRC, p)
             except:
                 continue # we where in locale top dir
             for filename in filenames:
@@ -188,7 +193,7 @@ class SubmitSaver(SubmitBase):
                 self.static_page_save(prefix, template_fname, html, lang)
                 self.b_static_pages_saved = True
             else:
-                self.prop_page_save(DIR_PROP_FILES, template_fname, html, lang)
+                self.prop_page_save(DIR_MESSAGE_KEYS, template_fname, html, lang)
                     
                 
     def static_page_save(self, prefix, template_fname, html, lang):
