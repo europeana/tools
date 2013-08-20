@@ -49,7 +49,7 @@ ensure_dir_exists(DIR_STATIC_PAGES)
 DIR_MESSAGE_KEYS = os.path.join(settings.SUBMIT_PATH, 'message_keys')
 ensure_dir_exists(DIR_MESSAGE_KEYS)
 
-DIR_GETTEXT_SRC = os.path.join(settings.SUBMIT_PATH, 'gettext-src')
+DIR_GETTEXT_SRC = os.path.join(settings.SUBMIT_PATH, 'gettext_src')
 ensure_dir_exists(DIR_GETTEXT_SRC)
 
 
