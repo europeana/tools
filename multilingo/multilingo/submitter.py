@@ -29,54 +29,71 @@
 from email.mime.text import MIMEText
 import os
 import smtplib
+from git import *
 
-
-from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_MSG_KEYS, DIR_MSG_KEYS2, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
+from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_PROP_FILES, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
 from gen_utils.shell_cmd import cmd_execute
 
 
 MAIL_FILE = '/tmp/multilingomail.txt'
 
+FORCE_RUN = True # only enable when debugging...
 
 
 class SubmitCommitter(SubmitBase):
     def run(self):
-        if not os.path.exists(SYNC_INDICATOR):
+        if (not os.path.exists(SYNC_INDICATOR)) and (not FORCE_RUN):
             #self.log('No sync inddicator found, aborting')
             return
 
         # Since this might run longer than the crontab intervall, we store the recievers internally
         # and just leave a empty file as an indicator that we are in progress
-        mail_recievers = open(SYNC_INDICATOR).readlines()
-        if not mail_recievers:
-            self.log('Svn syncing seems to be in progress, aborting')
-            return
-        os.remove(SYNC_INDICATOR)
+        if not FORCE_RUN:
+            mail_recievers = open(SYNC_INDICATOR).readlines()
+            if not mail_recievers:
+                self.log('Svn syncing seems to be in progress, aborting')
+                return
+        else:
+            mail_recievers = ()
+        try:
+            os.remove(SYNC_INDICATOR)
+        except:
+            # we only removed a file, if it was already gone, not a biggie...
+            pass
         cmd_execute('touch %s' % SYNC_INDICATOR)
         
         self.log('Found sync indicator, commiting changes')
         subj = 'Multilingo submit'
         msg = 'The submit suceeded, portals will mail you as they pick up the changes'
-        for path, label in ((DIR_MSG_KEYS, 'message properties portal1'),
-                            (DIR_MSG_KEYS2, 'message properties portal'),
+        for path, label in ((DIR_PROP_FILES, 'message properties portal'),
                             (DIR_STATIC_PAGES, 'static pages & support media'),
                             (DIR_LOCALES, 'locale source files'),
                             ):
-            cmd = 'svn add --force *'
-            self.log('%s %s' % (cmd, path))
-            result = cmd_execute(cmd, path)
-            if not result:
-                cmd = "svn commit -m 'multilingo webcommit %s'" % label
-                self.log('%s %s' % (cmd, path))
-                result = cmd_execute(cmd, path)
-            if result:
-                self.log('Error from subshell: %s' % result)
-                subj = '*** Error in multilingo submit'
-                msg = 'Something went wrong when commiting %s, you could try again in a few minutes, if it still fails, report the bug\n\nDetails: %s' % (label, result)
+            repo = Repo(path)
+            if not repo.is_dirty():
+                self.log('no changes in %s, nothing to commit' % path)
+                continue
+            try:
+                a = b = c = ''
+                self.log('git add -A: %s' % path)
+                a = repo.git.add('-A')
+                self.log('git commit')
+                b = repo.git.commit('-m "multilingo machine commit"')
+                self.log('git push')
+                c = repo.git.push()
+            except:
+                msg = ''
+                for s in a,b,c:
+                    if s:
+                        msg += '[%s] ' % s
+                self.log('Error git push failed: %s' % msg )
+                subj = '*** Error in multilingo push'
+                msg = 'Something went wrong when commiting %s, you could try again in a few minutes, if it still fails, report the bug\n\nDetails: %s' % (label, msg)
                 break
-        for line in mail_recievers:
-            self.log('will send mail to user:%s' % line)
-            self.sendmail(subj, msg, line.strip())
+                
+        for aadr in mail_recievers:
+            self.log('will send mail to user:%s' % aadr)
+            self.sendmail(subj, msg, aadr.strip())
         self.log('commit done')
         os.remove(SYNC_INDICATOR)
 

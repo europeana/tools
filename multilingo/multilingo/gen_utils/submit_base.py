@@ -42,19 +42,14 @@ def ensure_dir_exists(ddir):
     os.makedirs(ddir)
 
 
-#DIR_STATIC_PAGES, DIR_MSG_KEYS, SYNC_INDICATOR, SubmitBase
 
-
-DIR_STATIC_PAGES = os.path.join(settings.SUBMIT_PATH, 'test/staticpages')
+DIR_STATIC_PAGES = os.path.join(settings.SUBMIT_PATH, 'static_pages') # portal2
 ensure_dir_exists(DIR_STATIC_PAGES)
 
-DIR_MSG_KEYS = os.path.join(settings.SUBMIT_PATH, 'main/message_keys')
-ensure_dir_exists(DIR_MSG_KEYS)
+DIR_PROP_FILES = os.path.join(settings.SUBMIT_PATH, 'properties_translated')
+ensure_dir_exists(DIR_PROP_FILES)
 
-DIR_MSG_KEYS2 = os.path.join(settings.SUBMIT_PATH, 'portal2/message_keys')
-ensure_dir_exists(DIR_MSG_KEYS2)
-
-DIR_LOCALES = os.path.join(settings.SUBMIT_PATH, 'test/localefiles')
+DIR_LOCALES = os.path.join(settings.SUBMIT_PATH, 'translations')
 ensure_dir_exists(DIR_LOCALES)
 
 

@@ -40,7 +40,7 @@ from django.template import loader, Context, Template
 from django.utils import translation
 
 from multilingo.gen_utils.shell_cmd import cmd_execute
-from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_MSG_KEYS, DIR_MSG_KEYS2, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
+from gen_utils.submit_base import DIR_STATIC_PAGES, DIR_PROP_FILES, DIR_LOCALES, SYNC_INDICATOR, SubmitBase
 
 from utils import global_environ, SubmitError
 
@@ -59,16 +59,16 @@ PROP_FILE_FNAME_BASE = 'prop_file'
 FNAME_MSG_KEYS = '%s.html' % PROP_FILE_FNAME_BASE
 FNAME_MSG_KEYS2 = '%s2.html' % PROP_FILE_FNAME_BASE
 
-SVN_COMMIT_INITIATED_BY = '' # who started the svn commit process
+GIT_COMMIT_INITIATED_BY = '' # who started the svn commit process
 
 
 
-if settings.SUBMIT_IS_SVN:
-    for d in (DIR_STATIC_PAGES, DIR_MSG_KEYS):
-        d_svn = os.path.join(d, '.svn')
-        if not os.path.exists(d_svn):
-            raise exceptions.ImproperlyConfigured(
-                '%s not prepared for subversion' % d_svn)
+#if settings.SUBMIT_IS_GIT:
+#    for d in (DIR_STATIC_PAGES, DIR_PROP_FILES):
+#        d_svn = os.path.join(d, '.svn')
+#        if not os.path.exists(d_svn):
+#            raise exceptions.ImproperlyConfigured(
+#                '%s not prepared for subversion' % d_svn)
 
 
 htmlcodes = ['&Aacute;', '&aacute;', '&Agrave;', '&Acirc;', '&agrave;', '&Acirc;', '&acirc;', '&Auml;', '&auml;',
@@ -111,22 +111,22 @@ class SubmitSaver(SubmitBase):
 
 
     def run(self):
-        global SVN_COMMIT_INITIATED_BY
+        global GIT_COMMIT_INITIATED_BY
         if not self.request.user.email:
             raise exceptions.ImproperlyConfigured(
                 'No email configured for current user!')
         
-        if SVN_COMMIT_INITIATED_BY:
+        if GIT_COMMIT_INITIATED_BY:
             # somebody is doing a save
             raise exceptions.PermissionDenied(
-                'Somebody already started a submit: %s!' % SVN_COMMIT_INITIATED_BY)
+                'Somebody already started a submit: %s!' % GIT_COMMIT_INITIATED_BY)
         if os.path.exists(SYNC_INDICATOR):
             # somebody has already triggered a submit
             raise exceptions.PermissionDenied(
                 'A submit is already done, waiting for propagation to subversion, try again in a few minutes')
 
         self.log('run(%s)' % self.request.user)
-        SVN_COMMIT_INITIATED_BY = self.request.user
+        GIT_COMMIT_INITIATED_BY = self.request.user
         try:
             self.handle_all_static_pages()
             self.handle_support_media()
@@ -134,16 +134,16 @@ class SubmitSaver(SubmitBase):
         #except SubmitError as e:
             
         except:
-            SVN_COMMIT_INITIATED_BY = ''
+            GIT_COMMIT_INITIATED_BY = ''
             raise
         open(SYNC_INDICATOR,'a').write('%s\n' % self.request.user.email)
         self.log('preparing pages for commit done')
-        SVN_COMMIT_INITIATED_BY = ''
+        GIT_COMMIT_INITIATED_BY = ''
 
     def handle_all_static_pages(self):
         self.log('handle_all_static_pages()')
         self.add_webcommitter(DIR_STATIC_PAGES)
-        self.add_webcommitter(DIR_MSG_KEYS)
+        self.add_webcommitter(DIR_PROP_FILES)
         
         static_pages = models.TranslatePage.objects.filter(active=True)
         for static_page in static_pages:
@@ -188,13 +188,7 @@ class SubmitSaver(SubmitBase):
                 self.static_page_save(prefix, template_fname, html, lang)
                 self.b_static_pages_saved = True
             else:
-                if template_fname.find(FNAME_MSG_KEYS2) < 0:
-                    # do vers1 prop file
-                    dest_dir = DIR_MSG_KEYS
-                else:
-                    # was vers2 prop file
-                    dest_dir = DIR_MSG_KEYS2
-                self.prop_page_save(dest_dir, template_fname, html, lang)
+                self.prop_page_save(DIR_PROP_FILES, template_fname, html, lang)
                     
                 
     def static_page_save(self, prefix, template_fname, html, lang):

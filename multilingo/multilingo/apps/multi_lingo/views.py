@@ -90,7 +90,7 @@ def portal_url(request, rel_url, lang='', *args, **kwargs):
 
 
 def submit_pages(request):
-    global SVN_COMMIT_INITIATED_BY
+    global GIT_COMMIT_INITIATED_BY
     if not request.user.is_superuser:
         return render_to_response('admin/submit.html',
                                   {

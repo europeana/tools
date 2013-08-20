@@ -1,6 +1,8 @@
 Multilingo.wp*
 django.mo  
 django.po
+django.pot
 local_settings.py
 *~
+support_media
 

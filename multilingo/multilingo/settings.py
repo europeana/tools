@@ -119,10 +119,10 @@ del __tst_dir
 
 
 try:
-    SUBMIT_IS_SVN
+    SUBMIT_IS_GIT
 except:
     raise exceptions.ImproperlyConfigured(
-        'Missing setting in local_settings.py: SUBMIT_IS_SVN - see local_settings_template.py')
+        'Missing setting in local_settings.py: SUBMIT_IS_GIT - see local_settings_template.py')
 
 
 

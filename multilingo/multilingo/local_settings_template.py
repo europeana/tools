@@ -82,7 +82,7 @@ SUBMIT_PATH = '/tmp/submit'
 # a svn commit -m 'multilingo submission - autocommited'
 # will be done
 #
-SUBMIT_IS_SVN = True
+SUBMIT_IS_GIT = True
 
 
 #
