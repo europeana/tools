@@ -50,8 +50,12 @@ class Watchdog(sip_task.SipTask):
             return False
 
         WATCHDOG_LAST_RUN = time.time() + 3600 # only send notification once/hour
-        msg = 'Watchdog detected (%i) stale processes' % proc_count
+        proc_names = []
+        for proc_info in stale_procs:
+            proc_names.append(proc_info.pid)
+        msg = 'Watchdog detected (%i) stale processes: %s ' % (proc_count, ', '.join(proc_names))
         self.log(msg , 1)
+        
         for eadr in settings.ADMIN_EMAILS:
             self.send_msg(eadr, 'Thumbler warning!', msg)
         

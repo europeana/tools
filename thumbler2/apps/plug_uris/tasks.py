@@ -259,7 +259,7 @@ class UriPepareStorageDirs(sip_task.SipTask):
 
     def safe_mkdir(self, ddir):
         try:
-            os.mkdir(ddir)
+            os.makedirs(ddir)
             return True
         except OSError,e:
             if e.errno == 17:

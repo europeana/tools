@@ -1,6 +1,7 @@
 Debug paramas for manage.py
 
 runserver --noreload --nothreading
+sipmanager --clear-pids
 
 
 select u.status, count(u.status) 

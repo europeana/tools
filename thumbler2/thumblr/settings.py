@@ -5,8 +5,11 @@ import os.path
 #when settings are called from apps...
 proj_root = os.path.normpath(os.path.dirname(__file__))
 
+from django.core import exceptions
+
 class ImproperlyConfigured(Exception):
     pass
+
 
 
 from local_settings import *

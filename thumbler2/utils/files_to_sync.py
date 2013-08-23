@@ -34,7 +34,7 @@ SYNC_FILE_PREFIX = 'thmblr'
 
 if not os.path.exists(FILE_LISTS):
     try:
-        os.mkdir(FILE_LISTS)
+        os.makedirs(FILE_LISTS)
     except:
         raise ImproperlyConfigured('Failed to create missing directory - FILE_LISTS: %s' % FILE_LISTS)
 
@@ -42,7 +42,7 @@ for s in (DIR_ST_ADDING, DIR_ST_DELIVERED, DIR_ST_SYNC_WAIT):
     ddir = os.path.join(FILE_LISTS, s)
     if not os.path.exists(ddir):
         try:
-            os.mkdir(ddir)
+            os.makedirs(ddir)
         except:
             raise ImproperlyConfigured('Failed to create dir: %s' % ddir)
 

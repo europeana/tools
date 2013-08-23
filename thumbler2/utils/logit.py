@@ -24,6 +24,7 @@
 
 import codecs
 import sys
+import os.path
 import time
 
 #from django.core.mail import send_mail
@@ -35,6 +36,13 @@ class LogIt(object):
         self._log_lvl = max(log_lvl, 0) # self.debug_lvl
         self._log_file = log_file # SIP_LOG_FILE
         if log_file:
+            log_dir = os.path.dirname(log_file)
+            if not os.path.exists(log_dir):
+                try:
+                    os.makedirs(log_dir)
+                except:
+                    raise IOError('Failed to log directory: %s' % log_dir)
+                print 'Created logdir: %s' % log_dir
             self._log_print = print_log  # settings.PRINT_LOG
         else:
             self._log_print = True # we need atleast one of them

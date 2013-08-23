@@ -315,11 +315,13 @@ class MainProcessor(sip_task.SipTask):
                     raise ImportError, e
                 continue
             plugin_content = ['Plugins found %s:' % app]
+            used_plugins = []
+            skipped_plugins = []
             for task in task_list:
                 if PLUGIN_FILTER and not task.__name__ in PLUGIN_FILTER:
-                    # we dont ever want to prevent task inits to run...
+                    skipped_plugins.append(task.__name__)
                     continue
-                plugin_content.append(task.__name__)
+                used_plugins.append(task.__name__)
                 if task.INIT_PLUGIN:
                     self.tasks_init.append(task)
                     continue
@@ -331,6 +333,9 @@ class MainProcessor(sip_task.SipTask):
                 if task.PLUGIN_TAXES_NET_IO:
                     resource_hog = True
                 tasks.append((task.PRIORITY, task))
+            plugin_content.append(' '.join(used_plugins))
+            if skipped_plugins:
+                plugin_content.append( ' - Skipped: %s' % ' '.join(skipped_plugins))
             self.log(' '.join(plugin_content), 1)
 
         tasks.sort()
