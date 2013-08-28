@@ -46,6 +46,9 @@ def ensure_dir_exists(ddir):
 DIR_STATIC_PAGES = os.path.join(settings.SUBMIT_PATH, 'static_pages') # portal2
 ensure_dir_exists(DIR_STATIC_PAGES)
 
+DIR_RIGHTS_PAGES = os.path.join(DIR_STATIC_PAGES, 'rights')
+ensure_dir_exists(os.path.join(DIR_RIGHTS_PAGES))
+
 DIR_MESSAGE_KEYS = os.path.join(settings.SUBMIT_PATH, 'message_keys')
 ensure_dir_exists(DIR_MESSAGE_KEYS)
 
