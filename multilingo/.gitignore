@@ -4,6 +4,7 @@ django.po
 django.pot
 local_settings.py
 *~
+*.pyc
 support_media
 apache.conf
 django.wsgi
