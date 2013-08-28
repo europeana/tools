@@ -75,11 +75,15 @@ class SubmitCommitter(SubmitBase):
         if repo.is_dirty():
             try:
                 a = b = c = ''
+                print '*** will log'
                 self.log('git add -A: %s' % settings.SUBMIT_PATH)
+                print '*** git add'
                 a = repo.git.add('-A')
                 self.log('git commit')
+                print '*** git commit'
                 b = repo.git.commit('-m "multilingo machine commit"')
                 self.log('git push')
+                print '*** git push'
                 c = repo.git.push()
             except:
                 msg = ''
