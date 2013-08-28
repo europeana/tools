@@ -8,3 +8,5 @@ local_settings.py
 support_media
 apache.conf
 django.wsgi
+manual_translations
+
