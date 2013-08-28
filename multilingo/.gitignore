@@ -5,4 +5,5 @@ django.pot
 local_settings.py
 *~
 support_media
-
+apache.conf
+django.wsgi
