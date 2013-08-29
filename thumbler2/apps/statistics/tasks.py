@@ -73,14 +73,12 @@ class UpdateRequestStats(sip_task.SipTask):
     THREAD_MODE = sip_task.SIPT_SINGLE
     
     def prepare(self, now=False):
+        b = False
         if now:
-            return True
-        elif not settings.STATS_UPDATE_INTERVALL:
-            return False
-        elif time.time() > LAST_RUN + settings.STATS_UPDATE_INTERVALL:
-            return True
-        else:
-            return False
+            b = True
+        elif settings.STATS_UPDATE_INTERVALL and (time.time() > LAST_RUN + settings.STATS_UPDATE_INTERVALL):
+            b = True
+        return b
                 
     def run_it(self, now=False):
         global LAST_RUN
