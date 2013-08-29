@@ -54,7 +54,10 @@ import sync_imgs
 # Since looking up in settings takes some extra cpu, important settings
 # are cached within the module
 PROCESS_SLEEP_TIME = settings.PROCESS_SLEEP_TIME
-PLUGIN_FILTER = settings.PLUGIN_FILTER
+try:
+    PLUGIN_FILTER = settings.PLUGIN_FILTER
+except:
+    PLUGIN_FILTER = None
 SIPMANAGER_DBG_LVL = settings.SIPMANAGER_DBG_LVL
 
 
@@ -398,6 +401,7 @@ class MainProcessor(sip_task.SipTask):
         self.log('clear-pids done!')
 
     def cmd_clear_bad_links(self):
+        # SELECT count(*) FROM plug_uris_uri WHERE status != 100
         cursor = connection.cursor()
         sql = ["UPDATE %s" % uri_models.TBL_URIS]
         sql.append("SET status=%i" % uri_models.URIS_CREATED)
