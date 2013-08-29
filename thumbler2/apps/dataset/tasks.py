@@ -36,10 +36,15 @@ class DataSet(sip_task.SipTask):
         if not self.ds:
             return True # all got taken by somebody else
 
-        stats, created = Statistics.objects.get_or_create(ds=self.ds, set_name=ds_name)
+        stats, created = Statistics.objects.get_or_create(ds=self.ds, 
+                                                          #set_name=ds_name
+                                                          )
         if not created:
             stats.delete()
-            stats = Statistics(ds=self.ds, set_name=ds_name)
+            stats = Statistics(ds=self.ds,
+                               #set_name=ds_name
+                               )
+        stats.set_name=ds_name
         stats.save()        
         self.process_dataset()
         self.release_item(models.DataSet, self.ds.pk)
