@@ -30,6 +30,10 @@ import os
 from django.conf import settings
 
 
+try:
+    os.makedirs(settings.TIMESTAMP_FILES)
+except:
+    pass
 
 
 class TimeStampFile(object):
