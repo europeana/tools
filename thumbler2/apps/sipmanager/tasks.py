@@ -31,7 +31,7 @@ class Watchdog(sip_task.SipTask):
             # starting up send initial msg to ensure setup is ok
             self.log('Mailing admins Watchdog is starting', 3)
             for eadr in settings.ADMIN_EMAILS:
-                self.send_msg(eadr, 'Thumbler notification', 'Watchdog is starting.')
+                self.send_email(eadr, 'Thumbler notification', 'Watchdog is starting.')
             
         if WATCHDOG_LAST_RUN + 300 > time.time():
             # only check and potentionally mail out every five mins
@@ -57,15 +57,9 @@ class Watchdog(sip_task.SipTask):
         self.log(msg , 1)
         
         for eadr in settings.ADMIN_EMAILS:
-            self.send_msg(eadr, 'Thumbler warning!', msg)
+            self.send_email(eadr, 'Thumbler warning!', msg)
         
     
-    def send_msg(self, recipient, subj, body):
-        if recipient:
-            send_mail(subj, body, '', [recipient], fail_silently=False)
-        else:
-            self.log('>> if mailadr was defined, this would have been sent:', 1)
-            self.log('>> [%s] %s' % (subj, body), 1)
         
     
 

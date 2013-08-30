@@ -28,6 +28,7 @@ import threading
 import time
 
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 from utils.logit import LogIt
@@ -65,7 +66,15 @@ PLUGINS_MAY_NOT_RUN = False
 
 
 class SipTaskException(Exception):
-    pass
+    def __init__(self, msg='', *args, **kwargs):
+        self.msg = msg
+        for eadr in settings.ADMIN_EMAILS:
+            if eadr:
+                send_mail('Thumblr2 SipTaskException', self.msg, '', [eadr], fail_silently=False)
+    
+    def __str__(self):
+        return repr(self.msg)
+    
 
 class SipSystemOverLoaded(Exception):
     pass
@@ -565,6 +574,12 @@ class SipTask(LogIt, ExecuteCommand): #SipProcess(object):
     # ==========   End of Task steps   ====================
 
 
+    def send_email(self, recipient, subj, body):
+        if recipient:
+            send_mail(subj, body, '', [recipient], fail_silently=False)
+        else:
+            self.log('>> if mailadr was defined, this would have been sent:', 1)
+            self.log('>> [%s] %s' % (subj, body), 1)
 
 
 

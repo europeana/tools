@@ -27,6 +27,9 @@ import sys
 import os.path
 import time
 
+from django.conf import settings
+
+
 #from django.core.mail import send_mail
 
 
@@ -72,9 +75,11 @@ class LogIt(object):
             self._log_skip_time_stamp = False
         if self._log_file:
             codecs.open(self._log_file, 'a', 'utf-8').write(u'%s%s%s' % (ts, msg, lf))
-        if 0: # mail_it: FIXME!
+        if mail_it: 
             for eadr in settings.ADMIN_EMAILS:
-                send_mail('Thumbler log warning', msg, '', [eadr], fail_silently=False)
+                self.send_email(eadr, 'Thumbler log warning', msg)
+            #for eadr in settings.ADMIN_EMAILS:
+            #    send_mail('Thumbler log warning', msg, '', [eadr], fail_silently=False)
             
         return
     

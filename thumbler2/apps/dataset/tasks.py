@@ -54,9 +54,19 @@ class DataSet(sip_task.SipTask):
         self.ds.status=models.DS_UNZIPPING
         self.ds.save()
         try:
-            self.untar_it()
+            fname = os.path.join(settings.MEDIA_ROOT, self.ds.ffile.name)
+            file_type = os.path.splitext(fname)[-1]
+            if file_type == '.tgz':
+                self.untar_it(fname)
+            #elif file_type == '.zip':
+            else:
+                # unrecognized file
+                raise sip_task.SipTaskException('Dataset file %s could not be processed' % self.ds.ffile.name)
+            
         except sip_task.SipSystemOverLoaded:
             self.ds.status=models.DS_CREATED # reprocess this one later
+        except:
+            self.ds.status=models.DS_FAILED # reprocess this one later
         else:            
             self.ds.status=models.DS_DONE
         self.ds.save()
@@ -64,15 +74,26 @@ class DataSet(sip_task.SipTask):
 
     @transaction.commit_manually
     def untar_it(self):
-        t0 = time.time()
-        fname = os.path.join(settings.MEDIA_ROOT, self.ds.ffile.name) 
+        fname = os.path.join(settings.MEDIA_ROOT, self.ds.ffile.name)
+        file_type = os.path.splitext(fname)[-1]
+        if file_type == '.tgz':
+            self.process_tarfile(fname)
+        #elif file_type == '.zip':
+        else:
+            # unrecognized file
+            raise sip_task.SipTaskException('Dataset file %s could not be processed' % self.ds.ffile.name)
+            
+           
+
+    def untar_it(self, fname_tar):
         try:
-            tar = tarfile.open(fname)
+            tar = tarfile.open(fname_tar)
         except:
             raise sip_task.SipTaskException('Failed to open tar file %s' % self.ds.ffile.name)
         fname = '/tmp/thumblr-%s.xml' % self.pid
         icount = iok = ibad = 0
         t_sync = 0
+        t0 = time.time()
         for tarinfo in tar:
             icount += 1
             if not tarinfo.isreg():
