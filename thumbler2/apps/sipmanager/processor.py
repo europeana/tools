@@ -347,29 +347,6 @@ class MainProcessor(sip_task.SipTask):
 
 
 
-    def scan_rec_for_dupes(self, record):
-        rec_dct = {}
-        dup_key_found = False
-        for field in record:
-            key = field.split('>')[0][1:]
-            value = field.replace(key,'').replace('<>','').replace('</>','')
-            if key in self.SINGLE_INSTANCE_REC_FIELDS:
-                if key not in rec_dct.keys():
-                    rec_dct[key] = []
-                else:
-                    dup_key_found = True
-                rec_dct[key].append(value)
-            else:
-                rec_dct[key] = value
-
-        if dup_key_found:
-            print rec_dct['europeana:uri']
-            for key in self.SINGLE_INSTANCE_REC_FIELDS:
-                if key in rec_dct.keys() and len(rec_dct[key]) > 1:
-                    for v in rec_dct[key]:
-                        print '\t', key, v
-
-
     def cmd_flush_all(self, *args):
         if db_type == 'postgres':
             sql = 'TRUNCATE %s CASCADE;commit'

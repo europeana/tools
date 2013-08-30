@@ -111,7 +111,6 @@ class UpdateRequestStats(sip_task.SipTask):
         l.append("and du.ds_id=%i" % stat.ds_id)
         l.append("group by du.ds_id ,u.status ,u.err_code")
         l.append("order by du.ds_id, u.status")
-        print stat.ds_id, stat.set_name
         cursor.execute(" ".join(l))
         for status, status_count, err_code, err_count in cursor.fetchall():
             if status == uri_models.URIS_COMPLETED:
