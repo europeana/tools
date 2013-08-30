@@ -4,10 +4,23 @@ import os.path
 import shutil
 
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 class FileSyncException(Exception):
-    pass
+    """
+    Dont forget:
+    from django.conf import settings
+    from django.core.mail import send_mail
+    """
+    def __init__(self, msg='', *args, **kwargs):
+        self.msg = msg
+        for eadr in settings.ADMIN_EMAILS:
+            if eadr:
+                send_mail('Thumblr2 FileSyncException', self.msg, '', [eadr], fail_silently=False)
+    
+    def __str__(self):
+        return repr(self.msg)
 
 class ImproperlyConfigured(Exception):
     pass

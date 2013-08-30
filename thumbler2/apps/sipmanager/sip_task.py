@@ -66,6 +66,11 @@ PLUGINS_MAY_NOT_RUN = False
 
 
 class SipTaskException(Exception):
+    """
+    Dont forget:
+    from django.conf import settings
+    from django.core.mail import send_mail
+    """
     def __init__(self, msg='', *args, **kwargs):
         self.msg = msg
         for eadr in settings.ADMIN_EMAILS:
