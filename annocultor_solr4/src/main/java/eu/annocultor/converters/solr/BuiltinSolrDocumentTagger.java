@@ -240,7 +240,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				new Path(""), new Path(""), null, false);
 		String host = DEFAULT_HOST;
 		int port = DEFAULT_PORT;
-		if(args!=null && args.length>2){
+		if(args!=null && args.length>1){
 			host = args[0];
 			port = Integer.parseInt(args[1]);
 		}
