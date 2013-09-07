@@ -215,15 +215,11 @@ class SyncManager(sip_task.SipTask):
                     # shutting down, ok be killed just die quietly
                     b_stopping = True
                 else:
-                    if settings.ALLOW_SCP_SYNC:
-                        self.log('== rsync problem, falling back to file-by-file scp', 1)
-                        b_stopping = self.process_by_line(file_list, line_count, sync_dest)
-                    else:
-                        self.log('SyncManager failed to send content of %s\n%s' % (file_list, stderr), 1)
-                        self.log('== rsync problem, shutting down', 1)
-                        sip_task.PLUGINS_MAY_NOT_RUN = True
-                        sip_task.IS_TERMINATING = True
-                        return True
+                    self.log('SyncManager failed to send content of %s\n%s' % (file_list, stderr), 1)
+                    self.log('== rsync problem, shutting down', 1)
+                    sip_task.PLUGINS_MAY_NOT_RUN = True
+                    sip_task.IS_TERMINATING = True
+                    return True
             if b_stopping:
                 break
         return b_stopping
