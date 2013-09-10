@@ -88,7 +88,7 @@ public class PlaceSanitizer implements Sanitizer {
 				}
 			}
 			int k = 0;
-			MongoDatabaseUtils.dbExists();
+			MongoDatabaseUtils.dbExists("localhost",27017);
 			for (Entry<String, PlaceImpl> place : placeMap.entrySet()) {
 
 				Query<PlaceImpl> query = mongoServer.getDatastore()

@@ -75,7 +75,7 @@ public class AgentSanitizer implements Sanitizer{
 			int k = 0;
 			for (AgentImpl agent : agents) {
 				//Initiate the connection to the AnnocultorDB
-				MongoDatabaseUtils.dbExists();
+				MongoDatabaseUtils.dbExists("localhost",27017);
 				TermList terms = MongoDatabaseUtils.findByCode(new CodeURI(
 						agent.getAbout()), "people");
 				if (!terms.isEmpty()) {
