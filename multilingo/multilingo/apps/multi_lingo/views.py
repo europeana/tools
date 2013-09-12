@@ -83,7 +83,6 @@ def portal_url(request, rel_url, lang='', *args, **kwargs):
     if rel_url in models.OUR_STATIC_PAGES.keys():
         return our_static_pages_handler(request, rel_url)
     stat_path = os.path.join(settings.MEDIA_URL, rel_url)
-    #print '***', stat_path
     return HttpResponseRedirect(stat_path)
 
 
