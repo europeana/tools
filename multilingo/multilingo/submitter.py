@@ -79,6 +79,8 @@ class SubmitCommitter(SubmitBase):
                 a = repo.git.add('-A')
                 self.log('git commit')
                 b = repo.git.commit('-m "multilingo machine commit"')
+                self.log('git pull  (to ensure we are in sync)')
+                c = repo.git.pull()
                 self.log('git push --force')
                 c = repo.git.push()
             except:
