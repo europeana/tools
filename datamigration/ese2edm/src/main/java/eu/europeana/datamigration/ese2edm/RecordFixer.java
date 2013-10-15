@@ -57,8 +57,9 @@ public class RecordFixer {
 	private final static EuropeanaTagger tagger = new EuropeanaTagger();
 	static EDMWriter edmWriter;
 	static EdmMongoServer mongoServer;
-
-	{
+	static CollectionMongoServer collectionMongoServer;
+	static EuropeanaIdMongoServer europeanaIdMongoServer;
+	static {
 		FileHandler hand;
 
 		try {
@@ -66,12 +67,11 @@ public class RecordFixer {
 				new File("EuropeanaId.log").renameTo(new File(
 						"EuropeanaId.log." + new Date()));
 			}
-
+			instantiateMongoServer();
 			hand = new FileHandler("EuropeanaId.log");
 			log = Logger.getLogger("log_file");
 			log.addHandler(hand);
-			tagger.init("Europeana");
-			instantiateMongoServer();
+			
 		} catch (SecurityException e) {
 			throw e;
 		} catch (IOException e) {
@@ -87,9 +87,25 @@ public class RecordFixer {
 	 */
 	public static void main(String[] args) {
 		try {
+			 collectionMongoServer = new CollectionMongoServerImpl(
+					new Mongo(PropertyUtils.getMongoServer(),
+							PropertyUtils.getMongoPort()),
+					PropertyUtils.getCollectionDB());
+			europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(
+					new Mongo(PropertyUtils.getMongoServer(),
+							PropertyUtils.getMongoPort()),
+					PropertyUtils.getEuropeanaIdDB(), "", "");
+			europeanaIdMongoServer.createDatastore();
+			instantiateMongoServer();
 			List<String> records = IOUtils.readLines(new FileInputStream(
 					args[0]));
-
+			try {
+				tagger.init("Europeana","localhost","27017");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			for (String record : records) {
 				for (int i = 0; i < 9; i++) {
 					HttpSolrServer readServer = new HttpSolrServer(
@@ -147,16 +163,7 @@ public class RecordFixer {
 			IllegalAccessException, InvocationTargetException,
 			MalformedURLException {
 		SolrServer writeServer = new SolrServer();
-		CollectionMongoServer collectionMongoServer = new CollectionMongoServerImpl(
-				new Mongo(PropertyUtils.getMongoServer(),
-						PropertyUtils.getMongoPort()),
-				PropertyUtils.getCollectionDB());
-		EuropeanaIdMongoServer europeanaIdMongoServer = new EuropeanaIdMongoServerImpl(
-				new Mongo(PropertyUtils.getMongoServer(),
-						PropertyUtils.getMongoPort()),
-				PropertyUtils.getEuropeanaIdDB(), "", "");
-		europeanaIdMongoServer.createDatastore();
-		instantiateMongoServer();
+		
 		// writeServer.createWriteSolrServer("http://10.101.38.1:8282/solr/");
 		writeServer.createWriteSolrServer(PropertyUtils.getWriteServerUrl());
 
@@ -179,6 +186,7 @@ public class RecordFixer {
 		EuropeanaAggregation europeanaAggregation = new EuropeanaAggregationImpl();
 		fullBean.setEuropeanaAggregation(europeanaAggregation);
 		for (String fieldName : document.getFieldNames()) {
+			System.out.println(fieldName);
 			try {
 				fullBean = new FieldCreator()
 						.createFields(inputDocument, fieldName,

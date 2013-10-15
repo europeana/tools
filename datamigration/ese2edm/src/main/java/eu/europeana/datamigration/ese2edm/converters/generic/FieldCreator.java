@@ -85,10 +85,17 @@ public class FieldCreator {
 						inputDocument.addField(fieldMapping.getEdmField(),
 								fieldValue);
 					} else {
+						if(fieldValue instanceof ArrayList){
 						String colId = StringUtils.replace(((ArrayList<String>) fieldValue).get(0),
 								collectionId, newCollectionId);
 						inputDocument.addField(fieldMapping.getEdmField(), colId);
 						fieldValue = colId;
+						} else {
+							String colId = StringUtils.replace(((String) fieldValue),
+									collectionId, newCollectionId);
+							inputDocument.addField(fieldMapping.getEdmField(), colId);
+							fieldValue = colId;
+						}
 					}
 				} else {
 					// If it is any other field check if it is a dynamic field
