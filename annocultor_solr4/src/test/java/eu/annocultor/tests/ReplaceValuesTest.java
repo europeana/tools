@@ -65,28 +65,28 @@ public class ReplaceValuesTest extends TestRulesSetup
 	public void testUnicode2() throws Exception
 	{
 		ReplaceValuesRule rule = new ReplaceValuesRule(
-				new String[]  { "�" }, 
+				new String[]  { "W" }, 
 				new String[] { "e" }, 
 				null, 
 				new RenameLiteralPropertyRule(Concepts.DC.CONTRIBUTOR, null, trg));
 		rule.setTask(task);
 
-		rule.fire(new Triple("http://1", Concepts.DC.TYPE, new XmlValue("�", "en"), null), dataObject);
+		rule.fire(new Triple("http://1", Concepts.DC.TYPE, new XmlValue("W", "en"), null), dataObject);
 		assertEquals("Wrong result size", 1, trg.size());
 		assertEquals("Failed to replace", "e", trg.getTriples().get(0).getValue().getValue());
-		assertNotSame("Failed to replace", "�", trg.getTriples().get(0).getValue().getValue());
+		assertNotSame("Failed to replace", "W", trg.getTriples().get(0).getValue().getValue());
 	}
 
 	public void testUnicode3() throws Exception
 	{
 		ReplaceValuesRule rule = new ReplaceValuesRule(
-				new String[] { "�lki" }, 
+				new String[] { "Wlki" }, 
 				new String[] { "e" }, 
 				null, 
 				new RenameLiteralPropertyRule(Concepts.DC.CONTRIBUTOR, null, trg));
 		rule.setTask(task);
 
-		rule.fire(new Triple("http://1", Concepts.DC.TYPE, new XmlValue("�lki", "en"), null), dataObject);
+		rule.fire(new Triple("http://1", Concepts.DC.TYPE, new XmlValue("Wlki", "en"), null), dataObject);
 
 		assertEquals("Wrong result size", 1, trg.size());
 		assertEquals("Failed to replace", "e", trg.getTriples().get(0).getValue().getValue());
@@ -95,7 +95,7 @@ public class ReplaceValuesTest extends TestRulesSetup
 	public void testUnicode4() throws Exception
 	{
 		ReplaceValuesRule rule = new ReplaceValuesRule(
-				new String[] { "�lki" }, 
+				new String[] { "Wlki" }, 
 				new String[] { "e" }, 
 				null, 
 				new RenameLiteralPropertyRule(Concepts.DC.CONTRIBUTOR, null, trg));
@@ -111,14 +111,14 @@ public class ReplaceValuesTest extends TestRulesSetup
 	public void testUnicode5() throws Exception
 	{
 		ReplaceValuesRule rule = new ReplaceValuesRule(
-				new String[] { "monographie imprim�e" }, 
+				new String[] { "monographie imprimWe" }, 
 				new String[] { "X" }, 
 				null, 
 				new RenameLiteralPropertyRule(Concepts.DC.CONTRIBUTOR, null, trg));
 		rule.setTask(task);
 
 		rule.fire(
-				new Triple("http://1", Concepts.DC.TYPE, new XmlValue("monographie imprim�e", "en"), null),
+				new Triple("http://1", Concepts.DC.TYPE, new XmlValue("monographie imprimWe", "en"), null),
 				dataObject);
 
 		assertEquals("Wrong result size", 1, trg.size());
