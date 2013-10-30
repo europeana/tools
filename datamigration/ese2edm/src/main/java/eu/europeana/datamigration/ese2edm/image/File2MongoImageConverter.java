@@ -276,12 +276,18 @@ public class File2MongoImageConverter implements Runnable {
 		}
 
 		if (imageFulldoc != null) {
-			FullBean fb = edmMongoServer.getFullBean(CHAR_SEPARATOR
-					+ recordData[0] + CHAR_SEPARATOR + recordData[1]) != null ? edmMongoServer
-					.getFullBean(CHAR_SEPARATOR + recordData[0]
-							+ CHAR_SEPARATOR + recordData[1]) : edmMongoServer
-					.getFullBean(CHAR_SEPARATOR + collectionID + CHAR_SEPARATOR
-							+ recordData[1]);
+			FullBean fb=null;
+			try {
+				fb = edmMongoServer.getFullBean(CHAR_SEPARATOR
+						+ recordData[0] + CHAR_SEPARATOR + recordData[1]) != null ? edmMongoServer
+						.getFullBean(CHAR_SEPARATOR + recordData[0]
+								+ CHAR_SEPARATOR + recordData[1]) : edmMongoServer
+						.getFullBean(CHAR_SEPARATOR + collectionID + CHAR_SEPARATOR
+								+ recordData[1]);
+			} catch (MongoDBException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			if (fb != null) {
 				RDF edmRecord = createRDF(fb);
 				try {

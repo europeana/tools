@@ -99,6 +99,8 @@ public class RecordFixer {
 			instantiateMongoServer();
 			List<String> records = IOUtils.readLines(new FileInputStream(
 					args[0]));
+//			List<String> records = IOUtils.readLines(new FileInputStream(
+//					"/home/gmamakis/data_migration sets/discrepancies_15402_diff"));
 			try {
 				tagger.init("Europeana","localhost","27017");
 			} catch (Exception e) {
@@ -186,7 +188,6 @@ public class RecordFixer {
 		EuropeanaAggregation europeanaAggregation = new EuropeanaAggregationImpl();
 		fullBean.setEuropeanaAggregation(europeanaAggregation);
 		for (String fieldName : document.getFieldNames()) {
-			System.out.println(fieldName);
 			try {
 				fullBean = new FieldCreator()
 						.createFields(inputDocument, fieldName,
@@ -214,6 +215,15 @@ public class RecordFixer {
 			e.printStackTrace();
 		}
 		fullBean = edmWriter.saveEntities(fullBean);
+		try {
+			writeServer.add(inputDocument);
+		} catch (SolrServerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		mongoServer.getDatastore().save(fullBean);
 		return inputDocument;
 

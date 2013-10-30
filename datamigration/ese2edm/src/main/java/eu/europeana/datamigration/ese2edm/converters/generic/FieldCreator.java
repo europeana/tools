@@ -17,7 +17,7 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.tools.lookuptable.Collection;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
-import eu.europeana.corelib.tools.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.datamigration.ese2edm.enums.FieldMapping;
 import eu.europeana.datamigration.ese2edm.exception.EntityNotFoundException;
 import eu.europeana.datamigration.ese2edm.exception.MultipleUniqueFieldsException;
@@ -29,6 +29,7 @@ public class FieldCreator {
 	private final static String EUROPEANA_URI = "europeana_uri";
 	private final static String EUROPEANA_RECORD = "http://www.europeana.eu/resolve/record/";
 	private final static String EUROPEANA_COLLECTIONNAME = "europeana_collectionName";
+	private final static String EDM_PREVIEW = "";
 	@SuppressWarnings("unchecked")
 		public FullBeanImpl createFields(SolrInputDocument inputDocument,
 				String fieldName, Object fieldValue, FullBeanImpl fullBean,

@@ -47,7 +47,7 @@
     	
 	<bean id="imageConverter" class="eu.europeana.datamigration.ese2edm.ImageConverter"/>
 	
-   
+   <bean id="corelib_web_europeanaUrlService" class="eu.europeana.corelib.web.service.impl.EuropeanaUrlServiceImpl"/>
 
 
 </beans>

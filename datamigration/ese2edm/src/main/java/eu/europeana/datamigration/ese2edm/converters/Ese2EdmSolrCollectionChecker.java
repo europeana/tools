@@ -45,7 +45,7 @@ import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
 import eu.europeana.corelib.tools.lookuptable.impl.CollectionMongoServerImpl;
 import eu.europeana.corelib.tools.lookuptable.impl.EuropeanaIdMongoServerImpl;
-import eu.europeana.corelib.tools.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.datamigration.ese2edm.converters.generic.GenericEse2EdmConverter;
 import eu.europeana.datamigration.ese2edm.enrichment.EuropeanaTagger;
 import eu.europeana.datamigration.ese2edm.exception.EntityNotFoundException;

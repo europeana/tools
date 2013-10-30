@@ -1,13 +1,12 @@
 package eu.europeana.datamigration.ese2edm.converters.generic;
 
 import java.util.Date;
-import java.util.logging.Level;
 
 import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.corelib.tools.lookuptable.EuropeanaId;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
-import eu.europeana.corelib.tools.utils.EuropeanaUriUtils;
+import eu.europeana.corelib.utils.EuropeanaUriUtils;
 import eu.europeana.datamigration.ese2edm.enums.FieldMapping;
 
 public class EuropeanaIdGenerator {

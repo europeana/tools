@@ -22,7 +22,6 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import eu.europeana.corelib.solr.entity.AggregationImpl;
 import eu.europeana.corelib.solr.entity.EuropeanaAggregationImpl;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
-import eu.europeana.corelib.solr.utils.EDMUtils;
 import eu.europeana.corelib.tools.lookuptable.CollectionMongoServer;
 import eu.europeana.corelib.tools.lookuptable.EuropeanaIdMongoServer;
 import eu.europeana.datamigration.ese2edm.enrichment.EuropeanaTagger;
@@ -93,16 +92,16 @@ public class GenericEse2EdmConverter {
 			e.printStackTrace();
 		}
 		mongoList.add(fullBean);
-		if (createRDF) {
-			try {
-				FileUtils.write(
-						new File("/home/gmamakis/rdf/" + fullBean.getAbout()
-								+ ".xml"), EDMUtils.toEDM(fullBean));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		if (createRDF) {
+//			try {
+//				FileUtils.write(
+//						new File("/home/gmamakis/rdf/" + fullBean.getAbout()
+//								+ ".xml"), EDMUtils.toEDM(fullBean));
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 
 		return inputDocument;
 	}
