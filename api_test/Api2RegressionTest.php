@@ -9,26 +9,42 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
   private $linkPattern;
   private $idPattern;
   private $lastUrl;
+  private static $errors = array();
 
   function setUp() {
     $this->keyParam = "wskey=" . API_KEY;
     $this->recordPattern = "@^" . CANONICAL_SERVER . '/portal/record/[^/]+/[^/]+\.html$@';
-    $this->guidPattern = "@^" . CANONICAL_SERVER . '/portal/record/[^/]+/[^/]+\.html\?utm_source=api&utm_medium=api&utm_campaign=' . API_KEY . '$@';
-    $this->linkPattern = "@^" . API_SERVER . '//v2/record/[^/]+/[^/]+\.json\?' . $this->keyParam . '$@';
+    $this->guidPattern = "@^" . SERVER . '/portal/record/[^/]+/[^/]+\.html\?utm_source=api&utm_medium=api&utm_campaign=' . API_KEY . '$@';
+    $this->linkPattern = "@^" . API_SERVER . '/v2/record/[^/]+/[^/]+\.json\?' . $this->keyParam . '$@';
     $this->idPattern = "@^/[^/]+/[^/]+$@";
   }
 
   function testPaths() {
     $api = new Api2();
-    $this->assertEquals($api->getSearchPath(), '/v2/search.json');
-    $this->assertEquals($api->getOpenSearchPath(), '/v2/opensearch.rss');
-    $this->assertEquals($api->getObjectPath(), '/v2/record/[ID].json');
-    $this->assertEquals($api->getObjectPath('/111/222'), '/v2/record/111/222.json');
+    $this->assertEquals('/v2/search.json', $api->getSearchPath());
+    $this->assertEquals('/v2/opensearch.rss', $api->getOpenSearchPath());
+    $this->assertEquals('/v2/record/[ID].json', $api->getObjectPath());
+    $this->assertEquals('/v2/record/111/222.json', $api->getObjectPath('/111/222'));
   }
 
   function tearDown() {
     // echo 'Last url was ', $this->lastUrl, LN;
   }
+
+  /**
+   * This function runs when every test finished
+   */
+  public static function tearDownAfterClass() {
+    fwrite(STDOUT, LN . "[REPORT]" . LN);
+    foreach (Api2RegressionTest::$errors as $key => $msgo) {
+      fwrite(STDOUT, $key . LN);
+      foreach ($msgo as $msg => $c) {
+        fwrite(STDOUT, TB . $msg . LN);
+      }
+    }
+  }
+  
+  /// Search related tests
 
   function testSearch() {
     $api = new Api2();
@@ -51,6 +67,20 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertTrue(is_object($resultsObject), "Results should be object after json_decode");
     $this->_checkSearchResult($resultsObject);
   }
+
+  function testGeoSearch() {
+    $api = new Api2();
+    $query = "pl_wgs84_pos_lat:[1 TO 90]";
+    $start = 1;
+    for ($j = 0; $j < 20; $j++) {
+      $results = $api->search($query, $start);
+      $this->lastUrl = $api->getLastUrl();
+      $this->_checkSearchResult($results);
+      $start += 12;
+    }
+  }
+
+  /// Object related tests
 
   function testObjects() {
     $api = new Api2();
@@ -117,26 +147,28 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
+  /// Internals
+
   private function _checkSearchResult($results) {
     $this->assertNotNull($results);
     $this->assertNotNull($results->apikey);
-    $this->assertEquals($results->apikey, API_KEY);
+    $this->assertEquals(API_KEY, $results->apikey);
 
     $this->assertNotNull($results->action);
-    $this->assertEquals($results->action, "search.json");
+    $this->assertEquals("search.json", $results->action);
 
     $this->assertNotNull($results->success);
-    $this->assertEquals($results->success, true);
+    $this->assertEquals(true, $results->success);
 
     $this->assertNotNull($results->requestNumber);
     $this->assertNotNull($results->totalResults);
 
     $this->assertNotNull($results->itemsCount);
-    $this->assertEquals($results->itemsCount, 12);
+    $this->assertEquals(12, $results->itemsCount);
 
     $this->assertNotNull($results->items);
     $this->assertTrue(!empty($results->items), "Items should not be empty");
-    $this->assertEquals(count($results->items), $results->itemsCount, "Nr of items should be the same as itemsCount");
+    $this->assertEquals($results->itemsCount, count($results->items), "Nr of items should be the same as itemsCount");
 
     foreach ($results->items as $item) {
       $this->_checkSearchItem($item);
@@ -159,21 +191,32 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     if (isset($item->dataProvider)) {
       $this->assertNotNull($item->dataProvider, sprintf("No data provider for %s (%s)", $item->id, $this->lastUrl));
     } else {
-      // echo sprintf("No data provider for %s (%s)", $item->id, $this->lastUrl), LN;
+      $this->error("No data provider", sprintf("No data provider for %s (%s)", $item->id, $this->lastUrl));
     }
+
+    if (isset($item->edmPlaceLatitude) || isset($item->edmPlaceLongitude)) {
+      $this->assertObjectHasAttribute("edmPlaceLatitude", $item, "edmPlaceLatitude is missing from " . $item->id);
+      $this->assertObjectHasAttribute("edmPlaceLongitude", $item, "edmPlaceLongitude is missing from " . $item->id);
+      $this->assertNotNull($item->edmPlaceLatitude, "edmPlaceLatitude is null in " . $item->id);
+      $this->assertNotNull($item->edmPlaceLongitude, "edmPlaceLongitude is null in " . $item->id);
+      $this->assertNotNull(count($item->edmPlaceLatitude), "edmPlaceLatitude is zero-length in " . $item->id);
+      $this->assertNotNull(count($item->edmPlaceLongitude), "edmPlaceLongitude is zero-length in " . $item->id);
+      $this->assertEquals(count($item->edmPlaceLatitude), count($item->edmPlaceLongitude), "edmPlaceLongitude is missing from " . $item->id);
+    }
+
   }
 
   private function _checkObjectResult($object, $id) {
     $this->assertNotNull($object);
 
     $this->assertNotNull($object->apikey);
-    $this->assertEquals($object->apikey, API_KEY);
+    $this->assertEquals(API_KEY, $object->apikey);
 
     $this->assertNotNull($object->action);
-    $this->assertEquals($object->action, "record.json");
+    $this->assertEquals("record.json", $object->action);
 
     $this->assertNotNull($object->success);
-    $this->assertEquals($object->success, true);
+    $this->assertEquals(true, $object->success);
 
     $this->assertNotNull($object->requestNumber);
 
@@ -183,13 +226,18 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertTrue(in_array($object->object->type, $this->types));
 
     $this->assertNotNull($object->object->about);
-    $this->assertEquals($object->object->about, $id);
+    $this->assertEquals($id, $object->object->about);
 
     if ($object->object->europeanaCollectionName[0] != "09102_Ag_EU_MIMO_ESE") {
-      $this->assertNotNull($object->object->title);
-      $this->assertTrue(is_array($object->object->title));
-      foreach ($object->object->title as $title) {
-        $this->assertGreaterThan(0, strlen($title), "Title should not be empty string: " . $title);
+      if (!isset($object->object->title)) {
+        $this->error("No title in object", sprintf("Title should be set for object %s", $this->lastUrl));
+      } else {
+        $this->assertObjectHasAttribute('title', $object->object, "Title should be set for object " . $id);
+        $this->assertNotNull($object->object->title, "Title should not be empty string for object " . $id);
+        $this->assertTrue(is_array($object->object->title));
+        foreach ($object->object->title as $title) {
+          $this->assertGreaterThan(0, strlen($title), "Title should not be a zero-length string for object " . $id);
+        }
       }
     }
 
@@ -203,7 +251,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertNotNull($object->object->europeanaCollectionName);
     $this->assertTrue(is_array($object->object->europeanaCollectionName), "CollectionName should be an array.");
     foreach ($object->object->europeanaCollectionName as $name) {
-      $this->assertGreaterThan(0, strlen($name), "CollectionName should not be empty string: " . $name);
+      $this->assertGreaterThan(0, strlen($name), "CollectionName should not be zero-length string for object " . $id);
     }
 
     // entities
@@ -219,15 +267,22 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertNotNull($object->object->europeanaAggregation);
     $this->assertTrue(!is_array($object->object->europeanaAggregation));
     $this->assertTrue(is_object($object->object->europeanaAggregation));
-    $this->assertEquals($object->object->europeanaAggregation->about, '/aggregation/europeana' . $id);
+    if ($object->object->europeanaAggregation->about != '/aggregation/europeana' . $id) {
+      $this->error("europeanaAggregation@about issue", sprintf("Expected: /aggregation/europeana%s actual: %s at %s", $id, $object->object->europeanaAggregation->about, $this->lastUrl));
+    } else {
+      $this->assertEquals('/aggregation/europeana' . $id, $object->object->europeanaAggregation->about, "Different aggregation at " . $this->lastUrl);
+    }
 
     if (isset($object->object->europeanaAggregation->aggregatedCHO)) {
       $this->assertNotNull(isset($object->object->europeanaAggregation->aggregatedCHO), 
         'Aggregated CHO should not be null: ' . $id);
-      $this->assertEquals($object->object->europeanaAggregation->aggregatedCHO, $id,
-        'Aggregates CHO should match ID: ' . $id);
+      if ($object->object->europeanaAggregation->aggregatedCHO != '/item' . $id) {
+        $this->error("europeanaAggregation/aggregatedCHO issue", sprintf("Expected: /item/%s actual: %s at %s", $id, $object->object->europeanaAggregation->aggregatedCHO, $this->lastUrl));
+      } else {
+        $this->assertEquals('/item' . $id, $object->object->europeanaAggregation->aggregatedCHO, 'Aggregates CHO should match /item/ID: ' . $id);
+      }
     } else {
-      // echo sprintf("No europeanaAggregation/aggregatedCHO %s (%s)", $id, $this->lastUrl), LN;
+      $this->error("No europeanaAggregation/aggregatedCHO", sprintf("%s at %s", $id, $this->lastUrl));
     }
 
     $this->assertNotNull($object->object->europeanaAggregation->edmLandingPage);
@@ -244,6 +299,15 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
 
     if (isset($object->object->timespans)) {
       $this->assertNotNull($object->object->timespans);
+    }
+  }
+
+  private function error($key, $msg) {
+    if (!isset(Api2RegressionTest::$errors[$key])) {
+      Api2RegressionTest::$errors[$key] = array();
+    }
+    if (!isset(Api2RegressionTest::$errors[$key][$msg])) {
+      Api2RegressionTest::$errors[$key][$msg] = 1;
     }
   }
 }
