@@ -52,7 +52,7 @@ class Api2 extends Basic {
    */
   protected function getObjectParams($callback = "", $profile = "") {
     $params = array(
-        'wskey' => $this->apiKey,
+      'wskey' => $this->apiKey,
     );
     if ($callback != "") {
       $params['callback'] = $callback;
