@@ -15,7 +15,7 @@ define('API_PATH', '/api');
 define('API_SERVER', SERVER . API_PATH);
 
 // TODO: Replace xxx-es with a real API key
-define('API_KEY', 'api2demo');
+define('API_KEY', 'xxxxxxxx');
 
 function check_plain($text) {
   return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
