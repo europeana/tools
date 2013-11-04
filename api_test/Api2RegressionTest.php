@@ -229,7 +229,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_AGR, sprintf("%s: %d", $field, $results->totalResults));
+      $this->error(ErrorTypes::$STAT_EAGR, sprintf("%s: %d", $field, $results->totalResults));
     }
   }
 

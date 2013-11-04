@@ -14,6 +14,7 @@ class ErrorTypes {
   static $STAT_CC;
   static $STAT_PL;
   static $STAT_AGR;
+  static $STAT_EAGR;
   static $STAT_PR;
   static $STAT_PT;
   static $STAT_TS;
@@ -31,6 +32,7 @@ class ErrorTypes {
     self::$STAT_CC = new ErrorType("Statistics", "Concept", "Statistics for Concept fields");
     self::$STAT_PL = new ErrorType("Statistics", "Place", "Statistics for Place fields");
     self::$STAT_AGR = new ErrorType("Statistics", "Aggregation", "Statistics for Aggregation fields");
+    self::$STAT_EAGR = new ErrorType("Statistics", "EuropeanaAggregation", "Statistics for EuropeanaAggregation fields");
     self::$STAT_PR = new ErrorType("Statistics", "Proxy", "Statistics for Proxy fields");
     self::$STAT_PT = new ErrorType("Statistics", "PhysicalThing", "Statistics for PhysicalThing fields");
     self::$STAT_TS = new ErrorType("Statistics", "Timespan", "Statistics for Timespan fields");
