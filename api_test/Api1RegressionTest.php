@@ -14,7 +14,7 @@ class Api1RegressionTest extends PHPUnit_Framework_TestCase {
     $this->idPattern = "@^/[^/]+/[^/]+$@";
     $this->keyParam = "wskey=" . API_KEY;
     $this->guidPattern = "@^" . CANONICAL_SERVER . '/portal/record/[^/]+/[^/]+\.html$@';
-    $this->linkPattern = "@^" . CANONICAL_SERVER . '/api/v1/record/[^/]+/[^/]+\.json\?' . $this->keyParam . '$@';
+    $this->linkPattern = "@^http://(www\.)?" . DOMAIN . '/api/v1/record/[^/]+/[^/]+\.json\?' . $this->keyParam . '$@';
   }
 
   function testPaths() {
