@@ -192,6 +192,7 @@ public class FetcherOfPeopleFromDbpediaSparqlEndpoint
                     "death", makeDbpediaSparqlQuery(category, "death", "dbo:deathDate"), cacheDir, new URL("http://dbpedia.org/sparql"));
             } catch (Exception e) {
                 System.out.println("dbpedia category " + category + " does not have anything under it");
+                e.printStackTrace();
             }
         }
     }

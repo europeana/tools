@@ -18,15 +18,15 @@ import eu.europeana.datamigration.ese2edm.server.SolrServer;
 
 public class RetrieveId {
 	private final static int WINDOW=1000;
-	private final static int LIMIT=67;
-	private final static String COLLECTION="91637";
+	private final static int LIMIT=27;
+	private final static String COLLECTION="09314";
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		SolrServer solrServer = new SolrServer();
 		try {
-			solrServer.createReadSolrServer("http://localhost:8989/solr/search");
+			solrServer.createReadSolrServer("http://localhost:9595/solr/search2");
 		} catch (MalformedURLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -42,9 +42,9 @@ public class RetrieveId {
 			QueryResponse qr = solrServer.query(solrQuery);
 			SolrDocumentList lst = qr.getResults();
 			for(SolrDocument doc: lst){
-				uris.add(doc.getFieldValue("europeana_id").toString());
+				uris.add(doc.getFieldValue("europeana_uri").toString());
 			}
-			FileUtils.writeLines(new File("/home/gmamakis/data_migration sets/final/"+COLLECTION+"_migrated"), uris, true);
+			FileUtils.writeLines(new File("/home/gmamakis/data_migration sets/final2/"+COLLECTION+"_original"), uris, true);
 			System.out.println(i);
 		} catch (SolrServerException e) {
 			// TODO Auto-generated catch block

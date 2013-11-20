@@ -426,7 +426,7 @@ public class MongoDatabaseUtils {
 				Term parent = null;
 				if (mParent != null) {
 					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.label;
+					String label2 = mParent.originalLabel;
 					String lang2 = mParent.lang != null ? mParent.lang : null;
 					parent = new Term(label2,
 							lang != null ? Language.Lang.valueOf(lang2) : null,
@@ -459,7 +459,7 @@ public class MongoDatabaseUtils {
 				Term parent = null;
 				if (mParent != null) {
 					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.label;
+					String label2 = mParent.originalLabel;
 					String lang2 = mParent.lang != null ? mParent.lang : null;
 					parent = new Term(label2,
 							lang != null ? Language.Lang.valueOf(lang2) : null,
@@ -496,7 +496,7 @@ public class MongoDatabaseUtils {
 				Term parent = null;
 				if (mParent != null) {
 					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.label;
+					String label2 = mParent.originalLabel;
 					String lang2 = mParent.lang != null ? mParent.lang : null;
 					parent = new Term(label2,
 							lang != null ? Language.Lang.valueOf(lang2) : null,
@@ -539,7 +539,8 @@ public class MongoDatabaseUtils {
 				Term term = iter.next();
 				PeriodTerm pTerm = new PeriodTerm();
 				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel();
+				pTerm.label = term.getLabel().toLowerCase();
+				pTerm.originalLabel = term.getLabel();
 				if (term.getLang() != null) {
 					pTerm.lang = term.getLang().getCode();
 				}
@@ -554,7 +555,8 @@ public class MongoDatabaseUtils {
 				Term parent = term.getParent();
 				if (parent != null) {
 					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel();
+					parentTerm.label = parent.getLabel().toLowerCase();
+					parentTerm.originalLabel = parent.getLabel();
 					if (parent.getLang() != null) {
 						parentTerm.lang = parent.getLang().getCode();
 					}
@@ -604,7 +606,8 @@ public class MongoDatabaseUtils {
 				Term term = iter.next();
 				PlaceTerm pTerm = new PlaceTerm();
 				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel();
+				pTerm.label = term.getLabel().toLowerCase();
+				pTerm.originalLabel = term.getLabel();
 				if (term.getLang() != null) {
 					pTerm.lang = term.getLang().getCode();
 				}
@@ -622,7 +625,8 @@ public class MongoDatabaseUtils {
 				Term parent = term.getParent();
 				if (parent != null) {
 					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel();
+					parentTerm.label = parent.getLabel().toLowerCase();
+					parentTerm.originalLabel = parent.getLabel();
 					if (parent.getLang() != null) {
 						parentTerm.lang = parent.getLang().getCode();
 					}
@@ -686,7 +690,8 @@ public class MongoDatabaseUtils {
 				Term term = iter.next();
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel();
+				pTerm.label = term.getLabel().toLowerCase();
+				pTerm.originalLabel = term.getLabel();
 				if (term.getLang() != null) {
 					pTerm.lang = term.getLang().getCode();
 				}
@@ -700,7 +705,8 @@ public class MongoDatabaseUtils {
 				pColl.ensureIndex("label");
 				if (parent != null) {
 					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel();
+					parentTerm.label = parent.getLabel().toLowerCase();
+					parentTerm.originalLabel = parent.getLabel();
 					if (parent.getLang() != null) {
 						parentTerm.lang = parent.getLang().getCode();
 					}

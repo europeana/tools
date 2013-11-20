@@ -61,7 +61,7 @@ public class VocabularySerializer
 
 	public Term parseValue(CodeURI code, CodeURI parent, String value, Lang lang) throws Exception
 	{
-		Term term = new Term(voc.onNormaliseLabel(value, NormaliseCaller.load), lang, code, vocabularyName);
+		Term term = new Term(value, lang, code, vocabularyName);
 		voc.putTerm(term);
 		if (parent != null)
 			termParentMap.put(code.getUri(), parent.getUri());

@@ -85,6 +85,9 @@ public class Utils
 
 		for (String p : pattern)
 		{
+			
+			
+			
 			File fdir = new File(new File(dir, FilenameUtils.getFullPathNoEndSeparator(p)).getCanonicalPath());
 			if (!fdir.isDirectory())
 				throw new IOException("Error: " + fdir.getCanonicalPath() + ", expanded from directory " + dir.getCanonicalPath() + " and pattern " + p + " does not denote a directory");

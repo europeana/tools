@@ -247,7 +247,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		if (!MongoDatabaseUtils.dbExists(host,port)) {
 			File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 			File baseDir = environment.getVocabularyDir();
-
+//			MongoDatabaseUtils.dbExists(host,port);
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(
@@ -290,6 +290,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 					baseDir, "concepts/wikipedia/*.rdf");
 
 			MongoDatabaseUtils.save("concept", vocabularyOfTerms);
+			
 			String peopleFiles = "people/*.rdf";
 			vocabularyOfPeople.loadTermsSPARQL(
 					vocabularyOfPeople.makeTermsQuery("dcterms:isPartOf"),
@@ -326,7 +327,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				new SolrTagger.FieldRulePair("proxy_dcterms_spatial",
 						makePlaceLookupRule("proxy_dcterms_spatial")),
 				new SolrTagger.FieldRulePair("proxy_dc_coverage",
-						makePlaceLookupRule("proxy_dc_coverage")));
+						makePlaceLookupRule("proxy_dc_coverage")),
+				new SolrTagger.FieldRulePair("proxy_dc_subject", makePlaceLookupRule("proxy_dc_subject")));
 		categoriesTagger = new SolrConceptsTagger(vocabularyOfTerms,
 
 

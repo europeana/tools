@@ -256,8 +256,8 @@ public abstract class AbstractVocabulary implements Vocabulary {
 
 		reconstructParents(handler);
 
-		if (codeSet().size() == 0)
-			throw new Exception("No terms loaded to vocabulary " + name);
+		//if (codeSet().size() == 0)
+		//	throw new Exception("No terms loaded to vocabulary " + name);
 
 		StopWatch timeElapsed = new StopWatch();
 		timeElapsed.start();

@@ -122,7 +122,8 @@ public class XmlDataSource implements DataSource
 	private List<File> srcFiles = new ArrayList<File>();
 
 	public XmlDataSource(Environment environment, String... file) throws IOException {
-		File inputDir = new File(environment.getParameter(Environment.PARAMETERS.ANNOCULTOR_INPUT_DIR));
+		System.out.println(environment.getParameter(Environment.PARAMETERS.ANNOCULTOR_INPUT_DIR));
+		File inputDir = new File("/home/gmamakis/workspace3/annocultor/converters/europeana/input_source");
 		addSourceFile(inputDir, file);
 		setMergeSourceFiles(true);
 	}

@@ -18,9 +18,9 @@ public class ListCompare {
 		try{
 //			List<String> fileA = IOUtils.readLines(new FileInputStream(args[0]));
 //			List<String> fileB = IOUtils.readLines(new FileInputStream(args[1]));
-			List<String> fileA = IOUtils.readLines(new FileInputStream("/home/gmamakis/data_migration sets/final/91637_original"));
+			List<String> fileA = IOUtils.readLines(new FileInputStream("/home/gmamakis/data_migration sets/final2/09407b_original"));
 			System.out.println("read first file");
-			List<String> fileB = IOUtils.readLines(new FileInputStream("/home/gmamakis/data_migration sets/final/91637_migrated"));
+			List<String> fileB = IOUtils.readLines(new FileInputStream("/home/gmamakis/data_migration sets/final2/2022702_migrated"));
 			System.out.println("read second file");
 			List<String> normalizedA = new ArrayList<String>();
 			List<String> normalizedB = new ArrayList<String>();
@@ -44,7 +44,7 @@ public class ListCompare {
 				
 			}
 			System.out.println("saving");
-			IOUtils.writeLines(diff, "\n",  new FileOutputStream("/home/gmamakis/data_migration sets/final/discrepancies_91637_diff"));
+			IOUtils.writeLines(diff, "\n",  new FileOutputStream("/home/gmamakis/data_migration sets/final2/discrepancies_2022702_diff"));
 		}
 		catch(Exception e){
 			e.printStackTrace();

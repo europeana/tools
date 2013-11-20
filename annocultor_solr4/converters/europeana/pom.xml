@@ -93,7 +93,7 @@
 		<dependency>
 			<groupId>annocultor</groupId>
 			<artifactId>annocultor</artifactId>
-			<version>RELEASE</version>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
             <groupId>junit</groupId>

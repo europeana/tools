@@ -116,7 +116,7 @@ implements GeneratedConverterInt
 					/* Custom code from XML */
 					//    	  if (caller == NormaliseCaller.query)
 					//    	    System.out.println(">terms query>" + label);
-					return label.toLowerCase();
+					return label;
 					/* End of custom code from XML */
 				}
 
@@ -174,7 +174,7 @@ implements GeneratedConverterInt
 					//   	  if (caller == NormaliseCaller.query)
 					//   	    System.out.println(">people query>" + label);
 
-					return  super.onNormaliseLabel(label.toLowerCase(), caller);
+					return  super.onNormaliseLabel(label, caller);
 					/* End of custom code from XML */
 				}
 
@@ -212,7 +212,7 @@ implements GeneratedConverterInt
 					/* Custom code from XML */
 					//  	  if (caller == NormaliseCaller.query)
 					//  	    System.out.println(">places query>" + label);
-					return label.toLowerCase();
+					return label;
 					/* End of custom code from XML */
 				}
 
