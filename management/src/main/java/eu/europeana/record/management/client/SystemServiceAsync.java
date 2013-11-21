@@ -41,4 +41,5 @@ public interface SystemServiceAsync {
 
 	void showAllSystems(UserDTO userDTO, AsyncCallback<List<SystemDTO>> callback);
 
+	void optimize(SystemDTO systemDTO, UserDTO userDTO, AsyncCallback<Boolean> callback);
 }

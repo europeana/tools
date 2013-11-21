@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -44,6 +45,7 @@ public class SolrServer implements Server {
 					"europeana_id:"
 							+ ClientUtils.escapeQueryChars(record.getValue()),
 					10000);
+			solrServer.commit();
 		} catch (SolrServerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,11 +56,27 @@ public class SolrServer implements Server {
 
 	}
 
+	public boolean optimize(){
+		HttpSolrServer solrServer = new HttpSolrServer(url);
+		try {
+			UpdateResponse response = solrServer.optimize();
+			response.getStatus();
+			return true;
+		} catch (SolrServerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
 	public void deleteCollection(String collectionName) {
 		HttpSolrServer solrServer = new HttpSolrServer(url);
 		try {
 			solrServer.deleteByQuery("europeana_collectionName:"
 					+ collectionName + "*", 10000);
+			solrServer.commit();
 		} catch (SolrServerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

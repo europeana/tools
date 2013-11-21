@@ -31,6 +31,7 @@ import eu.europeana.record.management.database.entity.SystemObj;
 import eu.europeana.record.management.database.entity.UserObj;
 import eu.europeana.record.management.database.enums.LogEntryType;
 import eu.europeana.record.management.database.enums.SystemType;
+import eu.europeana.record.management.server.components.SolrServer;
 import eu.europeana.record.management.server.util.LogUtils;
 import eu.europeana.record.management.shared.dto.SystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
@@ -197,6 +198,19 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
 		return convertSystemsToDTO(systems);
 	}
 
+	public boolean optimize(SystemDTO systemDTO,UserDTO userDTO){
+		Dao<UserObj> userDao = this.userDao == null ? (Dao<UserObj>) createUserDao()
+				: this.userDao;
+		UserObj user = userDao.findByPK(userDTO.getId());
+		if (enableLogging) {
+			LogUtils.createLogEntry(LogEntryType.OPTIMIZE, user,
+					"optimized server "+ systemDTO.getUrl(), new Date());
+		}
+		SolrServer server = new SolrServer();
+		server.setUrl(systemDTO.getUrl());
+		return server.optimize();
+	}
+	
 	private SystemObj converSystemFromDTO(SystemObj system, SystemDTO systemDTO) {
 		
 		system.setType(SystemType.valueOf(systemDTO.getType()));

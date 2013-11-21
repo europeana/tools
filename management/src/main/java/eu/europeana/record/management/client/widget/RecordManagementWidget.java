@@ -17,6 +17,7 @@
 package eu.europeana.record.management.client.widget;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.cell.client.ButtonCell;
@@ -25,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.DataGrid;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -55,9 +57,11 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import eu.europeana.record.management.client.Messages;
 import eu.europeana.record.management.client.RecordService;
 import eu.europeana.record.management.client.RecordServiceAsync;
+import eu.europeana.record.management.client.SystemService;
+import eu.europeana.record.management.client.SystemServiceAsync;
 import eu.europeana.record.management.shared.dto.Record;
+import eu.europeana.record.management.shared.dto.SystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
-import eu.europeana.record.management.shared.exceptions.NoRecordException;
 import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
 
 /**
@@ -69,8 +73,11 @@ import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
  */
 public class RecordManagementWidget implements AbstractWidget {
 	RecordServiceAsync recordService = GWT.create(RecordService.class);
+	final SystemServiceAsync systemService = GWT.create(SystemService.class);
+
 	final List<Record> recordsToRemove = new ArrayList<Record>();
 	AsyncDataProvider<Record> recordDataProvider;
+	AsyncDataProvider<SystemDTO> systemDP;
 	DataGrid<Record> records;
 	UserDTO user;
 
@@ -89,7 +96,7 @@ public class RecordManagementWidget implements AbstractWidget {
 		vp.add(createRecordRemovalPanel());
 		vp.add(createRecordPreview());
 		vp.add(createCollectionRemovalPanel());
-
+		vp.add(createOptimizeSolrPanel());
 		return vp;
 	}
 
@@ -345,5 +352,90 @@ public class RecordManagementWidget implements AbstractWidget {
 
 	private void setDOMID(Widget widg, String id) {
 		DOM.setElementProperty(widg.getElement(), "id", id);
+	}
+
+	private Widget createOptimizeSolrPanel() {
+		DecoratorPanel dp = new DecoratorPanel();
+		final List<SystemDTO> solrList = new ArrayList<SystemDTO>();
+		systemService.showAllSystems(user,
+				new AsyncCallback<List<SystemDTO>>() {
+
+					@Override
+					public void onFailure(Throwable arg0) {
+						Window.alert("Error retrieving solrs");
+
+					}
+
+					@Override
+					public void onSuccess(List<SystemDTO> arg0) {
+						for (SystemDTO system : arg0) {
+							if (system.getType().equals("SOLR")) {
+								solrList.add(system);
+							}
+						}
+
+					}
+
+				});
+
+		ProvidesKey<SystemDTO> key = new ProvidesKey<SystemDTO>() {
+
+			@Override
+			public Object getKey(SystemDTO arg0) {
+				// TODO Auto-generated method stub
+				return arg0.getUrl();
+			}
+		};
+		TextColumn<SystemDTO> solrListColumn = new TextColumn<SystemDTO>() {
+
+			@Override
+			public String getValue(SystemDTO arg0) {
+				// TODO Auto-generated method stub
+				return arg0.getUrl();
+			}
+		};
+		CellTable<SystemDTO> systems = new CellTable<SystemDTO>(key);
+		systems.setTitle(Messages.AVAILABLESYSTEMS);
+		ButtonCell optimize = new ButtonCell();
+		Column<SystemDTO, String> optimizeColumn = new Column<SystemDTO, String>(
+				optimize) {
+
+			@Override
+			public String getValue(SystemDTO arg0) {
+				// TODO Auto-generated method stub
+				return "Optimize";
+
+			}
+		};
+
+		optimizeColumn.setFieldUpdater(new FieldUpdater<SystemDTO, String>() {
+
+			public void update(int arg0, SystemDTO arg1, String arg2) {
+				if (Window
+						.confirm("This can take a long time and will make this server unresponsive.\n Are you sure you want to proceed?")) {
+					final long now = new Date().getTime();
+					systemService.optimize(arg1, user,
+							new AsyncCallback<Boolean>() {
+
+								@Override
+								public void onSuccess(Boolean arg0) {
+									Window.alert("Server optimized. Optimization took "+ (new Date().getTime() - now) +" ms");
+								}
+
+								@Override
+								public void onFailure(Throwable arg0) {
+									Window.alert("Server optimization failed");
+
+								}
+							});
+				}
+			}
+		});
+		systems.addColumn(solrListColumn,"Solr Servers");
+		systems.addColumn(optimizeColumn,"Optimize");
+		systemDP.addDataDisplay(systems);
+		
+		dp.add(systems);
+		return dp;
 	}
 }

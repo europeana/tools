@@ -29,5 +29,5 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public enum LogEntryType implements IsSerializable {
 
-	LOGIN, REMOVE, EXCEPTION, ADD, RETRIEVE, UPDATE;
+	LOGIN, REMOVE, EXCEPTION, ADD, RETRIEVE, UPDATE, OPTIMIZE;
 }

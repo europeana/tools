@@ -73,4 +73,5 @@ public interface SystemService extends RemoteService {
 	 */
 	List<SystemDTO> showAllSystems(UserDTO userDTO);
 
+	boolean optimize(SystemDTO sustemDTO, UserDTO userDTO);
 }
