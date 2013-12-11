@@ -18188,10 +18188,6 @@
 <skos:prefLabel>Гранулометрия (зърнометрия)</skos:prefLabel>
 <skos:definition>1) Определянето на различния размер на зърната в един зърнест материал.  2) Пропорцията по тегло на частичките с различен размер на зърната в един зърнест материал.</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>Дренаж</skos:prefLabel>
-<skos:definition>Да се предизвика изтичане на течност от абсцес или рана или да се вземе проба от тъкан или от органична течност за изследване.</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>Химическо изделие</skos:prefLabel>
 <skos:definition>Вещество, което се характеризира с точно определен молекулен строеж.</skos:definition>

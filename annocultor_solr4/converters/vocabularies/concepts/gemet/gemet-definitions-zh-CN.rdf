@@ -18331,10 +18331,6 @@
 <skos:prefLabel>粒径分析</skos:prefLabel>
 <skos:definition>1)对粒状物不同颗粒大小的判定。 2) 粒状物中不同大小的粒子的重量比率。</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>抽检</skos:prefLabel>
-<skos:definition>从溃疡或伤口处引出脓液，或取出组织或器官体液以作检验。</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>化学制品</skos:prefLabel>
 <skos:definition>以确定的分子组成为特征的物质。</skos:definition>

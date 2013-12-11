@@ -18249,10 +18249,6 @@ mechanicznych</skos:definition>
 <skos:prefLabel>granulometria</skos:prefLabel>
 <skos:definition>1) określanie wielkości ziaren; 2) proporcja wagowa poszczególnych frakcji</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>pobieranie</skos:prefLabel>
-<skos:definition>spowodowanie wydzielania z rany lub ropnia; pobranie części tkanki lub płynu do badań</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>substancja chemiczna</skos:prefLabel>
 <skos:definition>substancja o określonym składzie cząsteczkowym</skos:definition>

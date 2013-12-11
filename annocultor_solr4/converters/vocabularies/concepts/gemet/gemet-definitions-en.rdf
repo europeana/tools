@@ -18405,10 +18405,6 @@ Implies that residues from degradation are nontoxic. One of the most misleading 
 <skos:definition>1) The determination of the different grain size in a granular material.
 2) The proportion by weight of particles of different sizes in granular material.</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>drawing</skos:prefLabel>
-<skos:definition>To cause to discharge from an abscess or wound or to obtain a sample of tissue or organic liquid for examination.</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>chemical product</skos:prefLabel>
 <skos:definition>A substance characterized by definite molecular composition.</skos:definition>

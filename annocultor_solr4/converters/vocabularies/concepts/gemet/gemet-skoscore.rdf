@@ -13602,7 +13602,6 @@
 <skos:narrower rdf:resource="http://www.eionet.europa.eu/gemet/concept/6309" />
 <skos:narrower rdf:resource="http://www.eionet.europa.eu/gemet/concept/6681" />
 <skos:narrower rdf:resource="http://www.eionet.europa.eu/gemet/concept/8435" />
-<skos:narrower rdf:resource="http://www.eionet.europa.eu/gemet/concept/11812" />
 <skos:narrower rdf:resource="http://www.eionet.europa.eu/gemet/concept/13320" />
 <skos:broader rdf:resource="http://www.eionet.europa.eu/gemet/concept/3865" />
 <skos:related rdf:resource="http://www.eionet.europa.eu/gemet/concept/2354" />

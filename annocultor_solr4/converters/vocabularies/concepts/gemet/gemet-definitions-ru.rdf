@@ -18278,10 +18278,6 @@
 <skos:prefLabel>гранулометрия</skos:prefLabel>
 <skos:definition>1) Определение размера различных зерен гранулированного материала. 2) Весовая пропорция частиц разного размера в гранулированном материале.</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>вытяжка (биол.)</skos:prefLabel>
-<skos:definition>Действия, вызывающие выделение отделяемых материалов из абсцесса или раны; получение образца ткани или органической жидкости для исследования.</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>химический продукт</skos:prefLabel>
 <skos:definition>Вещество, характеризуемое определенным молекулярным составом.</skos:definition>
