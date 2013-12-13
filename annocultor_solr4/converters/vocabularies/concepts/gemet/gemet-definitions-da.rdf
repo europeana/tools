@@ -13879,9 +13879,6 @@
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11809">
 <skos:prefLabel>granulometri</skos:prefLabel>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>tegning</skos:prefLabel>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>kemisk produkt</skos:prefLabel>
 </rdf:Description>

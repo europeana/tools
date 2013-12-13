@@ -13907,9 +13907,6 @@ değeri</skos:prefLabel>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11809">
 <skos:prefLabel>granülometri</skos:prefLabel>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>numune alma</skos:prefLabel>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>kimyasal ürün</skos:prefLabel>
 </rdf:Description>

@@ -13900,9 +13900,6 @@
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11809">
 <skos:prefLabel>κοκκομετρία</skos:prefLabel>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>τάνυση/ολκή/σχεδίαση/σχέδιο/ανάληψη/κλήρωση</skos:prefLabel>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>χημικό προϊόν</skos:prefLabel>
 </rdf:Description>

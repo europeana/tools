@@ -13906,9 +13906,6 @@
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11809">
 <skos:prefLabel>granulometria</skos:prefLabel>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>prelievo</skos:prefLabel>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>prodotto chimico</skos:prefLabel>
 </rdf:Description>

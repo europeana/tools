@@ -18703,10 +18703,6 @@ Predkupna pravica je zakonita ali pogodbena.</skos:definition>
 <skos:definition>1) Določanje različnih velikosti zrn v zrnastih snoveh.
 2) Razmerje teže delcev različnih velikosti, v zrnastih snoveh.</skos:definition>
 </rdf:Description>
-<rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11812">
-<skos:prefLabel>bris</skos:prefLabel>
-<skos:definition>Povzročiti puščanje ognojka ali rane, ali pridobiti primerek tkiva ali organske tekočine za pregled.</skos:definition>
-</rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/11813">
 <skos:prefLabel>kemični izdelek</skos:prefLabel>
 <skos:definition>Snov, ki jo opredeljuje določena molekularna sestava.</skos:definition>
