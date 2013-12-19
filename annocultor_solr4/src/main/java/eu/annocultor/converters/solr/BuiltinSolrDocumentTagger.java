@@ -327,8 +327,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				new SolrTagger.FieldRulePair("proxy_dcterms_spatial",
 						makePlaceLookupRule("proxy_dcterms_spatial")),
 				new SolrTagger.FieldRulePair("proxy_dc_coverage",
-						makePlaceLookupRule("proxy_dc_coverage")),
-				new SolrTagger.FieldRulePair("proxy_dc_subject", makePlaceLookupRule("proxy_dc_subject")));
+						makePlaceLookupRule("proxy_dc_coverage")));
 		categoriesTagger = new SolrConceptsTagger(vocabularyOfTerms,
 
 
