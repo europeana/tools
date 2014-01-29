@@ -73,8 +73,8 @@ abstract class Basic {
    * @return mixed|string
    *   If the callback is empty, it returns JSON Object, otherwise it returns JSONP string.
    */
-  public function search($query, $start = 1, $rows = 12, $callback = "") {
-    $params = $this->getSearchParams($query, $start, $rows, $callback);
+  public function search($query, $start = 1, $rows = 12, $callback = "", $qf = array(), $parameters = array()) {
+    $params = $this->getSearchParams($query, $start, $rows, $callback, $qf, $parameters);
     $this->lastUrl = $this->server . $this->searchPath . '?' . $params;
     $content = file_get_contents($this->lastUrl);
     if ($callback == "") {

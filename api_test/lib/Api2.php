@@ -34,7 +34,7 @@ class Api2 extends Basic {
    * 
    * @see Basic::getSearchParams()
    */
-  function getSearchParams($query, $start = 1, $rows = 12, $callback = "") {
+  function getSearchParams($query, $start = 1, $rows = 12, $callback = "", $qf = array(), $parameters = array()) {
     $params = array(
       'query' => $query,
       'start' => $start,
@@ -42,6 +42,14 @@ class Api2 extends Basic {
       'callback' => $callback,
       'wskey' => $this->apiKey,
     );
+    if (!empty($qf)) {
+      $params['qf'] = $qf;
+    }
+    if (!empty($parameters)) {
+      foreach ($parameters as $key => $value) {
+        $params[$key] = $value;
+      }
+    }
     return http_build_query($params, '', '&');
   }
 
