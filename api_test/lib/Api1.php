@@ -22,7 +22,7 @@ class Api1 extends Basic {
    * 
    * @see Basic::getSearchParams()
    */
-  function getSearchParams($query, $startPage = 1, $rows = 12, $callback = "") {
+  function getSearchParams($query, $startPage = 1, $rows = 12, $callback = "", $qf = array()) {
     $params = array(
       'searchTerms' => $query,
       'startPage' => $startPage,

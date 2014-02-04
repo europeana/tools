@@ -5,7 +5,7 @@ include 'lib/ErrorTypes.php';
 include 'lib/ScreenScrapper.php';
 class Api2RegressionTest extends PHPUnit_Framework_TestCase {
 
-  private $types = array('IMAGE', 'TEXT', 'VIDEO', 'SOUND');
+  private $types = array('IMAGE', 'TEXT', 'VIDEO', 'SOUND', '3D');
   private $keyParam;
   private $guidPattern;
   private $linkPattern;
@@ -69,7 +69,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
     fclose($handle);
   }
-  
+
   /// Search related tests
 
   function testSearch() {
@@ -79,6 +79,51 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->lastUrl = $api->getLastUrl();
     $hits = $this->screenScrapper->getHitsOnPortal($query);
     $this->_checkSearchResult($results, $hits);
+  }
+
+  function testFacetRequest() {
+    $api = new Api2();
+    $query = "*:*";
+    $params = array(
+        'profile' => 'facets',
+        'facet' => 'proxy_dc_contributor',
+    );
+    $results = $api->search($query, 1, 0, "", array(), $params);
+    $this->lastUrl = $api->getLastUrl();
+    $this->assertObjectHasAttribute("facets", $results);
+    $this->assertEquals(1, count($results->facets));
+    $this->assertEquals("proxy_dc_contributor", $results->facets[0]->name);
+    $this->assertLessThanOrEqual(750, count($results->facets[0]->fields));
+  }
+
+  function testFacetRequestWithLimitAndOffset() {
+    $api = new Api2();
+    $query = "*:*";
+    $params = array(
+      'profile' => 'facets',
+      'facet' => 'proxy_dc_contributor',
+      'f.proxy_dc_contributor.facet.limit' => 30,
+      'f.proxy_dc_contributor.facet.offset' => 0
+    );
+    $results = $api->search($query, 1, 0, "", array(), $params);
+    $this->lastUrl = $api->getLastUrl();
+    $this->assertObjectHasAttribute("facets", $results);
+    $this->assertEquals(1, count($results->facets));
+    $this->assertEquals("proxy_dc_contributor", $results->facets[0]->name);
+    $this->assertLessThanOrEqual(30, count($results->facets[0]->fields));
+
+    $params['f.proxy_dc_contributor.facet.offset'] = 30;
+    $results = $api->search($query, 1, 0, "", array(), $params);
+    $this->lastUrl = $api->getLastUrl();
+    $this->assertObjectHasAttribute("facets", $results);
+    $this->assertEquals(1, count($results->facets));
+    $this->assertEquals("proxy_dc_contributor", $results->facets[0]->name);
+    $this->assertLessThanOrEqual(30, count($results->facets[0]->fields));
+
+    $params['f.proxy_dc_contributor.facet.limit'] = 0;
+    $results = $api->search($query, 1, 0, "", array(), $params);
+    $this->lastUrl = $api->getLastUrl();
+    $this->assertObjectNotHasAttribute("facets", $results);
   }
 
   function testSearchWithCallback() {
@@ -131,7 +176,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_AG, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_AG, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -156,7 +213,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_CC, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_CC, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -179,7 +248,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_PL, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_PL, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -205,7 +286,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_AGR, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_AGR, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -229,7 +322,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_EAGR, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_EAGR, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -268,7 +373,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_PR, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_PR, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -308,7 +425,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_PT, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_PT, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -330,7 +459,19 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_TS, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_TS, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
@@ -353,11 +494,23 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       if ($results->totalResults > 0) {
         $this->assertGreaterThan(0, $results->totalResults, sprintf("%s field should result more than 0 hits", $field));
       }
-      $this->error(ErrorTypes::$STAT_WR, sprintf("%s: %d", $field, $results->totalResults));
+
+      $totalResults = $results->totalResults;
+      $bytype = array();
+      foreach ($this->types as $type) {
+        $res = 0; $percent = 0;
+        if ($totalResults > 0) {
+          $results = $api->search($query, 1, 0, "", "TYPE:$type");
+          $res = $results->totalResults;
+          $percent = $results->totalResults == 0 ? 0 : ($results->totalResults / $totalResults * 100);
+        }
+        $bytype[] = sprintf("%s: %7d - %7s", $type, $res, sprintf("%.2f%%", $percent));
+      }
+      $this->error(ErrorTypes::$STAT_WR, sprintf("%40s: %8d // %s", $field, $totalResults, join(", ", $bytype)));
     }
   }
 
-  function xtestDynamicFieldSearch() {
+  function testDynamicFieldSearch() {
     $api = new Api2();
     $fields = array(
       'ag_rdagr2_gender' => array('en'),
