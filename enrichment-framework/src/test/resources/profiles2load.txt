@@ -1,0 +1,7 @@
+/converters/aziatischekeramiek/profile/profile.xml
+/converters/icn/profile/profile.xml
+/converters/joconde/profile/profile.xml
+/converters/louvre/profile/profile.xml
+/converters/geonames/profile/profile-geonames.xml
+/converters/getty/profile/profile-AAT.xml
+/converters/getty/profile/profile-ULAN.xml

@@ -1,0 +1,163 @@
+
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>annocultor</groupId>
+	<artifactId>tools</artifactId>
+	<name>AnnoCultor XSD</name>
+	<version>2.3.4</version>
+	<packaging>jar</packaging>
+	<url>http://annocultor.eu</url>
+
+	<scm>
+		<connection>scm:svn:https://annocultor.svn.sourceforge.net/svnroot/annocultor
+		</connection>
+		<developerConnection>scm:svn:https://annocultor.svn.sourceforge.net/svnroot/annocultor
+		</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://annocultor.svn.sourceforge.net/svnroot/annocultor</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>omelayenko</id>
+			<name>Borys Omelayenko</name>
+			<url>http://borys.name</url>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Licensed under the Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<repositories>
+		<repository>
+			<id>annocultor.eu</id>
+			<name>AnnoCultor Releases</name>
+			<url>http://annocultor.eu/repository/maven2/</url>
+		</repository>
+		<repository>
+			<id>maven.org</id>
+			<name>Maven Repository</name>
+			<url>http://repo1.maven.org/maven2/</url>
+		</repository>
+		<repository>
+			<id>openrdf.org</id>
+			<name>Aduna Repository</name>
+			<url>http://repo.aduna-software.org/maven2/releases/</url>
+		</repository>
+		<repository>
+			<id>ibiblio.org</id>
+			<name>Maven Repository Mirror</name>
+			<url>http://mirrors.ibiblio.org/pub/mirrors/maven2/</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>annocultor.eu</id>
+			<name>AnnoCultor Releases</name>
+			<url>ftp://ftp.annocultor.eu/repository/maven2/</url>
+			<uniqueVersion>false</uniqueVersion>
+			<layout>default</layout>
+		</repository>
+		<site>
+			<id>annocultor.eu</id>
+			<url>ftp://ftp.annocultor.eu/</url>
+		</site>
+	</distributionManagement>
+
+	<build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ftp</artifactId>
+                <version>1.0-beta-6</version>
+            </extension>
+        </extensions>
+
+		<outputDirectory>${basedir}/mavenbin</outputDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<updateReleaseInfo>true</updateReleaseInfo>
+				</configuration>
+			</plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>assembly</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>annocultor</groupId>
+			<artifactId>annocultor</artifactId>
+			<version>RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun</groupId>
+			<artifactId>tools</artifactId>
+			<version>1.6.0</version>
+			<scope>system</scope>
+			<systemPath>${java.home}/../lib/tools.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.4</version>
+		</dependency>
+	</dependencies>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<ac.tools.lang>${user.home}/.m2/repository/commons-lang/commons-lang/2.4/commons-lang-2.4.jar</ac.tools.lang>
+	    <ac.tools.io>${user.home}/.m2/repository/commons-io/commons-io/1.4/commons-io-1.4.jar</ac.tools.io>
+	    <ac.tools.log>${user.home}/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar</ac.tools.log>
+	    <ac.tools.ac>${user.home}/.m2/repository/annocultor/annocultor/2.2.4/annocultor-2.2.4.jar</ac.tools.ac>
+	</properties>
+</project>
+
+
+
