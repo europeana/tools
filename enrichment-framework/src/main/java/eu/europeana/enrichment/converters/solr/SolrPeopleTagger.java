@@ -21,56 +21,54 @@ import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary;
 
-
 /**
  * Tagging (aka semantic enrichment) of records from SOLR.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
 public class SolrPeopleTagger extends SolrTagger {
 
-    public SolrPeopleTagger(
-            Vocabulary vocabulary, 
-            String termFieldName, 
-            String labelFieldName, 
-             FieldRulePair... fieldRulePairs) {
-    	super("people", termFieldName, labelFieldName, null, null, fieldRulePairs);
-    }
+	public SolrPeopleTagger(Vocabulary vocabulary, String termFieldName,
+			String labelFieldName, FieldRulePair... fieldRulePairs) {
+		super("people", termFieldName, labelFieldName, null, null,
+				fieldRulePairs);
+	}
 
-    HashSet<Lang> languagesForAltLabels = new HashSet<Lang>();
-    {
-        languagesForAltLabels.add(Lang.en);
-        languagesForAltLabels.add(Lang.ru);
-        languagesForAltLabels.add(Lang.uk);
-        languagesForAltLabels.add(Lang.de);
-        languagesForAltLabels.add(Lang.fr);
-        languagesForAltLabels.add(Lang.nl);
-        languagesForAltLabels.add(Lang.es);
-        languagesForAltLabels.add(Lang.pl);
-        languagesForAltLabels.add(Lang.it);
-        languagesForAltLabels.add(Lang.pt);
-        languagesForAltLabels.add(Lang.el);
-        languagesForAltLabels.add(Lang.bg);
-        languagesForAltLabels.add(Lang.sv);
-        languagesForAltLabels.add(Lang.fi);
-        languagesForAltLabels.add(Lang.no);
-        languagesForAltLabels.add(Lang.hu);
-        languagesForAltLabels.add(Lang.da);
-        languagesForAltLabels.add(Lang.sk);
-        languagesForAltLabels.add(Lang.sl);
-        languagesForAltLabels.add(Lang.la);
-        languagesForAltLabels.add(Lang.lt);
-        languagesForAltLabels.add(Lang.et);
-        languagesForAltLabels.add(Lang.ro);
-        languagesForAltLabels.add(Lang.cs);
-        languagesForAltLabels.add(Lang.zh);
-        languagesForAltLabels.add(Lang.id);
-    }
+	HashSet<Lang> languagesForAltLabels = new HashSet<Lang>();
+	{
+		languagesForAltLabels.add(Lang.en);
+		languagesForAltLabels.add(Lang.ru);
+		languagesForAltLabels.add(Lang.uk);
+		languagesForAltLabels.add(Lang.de);
+		languagesForAltLabels.add(Lang.fr);
+		languagesForAltLabels.add(Lang.nl);
+		languagesForAltLabels.add(Lang.es);
+		languagesForAltLabels.add(Lang.pl);
+		languagesForAltLabels.add(Lang.it);
+		languagesForAltLabels.add(Lang.pt);
+		languagesForAltLabels.add(Lang.el);
+		languagesForAltLabels.add(Lang.bg);
+		languagesForAltLabels.add(Lang.sv);
+		languagesForAltLabels.add(Lang.fi);
+		languagesForAltLabels.add(Lang.no);
+		languagesForAltLabels.add(Lang.hu);
+		languagesForAltLabels.add(Lang.da);
+		languagesForAltLabels.add(Lang.sk);
+		languagesForAltLabels.add(Lang.sl);
+		languagesForAltLabels.add(Lang.la);
+		languagesForAltLabels.add(Lang.lt);
+		languagesForAltLabels.add(Lang.et);
+		languagesForAltLabels.add(Lang.ro);
+		languagesForAltLabels.add(Lang.cs);
+		languagesForAltLabels.add(Lang.zh);
+		languagesForAltLabels.add(Lang.id);
+	}
 
-    @Override
-    boolean shouldInclude(Term term) {
-        return term.getLang() == null || languagesForAltLabels.contains(term.getLang());
-    }
+	@Override
+	boolean shouldInclude(Term term) {
+		return term.getLang() == null
+				|| languagesForAltLabels.contains(term.getLang());
+	}
 
 }

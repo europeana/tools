@@ -29,11 +29,11 @@ import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
  */
 public class PopulationTermFilter extends TermFilter {
 
-
 	private static final String VOCAB_ATTR_POPULATION = "population";
 
 	@Override
-	public TermList disambiguate(TermList allTerms, DisambiguationContext disambiguationContext) throws Exception {
+	public TermList disambiguate(TermList allTerms,
+			DisambiguationContext disambiguationContext) throws Exception {
 
 		// disambiguation not needed
 		if (allTerms.size() < 2)
@@ -41,7 +41,7 @@ public class PopulationTermFilter extends TermFilter {
 
 		Term largestPlace = null;
 		long largestPopulation = 0;
-		
+
 		// disambiguate
 		TermList selectedTerms = new TermList();
 		for (Term term : allTerms) {
@@ -52,7 +52,8 @@ public class PopulationTermFilter extends TermFilter {
 
 			String populationString = term.getProperty(VOCAB_ATTR_POPULATION);
 
-			if (populationString != null && !populationString.isEmpty() && StringUtils.isNumeric(populationString)) {
+			if (populationString != null && !populationString.isEmpty()
+					&& StringUtils.isNumeric(populationString)) {
 				try {
 					long population = Integer.parseInt(populationString);
 					if (population > largestPopulation) {
@@ -62,16 +63,16 @@ public class PopulationTermFilter extends TermFilter {
 				} finally {
 					// just ignore
 				}
-			}			
+			}
 		}
-		
+
 		// choose the place with the largest population
 		if (largestPopulation > 0) {
 			selectedTerms = new TermList();
 			selectedTerms.add(largestPlace);
 			return selectedTerms;
 		}
-		
+
 		return allTerms;
 	}
 

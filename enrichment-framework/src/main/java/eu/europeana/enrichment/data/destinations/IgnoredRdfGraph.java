@@ -22,39 +22,35 @@ import eu.europeana.enrichment.triple.Triple;
  * A named graph that is never written to.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
-public class IgnoredRdfGraph extends RdfGraph
-{
+public class IgnoredRdfGraph extends RdfGraph {
 
-    public IgnoredRdfGraph(String datasetId, 
-            Environment environment,
-            String datasetModifier, 
-            String objectType, 
-            String propertyType,
-            String... comment) {
-        super(datasetId, environment, datasetModifier, objectType, propertyType, comment);
-    }
+	public IgnoredRdfGraph(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, comment);
+	}
 
-    @Override
-    public void writeTriple(Triple triple) throws Exception {
-        // ignorant
-    }
+	@Override
+	public void writeTriple(Triple triple) throws Exception {
+		// ignorant
+	}
 
-    @Override
-    public void endRdf() throws Exception {
-        // ignorant
-    }
+	@Override
+	public void endRdf() throws Exception {
+		// ignorant
+	}
 
-    @Override
-    public void startRdf() throws Exception {
-        // ignorant
-    }
+	@Override
+	public void startRdf() throws Exception {
+		// ignorant
+	}
 
-    @Override
-    public boolean writingHappened() throws Exception {
-        return false;
-    }
-
+	@Override
+	public boolean writingHappened() throws Exception {
+		return false;
+	}
 
 }

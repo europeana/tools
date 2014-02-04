@@ -21,15 +21,13 @@ import java.io.FileNotFoundException;
 
 import eu.europeana.enrichment.context.Environment;
 
-
 /**
  * Interface for converter kernel. Needed only for very special converters.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface ConverterKernel
-{
+public interface ConverterKernel {
 	/**
 	 * Converts a task to RDF.
 	 * 
@@ -51,5 +49,6 @@ public interface ConverterKernel
 	 */
 	public void setTester(ConverterTester tester);
 
-	public BufferedInputStream makeInputStream(File src) throws FileNotFoundException;
+	public BufferedInputStream makeInputStream(File src)
+			throws FileNotFoundException;
 }

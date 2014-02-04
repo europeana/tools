@@ -22,100 +22,53 @@ import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.postprocessors.PeopleTermFilter.UlanDisambiguationContext;
 import eu.europeana.enrichment.tagger.terms.TermList;
 
-
 /**
- * Directory of people, where each term has its specific context of birth-death years.
+ * Directory of people, where each term has its specific context of birth-death
+ * years.
  * 
  * @author Borys Omelayenko
  * 
  */
-public abstract class VocabularyOfPeople extends AbstractVocabulary
-{
+public abstract class VocabularyOfPeople extends AbstractVocabulary {
 
 	/**
 	 * Person lookup with with its specific disambiguation context.
 	 * 
 	 * @param names
-	 *          all names
+	 *            all names
 	 * @param birthDate
-	 *          date as String (maybe, just a year)
+	 *            date as String (maybe, just a year)
 	 * @param deathDate
-	 *          date as String (maybe, just a year)
+	 *            date as String (maybe, just a year)
 	 * @param liveDate
-	 *          a date in live
+	 *            a date in live
 	 * @param placeOfBirth
 	 * @param placeOfDeath
 	 * @return person code
 	 */
-	public TermList lookupPerson(
-			List<String> labels,
-			Lang lang,
-			String birthDate,
-			String deathDate,
-			String liveDate,
-			String landOfBirth,
-			String placeOfBirth,
-			String landOfDeath,
-			String placeOfDeath) throws Exception
-			{
-		return findByLabel(
-				labels.get(0), 
-				liveDate == null ? new UlanDisambiguationContext(birthDate, deathDate, false) : new UlanDisambiguationContext(liveDate, deathDate, true));
-			}
+	public TermList lookupPerson(List<String> labels, Lang lang,
+			String birthDate, String deathDate, String liveDate,
+			String landOfBirth, String placeOfBirth, String landOfDeath,
+			String placeOfDeath) throws Exception {
+		return findByLabel(labels.get(0),
+				liveDate == null ? new UlanDisambiguationContext(birthDate,
+						deathDate, false) : new UlanDisambiguationContext(
+						liveDate, deathDate, true));
+	}
 
-	public TermList lookupPerson(
-			String labels,
-			Lang lang,
-			String birthDate,
-			String deathDate,
-			String liveDate,
-			String landOfBirth,
-			String placeOfBirth,
-			String landOfDeath,
-			String placeOfDeath) throws Exception
-			{
+	public TermList lookupPerson(String labels, Lang lang, String birthDate,
+			String deathDate, String liveDate, String landOfBirth,
+			String placeOfBirth, String landOfDeath, String placeOfDeath)
+			throws Exception {
 		List<String> l = new ArrayList<String>();
 		l.add(labels.toLowerCase());
-		return lookupPerson(l,
-				lang,
-				birthDate,
-				deathDate,
-				liveDate,
-				landOfBirth,
-				placeOfBirth,
-				landOfDeath,
-				placeOfDeath);
-			}
+		return lookupPerson(l, lang, birthDate, deathDate, liveDate,
+				landOfBirth, placeOfBirth, landOfDeath, placeOfDeath);
+	}
 
-	public VocabularyOfPeople(String name, Lang lang)
-	{
+	public VocabularyOfPeople(String name, Lang lang) {
 		super(name, lang);
 
 	}
-	/*
-		@Override
-		public void loadVocabulary(File tmpDir, FileSign sign, String... file) throws Exception
-		{
-			if (!isLoaded)
-			{
-				loadTermsSeRQL("SELECT C, L FROM {C} <" + VP.LABEL_PREFERRED + "> {L} ",
-						tmpDir,
-						(sign == FileSign.pattern ? Helper.makeFileNames(file[0]) : file));
-				loadTermsSeRQL("SELECT C, L FROM {C} <" + VP.LABEL_NONPREFERRED + "> {L} ",
-						tmpDir,
-						(sign == FileSign.pattern ? Helper.makeFileNames(file[0]) : file));
-
-				ulanBirth.loadTermsSeRQL("SELECT C, L FROM {C} <" + ULAN.BIRTH + "> {L} ",
-						tmpDir,
-						(sign == FileSign.pattern ? Helper.makeFileNames(file[0]) : file));
-
-				ulanDeath.loadTermsSeRQL("SELECT C, L FROM {C} <" + ULAN.DEATH + "> {L} ",
-						tmpDir,
-						(sign == FileSign.pattern ? Helper.makeFileNames(file[0]) : file));
-
-				super.loadVocabulary(tmpDir, sign, file);
-			}
-		}
-	 */
 
 }

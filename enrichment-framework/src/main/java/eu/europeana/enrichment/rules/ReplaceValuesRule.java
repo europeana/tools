@@ -30,14 +30,12 @@ import eu.europeana.enrichment.xconverter.impl.XConverterFactory.MapObjectToObje
  * @author Borys Omelayenko
  * 
  */
-public class ReplaceValuesRule extends SequenceRule
-{
+public class ReplaceValuesRule extends SequenceRule {
 	private String[] originalValues;
 	private String[] replacements;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Value";
 	}
 
@@ -45,60 +43,55 @@ public class ReplaceValuesRule extends SequenceRule
 	 * Replace triple values and apply another rule to the replaced triple.
 	 * 
 	 * @param srcPath
-	 *          where the values to be replaced are coming from, <code>null</code>
-	 *          means the source triple
+	 *            where the values to be replaced are coming from,
+	 *            <code>null</code> means the source triple
 	 * @param rule
-	 *          rule that will be applied to the a triple with the replaced value
+	 *            rule that will be applied to the a triple with the replaced
+	 *            value
 	 * @param map
-	 * 			value map
-	 *          
+	 *            value map
+	 * 
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "default" )
-	public ReplaceValuesRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			PropertyRule rule,
-			XConverterFactory.MapObjectToObject... map)
-	{
+	@AnnoCultor.XConverter(include = true, affix = "default")
+	public ReplaceValuesRule(@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			PropertyRule rule, XConverterFactory.MapObjectToObject... map) {
 		super(rule);
 		this.setSourcePath(srcPath);
 		this.originalValues = new String[map.length];
 		this.replacements = new String[map.length];
-		
+
 		int i = 0;
 		for (MapObjectToObject m : map) {
-			this.originalValues[i] = (String)m.getSrcValue();
-			this.replacements[i] = (String)m.getDstValue();
-			i ++;
+			this.originalValues[i] = (String) m.getSrcValue();
+			this.replacements[i] = (String) m.getDstValue();
+			i++;
 		}
 	}
 
-	public ReplaceValuesRule(
-			String[] originalValues, 
-			String[] replacements, 
-			Path path, 
-			PropertyRule... rules)
-	{
+	public ReplaceValuesRule(String[] originalValues, String[] replacements,
+			Path path, PropertyRule... rules) {
 		super(rules);
 		setSourcePath(path);
 		this.originalValues = originalValues;
 		this.replacements = replacements;
 	}
+
 	/**
 	 * @inheritDoc
 	 * 
 	 */
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		Triple newTriple = triple.copy();
 		if (getSourcePath() != null)
-			newTriple = newTriple.changeValue(new XmlValue(dataObject.getFirstValue(getSourcePath()).getValue()));
+			newTriple = newTriple.changeValue(new XmlValue(dataObject
+					.getFirstValue(getSourcePath()).getValue()));
 
-		for (int i = 0; i < originalValues.length; i++)
-		{
-			if (originalValues[i].equalsIgnoreCase(newTriple.getValue().getValue()))
-			{
-				newTriple = newTriple.changeValue(new XmlValue(replacements[i]));
+		for (int i = 0; i < originalValues.length; i++) {
+			if (originalValues[i].equalsIgnoreCase(newTriple.getValue()
+					.getValue())) {
+				newTriple = newTriple
+						.changeValue(new XmlValue(replacements[i]));
 				break;
 			}
 		}

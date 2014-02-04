@@ -33,8 +33,7 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
  * An implementation of the RDFWriter interface that writes RDF documents in
  * XML-serialized RDF format.
  */
-public class SortedRDFXMLWriter extends RDFXMLWriter
-{
+public class SortedRDFXMLWriter extends RDFXMLWriter {
 
 	/*-----------*
 	 * Variables *
@@ -50,10 +49,9 @@ public class SortedRDFXMLWriter extends RDFXMLWriter
 	 * Creates a new RDFXMLWriter that will write to the supplied OutputStream.
 	 * 
 	 * @param out
-	 *          The OutputStream to write the RDF/XML document to.
+	 *            The OutputStream to write the RDF/XML document to.
 	 */
-	public SortedRDFXMLWriter(OutputStream out)
-	{
+	public SortedRDFXMLWriter(OutputStream out) {
 		this(new OutputStreamWriter(out, Charset.forName("UTF-8")));
 	}
 
@@ -61,10 +59,9 @@ public class SortedRDFXMLWriter extends RDFXMLWriter
 	 * Creates a new RDFXMLWriter that will write to the supplied Writer.
 	 * 
 	 * @param writer
-	 *          The Writer to write the RDF/XML document to.
+	 *            The Writer to write the RDF/XML document to.
 	 */
-	public SortedRDFXMLWriter(Writer writer)
-	{
+	public SortedRDFXMLWriter(Writer writer) {
 		super(writer);
 		statements = new LinkedList<Statement>();
 	}
@@ -74,11 +71,10 @@ public class SortedRDFXMLWriter extends RDFXMLWriter
 	 *---------*/
 
 	@Override
-	public void handleStatement(Statement st) throws RDFHandlerException
-	{
-		if (!writingStarted)
-		{
-			throw new RuntimeException("Document writing has not yet been started");
+	public void handleStatement(Statement st) throws RDFHandlerException {
+		if (!writingStarted) {
+			throw new RuntimeException(
+					"Document writing has not yet been started");
 		}
 
 		// we only add statement to the list, postponing
@@ -90,43 +86,37 @@ public class SortedRDFXMLWriter extends RDFXMLWriter
 	/**
 	 * Returns predicate name in the form <code>ns:name</code>
 	 */
-	private String getPredicatePrintName(URI uri)
-	{
+	private String getPredicatePrintName(URI uri) {
 		return uri.toString();
-		// String prefix = namespaceTable.get(uri.getNamespace());
-		// return prefix == null ? uri.toString() : (prefix + ":" +
-		// uri.getLocalName());
 	}
 
 	@Override
-	public void endRDF() throws RDFHandlerException
-	{
-		try
-		{
+	public void endRDF() throws RDFHandlerException {
+		try {
 			// write headers same as super.endRDF() does
-			if (!headerWritten)
-			{
+			if (!headerWritten) {
 				writeHeader();
 			}
 
 			// sort statements by subject-predicate-object
-			Collections.sort(statements, new Comparator<Statement>()
-			{
+			Collections.sort(statements, new Comparator<Statement>() {
 
-				public int compare(Statement left, Statement right)
-				{
+				public int compare(Statement left, Statement right) {
 					// sort by subject
-					int result = left.getSubject().stringValue().compareTo(right.getSubject().stringValue());
-					if (result == 0)
-					{
-						// sort by property within a subject, based on namespace nicks
-						result =
-								getPredicatePrintName(left.getPredicate()).compareTo(getPredicatePrintName(right
-										.getPredicate()));
-						if (result == 0)
-						{
-							// sort by object within the same subject and property
-							result = left.getObject().stringValue().compareTo(right.getObject().stringValue());
+					int result = left.getSubject().stringValue()
+							.compareTo(right.getSubject().stringValue());
+					if (result == 0) {
+						// sort by property within a subject, based on namespace
+						// nicks
+						result = getPredicatePrintName(left.getPredicate())
+								.compareTo(
+										getPredicatePrintName(right
+												.getPredicate()));
+						if (result == 0) {
+							// sort by object within the same subject and
+							// property
+							result = left.getObject().stringValue()
+									.compareTo(right.getObject().stringValue());
 						}
 					}
 					return result;
@@ -135,22 +125,16 @@ public class SortedRDFXMLWriter extends RDFXMLWriter
 			});
 
 			// write all statements
-			for (Statement st : statements)
-			{
-				try
-				{
+			for (Statement st : statements) {
+				try {
 					super.handleStatement(st);
-				}
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 					throw new Exception("Error handling statement " + st, e);
 				}
 			}
 
 			statements.clear();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new RDFHandlerException(e);
 		}
 

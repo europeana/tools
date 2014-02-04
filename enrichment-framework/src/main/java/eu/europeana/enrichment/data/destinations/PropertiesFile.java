@@ -34,20 +34,11 @@ import eu.europeana.enrichment.triple.Triple;
 
 public class PropertiesFile extends AbstractGraph {
 
-	public PropertiesFile(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		super(Common.makeNewNamedGraphId(
-				datasetId,
-				datasetModifier,
-				objectType,
-				propertyType), 
-				comment);
+	public PropertiesFile(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(Common.makeNewNamedGraphId(datasetId, datasetModifier,
+				objectType, propertyType), comment);
 		this.environment = environment;
 		setRealGraph(this);
 	}
@@ -62,8 +53,8 @@ public class PropertiesFile extends AbstractGraph {
 		public Enumeration keys() {
 			Enumeration keysEnum = super.keys();
 			Vector<String> keyList = new Vector<String>();
-			while(keysEnum.hasMoreElements()){
-				keyList.add((String)keysEnum.nextElement());
+			while (keysEnum.hasMoreElements()) {
+				keyList.add((String) keysEnum.nextElement());
 			}
 			Collections.sort(keyList);
 			return keyList.elements();
@@ -81,23 +72,13 @@ public class PropertiesFile extends AbstractGraph {
 		}
 
 		if (propertyRepresentedWithEqualsSign.equals(triple.getProperty())) {
-			final String existingValue = properties.getProperty(convertSubjectToPropertyName(triple.getSubject()), "");
-			if (!StringUtils.isEmpty(existingValue) && !existingValue.equals(triple.getValue().getValue())) {
-				//				throw new Exception("Attempt to override " 
-				//						+ existingValue
-				//						+ " with "
-				//						+ triple.getValue().getValue() 
-				//						+ " at "
-				//						+ triple.getSubject());
-			}
-			properties.setProperty(
-					convertSubjectToPropertyName(triple.getSubject()),
-					triple.getValue().getValue()
-			);
+			properties.setProperty(convertSubjectToPropertyName(triple
+					.getSubject()), triple.getValue().getValue());
 		} else {
-			throw new Exception("Property " + propertyRepresentedWithEqualsSign 
-					+ " that is used in this file cannot be replaced (with " + triple.getProperty() 
-					+ ") at subject " + triple.getSubject());
+			throw new Exception("Property " + propertyRepresentedWithEqualsSign
+					+ " that is used in this file cannot be replaced (with "
+					+ triple.getProperty() + ") at subject "
+					+ triple.getSubject());
 		}
 	}
 
@@ -119,7 +100,8 @@ public class PropertiesFile extends AbstractGraph {
 
 	@Override
 	public File getFinalFile(int volume) throws IOException {
-		return new File(environment.getOutputDir(), getId() + "." + volume + ".txt");
+		return new File(environment.getOutputDir(), getId() + "." + volume
+				+ ".txt");
 	}
 
 	@Override

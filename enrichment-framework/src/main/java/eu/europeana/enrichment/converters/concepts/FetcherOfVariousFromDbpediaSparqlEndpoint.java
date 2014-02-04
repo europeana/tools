@@ -68,16 +68,11 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 				"Drawing", "Poster", "Photograph", "Furniture", "Costume",
 				"Fashion", "Jewellery", "Porcelain", "Tapestry", "Woodcut" };
 
-		File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 		Set<String> repos = new HashSet<String>();
 		for (String resource : dbpediaResources) {
 			try {
-				String query = makeDbpediaSparqlQuery(resource, "label",
-						"rdfs:label");
 				String languageQuery = makeDbpediaSparqlQuery(resource,
 						"sameAs", "<http://www.w3.org/2002/07/owl#sameAs>");
-				// vocabularyOfConcepts.loadTermsFromSparqlEndpoint(query,
-				// cacheDir, new URL("http://dbpedia.org/sparql"));
 				Repository repo = Helper
 						.createRemoteRepository("http://dbpedia.org/sparql");
 
@@ -88,21 +83,16 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 				while (result.hasNext()) {
 					BindingSet bs = result.next();
 					String str = bs.getValue(fields.get(1)).stringValue();
-				//	System.out.println(str);
-					if(str.contains("dbpedia")){
-					repos.add(StringUtils.substringBeforeLast(str,
-									"/resource") + "/sparql");
+					if (str.contains("dbpedia")) {
+						repos.add(StringUtils.substringBeforeLast(str,
+								"/resource") + "/sparql");
 					}
-//					vocabularyOfConcepts.loadTermsFromSparqlEndpoint(
-//							makeLanguageDbpediaSparqlQuery(str, "label", "rdfs:label"),
-//							cacheDir,
-//							new URL(StringUtils.substringBeforeLast(str,
-//									"/resource") + "/sparql"));
 				}
-				for(String s: repos){
+				for (String s : repos) {
 					System.out.println(s);
 				}
-				FileUtils.writeLines(new File("/home/gmamakis/dbpediaEntries"), repos);
+				FileUtils.writeLines(new File("/home/gmamakis/dbpediaEntries"),
+						repos);
 			} catch (Exception e) {
 				System.out.println("dbpedia resource " + resource
 						+ " does not have anything under it");
@@ -134,9 +124,6 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 		environment.getNamespaces().addNamespace(
 				"http://dbpedia.org/ontology/", "dbpedia");
 		Map<String, String> propertiesToExport = new HashMap<String, String>();
-		// propertiesToExport.put("birth", "dbpedia:birth");
-		// propertiesToExport.put("death", "dbpedia:death");
-
 		vocabularyOfConcepts
 				.saveAsRDF(
 						"Selection from DBPedia: various concepts \n"

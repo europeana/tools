@@ -35,85 +35,68 @@ import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.utils.XmlUtils;
 import eu.europeana.enrichment.xconverter.impl.XConverterFactory;
 
-
 /**
  * Source dataset consisting of a set of XML files.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class XmlDataSource implements DataSource
-{
+public class XmlDataSource implements DataSource {
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
-	private static class AttributesProxy implements Attributes
-	{
+	private static class AttributesProxy implements Attributes {
 
 		private String name;
 
-		AttributesProxy(File src) 
-		throws IOException
-		{
+		AttributesProxy(File src) throws IOException {
 			name = src.getCanonicalPath();
 		}
 
-		public int getIndex(String uri, String localName)
-		{
+		public int getIndex(String uri, String localName) {
 			return "name".equals(uri + localName) ? 0 : -1;
 		}
 
-		public int getIndex(String name)
-		{
+		public int getIndex(String name) {
 			return getIndex("", name);
 		}
 
-		public int getLength()
-		{
+		public int getLength() {
 			return 1;
 		}
 
-		public String getLocalName(int index)
-		{
+		public String getLocalName(int index) {
 			return (index == 0) ? "name" : null;
 		}
 
-		public String getQName(int index)
-		{
+		public String getQName(int index) {
 			return (index == 0) ? "name" : null;
 		}
 
-		public String getType(int index)
-		{
+		public String getType(int index) {
 			return (index == 0) ? "attribute" : null;
 		}
 
-		public String getType(String uri, String localName)
-		{
+		public String getType(String uri, String localName) {
 			return null;
 		}
 
-		public String getType(String name)
-		{
+		public String getType(String name) {
 			return null;
 		}
 
-		public String getURI(int index)
-		{
+		public String getURI(int index) {
 			return (index == 0) ? "" : null;
 		}
 
-		public String getValue(int index)
-		{
+		public String getValue(int index) {
 			return (index == 0) ? name : null;
 		}
 
-		public String getValue(String uri, String localName)
-		{
+		public String getValue(String uri, String localName) {
 			return "name".equals(uri + localName) ? name : null;
 		}
 
-		public String getValue(String name)
-		{
+		public String getValue(String name) {
 			return getValue("", name);
 		}
 
@@ -121,70 +104,76 @@ public class XmlDataSource implements DataSource
 
 	private List<File> srcFiles = new ArrayList<File>();
 
-	public XmlDataSource(Environment environment, String... file) throws IOException {
-		System.out.println(environment.getParameter(Environment.PARAMETERS.ANNOCULTOR_INPUT_DIR));
-		File inputDir = new File("/home/gmamakis/workspace3/annocultor/converters/europeana/input_source");
+	public XmlDataSource(Environment environment, String... file)
+			throws IOException {
+		System.out.println(environment
+				.getParameter(Environment.PARAMETERS.ANNOCULTOR_INPUT_DIR));
+		File inputDir = new File(
+				"/home/gmamakis/workspace3/annocultor/converters/europeana/input_source");
 		addSourceFile(inputDir, file);
 		setMergeSourceFiles(true);
 	}
 
-	public void addSourceFile(File dir, String... pattern)
-	throws IOException
-	{
-		if (dir == null)
-		{
+	public void addSourceFile(File dir, String... pattern) throws IOException {
+		if (dir == null) {
 			throw new IOException("Null dir in source XML files ");
 		}
 
 		List<File> files = Utils.expandFileTemplateFrom(dir, pattern);
-		if (files.size() == 0)
-		{
-			throw new IOException("No single file found with pattern " + StringUtils.join(pattern, ",") + " in dir " + dir.getCanonicalPath());
+		if (files.size() == 0) {
+			throw new IOException("No single file found with pattern "
+					+ StringUtils.join(pattern, ",") + " in dir "
+					+ dir.getCanonicalPath());
 		}
 
 		srcFiles.addAll(files);
 	}
 
-
 	@Override
-	public void feedData(ConverterHandler handler, Path recordSeparatingPath, Path recordIdentifyingPath)
-	throws Exception {
+	public void feedData(ConverterHandler handler, Path recordSeparatingPath,
+			Path recordIdentifyingPath) throws Exception {
 
 		int result = 0;
-		if (isMergeSourceFiles())
-		{
+		if (isMergeSourceFiles()) {
 			handler.multiFileStartDocument();
-			handler.startElement("", XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET, XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET, null);
+			handler.startElement("",
+					XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET,
+					XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET, null);
 		}
 
 		int current = 1;
-		for (File src : srcFiles)
-		{
-			if (isMergeSourceFiles())
-			{
-				handler.startElement("", XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE, XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE, new AttributesProxy(src));
+		for (File src : srcFiles) {
+			if (isMergeSourceFiles()) {
+				handler.startElement("",
+						XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE,
+						XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE,
+						new AttributesProxy(src));
 			}
 
-			if (result == 0)
-			{
-				log.info("File " + (current ++) + "/" + srcFiles.size() + " " + src.getName() + " of " + (src.length() / FileUtils.ONE_MB) + " Mb");
+			if (result == 0) {
+				log.info("File " + (current++) + "/" + srcFiles.size() + " "
+						+ src.getName() + " of "
+						+ (src.length() / FileUtils.ONE_MB) + " Mb");
 				result = parseSourceFile(handler, src, recordSeparatingPath);
 			}
-			if (isMergeSourceFiles())
-			{
-				handler.endElement("", XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE, XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE);
+			if (isMergeSourceFiles()) {
+				handler.endElement("",
+						XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE,
+						XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILE);
 			}
 		}
-		if (isMergeSourceFiles())
-		{
-			handler.endElement("", XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET, XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET);
+		if (isMergeSourceFiles()) {
+			handler.endElement("",
+					XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET,
+					XConverterFactory.MERGED_SOURCES_OUTER_TAG_FILESET);
 			handler.multiFileEndDocument();
 		}
-		handler.setConversionResult(result == 0 ? ConversionResult.success : ConversionResult.failure);
+		handler.setConversionResult(result == 0 ? ConversionResult.success
+				: ConversionResult.failure);
 	}
 
-	protected int parseSourceFile(ConverterHandler handler, File src, Path recordSeparatingPath)
-	throws Exception {
+	protected int parseSourceFile(ConverterHandler handler, File src,
+			Path recordSeparatingPath) throws Exception {
 		return XmlUtils.parseXmlFileSAX(src, handler, true);
 	}
 
@@ -196,15 +185,12 @@ public class XmlDataSource implements DataSource
 	 * files. This allows multiple files to be processed in a single converter
 	 * run.
 	 */
-	public void setMergeSourceFiles(boolean mergeSourceFiles)
-	{
+	public void setMergeSourceFiles(boolean mergeSourceFiles) {
 		this.mergeSourceFiles = mergeSourceFiles;
 	}
 
-	public boolean isMergeSourceFiles()
-	{
+	public boolean isMergeSourceFiles() {
 		return mergeSourceFiles;
 	}
-
 
 }

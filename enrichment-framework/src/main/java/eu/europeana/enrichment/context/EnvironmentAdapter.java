@@ -17,25 +17,22 @@ package eu.europeana.enrichment.context;
 
 import java.io.File;
 
-
-
 /**
- * Customized environment. 
+ * Customized environment.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class EnvironmentAdapter implements Environment
-{
+public class EnvironmentAdapter implements Environment {
 
 	Environment environment;
-	
+
 	public EnvironmentAdapter(Environment environment) {
 		this.environment = environment;
 	}
 
 	// overrides
-	
+
 	public void completeParameter(PARAMETERS parameter, String value) {
 		environment.completeParameter(parameter, value);
 	}
@@ -107,10 +104,9 @@ public class EnvironmentAdapter implements Environment
 		return environment.checkSignatureForDuplicates(signature);
 	}
 
-    @Override
-    public String getBuildSignature() {
-        return environment.getBuildSignature();
-    }
-	
-	
+	@Override
+	public String getBuildSignature() {
+		return environment.getBuildSignature();
+	}
+
 }

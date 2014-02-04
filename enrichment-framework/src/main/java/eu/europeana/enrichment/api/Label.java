@@ -20,25 +20,21 @@ import eu.europeana.enrichment.common.Language.Lang;
 /**
  * Label with a language.
  */
-public class Label
-{
+public class Label {
 	private String label;
 	private Lang lang;
 
-	public Label(String label, Lang lang)
-	{
+	public Label(String label, Lang lang) {
 		super();
 		this.label = label;
 		this.lang = lang;
 	}
 
-	public String getLabel()
-	{
+	public String getLabel() {
 		return label;
 	}
 
-	public Lang getLang()
-	{
+	public Lang getLang() {
 		return lang;
 	}
 

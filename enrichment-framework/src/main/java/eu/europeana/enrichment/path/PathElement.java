@@ -40,60 +40,62 @@ final class PathElement extends NamespacedName {
 
 	/**
 	 * Get value of this PE attribute.
+	 * 
 	 * @param attribute
 	 * @return
 	 */
-	public String getAttributeValue(NamespacedName attribute)
-	{
+	public String getAttributeValue(NamespacedName attribute) {
 		return attributeValues.get(attribute);
 	}
 
 	/**
 	 * Shallow query for attributes.
+	 * 
 	 * @return
 	 */
-	public boolean hasAttributes()
-	{
+	public boolean hasAttributes() {
 		return !attributeValues.isEmpty();
 	}
 
 	// performance shortcut: additional shortcut to xml:lang
 	private String lang = null;
-	public String getLang()
-	{
+
+	public String getLang() {
 		return lang;
 	}
 
 	private NamespacedName queryAttribute = null;
-	
+
 	/**
-	 * Private to keep PE immutable, 
+	 * Private to keep PE immutable,
 	 * 
 	 * @param attributeName
 	 * @param attributeNamespace
 	 * @param value
 	 */
-	private void addAttribute(NamespacedName attribute, String value)
-	{
+	private void addAttribute(NamespacedName attribute, String value) {
 		// keep a special link to query attribute
 		queryAttribute = attributeValues.isEmpty() ? attribute : null;
 		attributeValues.put(attribute, value);
-		if ("lang".equals(attribute.getName()) && Namespaces.XML.getUri().equals(attribute.getNamespace())) {
+		if ("lang".equals(attribute.getName())
+				&& Namespaces.XML.getUri().equals(attribute.getNamespace())) {
 			this.lang = value;
 		}
 	}
 
 	private boolean isAttributeQuery = false;
-	public boolean isAttributeQuery()
-	{
+
+	public boolean isAttributeQuery() {
 		return isAttributeQuery;
 	}
 
-	public static PathElement makePathElement(XPScanner scanner, Namespaces namespaces) throws Exception {
+	public static PathElement makePathElement(XPScanner scanner,
+			Namespaces namespaces) throws Exception {
 
 		// element name, expanding namespace
 		NamespacedName element = scanner.expandNamespaceForTag(namespaces);
-		PathElement pathElement = new PathElement(element.getName(), element.getNamespace(), null);
+		PathElement pathElement = new PathElement(element.getName(),
+				element.getNamespace(), null);
 
 		if (scanner.skipString("[")) {
 			// attribute block
@@ -102,7 +104,8 @@ final class PathElement extends NamespacedName {
 				int scannerPositionAtAttribute = scanner.pos();
 				// attr + optional value or operation
 				if (scanner.skipString("@")) {
-					NamespacedName attribute = scanner.expandNamespaceForTag(namespaces);
+					NamespacedName attribute = scanner
+							.expandNamespaceForTag(namespaces);
 
 					// attribute value
 					String attributeValue = null;
@@ -114,18 +117,23 @@ final class PathElement extends NamespacedName {
 					if (attributeValue == null) {
 						pathElement.isAttributeQuery = true;
 						if (pathElement == null) {
-							throw new Exception("Error in " + scanner + ", unexpected attribute query @" + attribute);		
+							throw new Exception("Error in " + scanner
+									+ ", unexpected attribute query @"
+									+ attribute);
 						}
 					}
 
-					pathElement.addAttribute(new NamespacedName(attribute.getName(), attribute.getNamespace()), attributeValue);
+					pathElement.addAttribute(
+							new NamespacedName(attribute.getName(), attribute
+									.getNamespace()), attributeValue);
 
 					moreAttributesExpected = scanner.skipString(" and ");
 					if (scanner.pos() == scannerPositionAtAttribute) {
 						throw new Exception("Error in " + scanner);
 					}
 				} else {
-					throw new Exception("Missing expected symbol @ at " + scanner);						
+					throw new Exception("Missing expected symbol @ at "
+							+ scanner);
 				}
 			}
 
@@ -138,21 +146,18 @@ final class PathElement extends NamespacedName {
 		return pathElement;
 	}
 
-	public PathElement(String name, String namespace, Attributes attributes)
-	{
+	public PathElement(String name, String namespace, Attributes attributes) {
 		super(name, namespace);
 		if (attributes != null) {
 			for (int i = 0; i < attributes.getLength(); i++) {
-				addAttribute(
-						new NamespacedName(attributes.getLocalName(i), attributes.getURI(i)),
-						attributes.getValue(i));
+				addAttribute(new NamespacedName(attributes.getLocalName(i),
+						attributes.getURI(i)), attributes.getValue(i));
 			}
 		}
 		updateCachedRepresentations();
 	}
 
-	public PathElement(NamespacedName element, NamespacedName attribute)
-	{
+	public PathElement(NamespacedName element, NamespacedName attribute) {
 		super(element.getName(), element.getNamespace());
 		if (attribute != null) {
 			addAttribute(attribute, null);
@@ -160,8 +165,8 @@ final class PathElement extends NamespacedName {
 		updateCachedRepresentations();
 	}
 
-	public static PathElement appendAttribute(PathElement pe, NamespacedName attribute, String value)
-	{
+	public static PathElement appendAttribute(PathElement pe,
+			NamespacedName attribute, String value) {
 		PathElement npe = new PathElement(pe);
 		npe.addAttribute(attribute, value);
 		npe.updateCachedRepresentations();
@@ -174,57 +179,53 @@ final class PathElement extends NamespacedName {
 	 * @param peToShallowClone
 	 * @param parent
 	 */
-	public PathElement(PathElement peToShallowClone)
-	{
+	public PathElement(PathElement peToShallowClone) {
 		super(peToShallowClone.getName(), peToShallowClone.getNamespace());
-		//		this.parent = peToShallowClone.getParent();
-		for (NamespacedName attribute : peToShallowClone.attributeValues.keySet()) {
-			addAttribute(attribute, peToShallowClone.attributeValues.get(attribute));
+		// this.parent = peToShallowClone.getParent();
+		for (NamespacedName attribute : peToShallowClone.attributeValues
+				.keySet()) {
+			addAttribute(attribute,
+					peToShallowClone.attributeValues.get(attribute));
 		}
 		updateCachedRepresentations();
 	}
 
 	// immutable objects
-	private void updateCachedRepresentations()
-	{
+	private void updateCachedRepresentations() {
 		// a single attribute and no values
-		isAttributeQuery = queryAttribute != null && attributeValues.get(queryAttribute) == null;
+		isAttributeQuery = queryAttribute != null
+				&& attributeValues.get(queryAttribute) == null;
 
-		pathFullNormalized = getExpanded() + toPath(isAttributeQuery(), attributeValues);		
+		pathFullNormalized = getExpanded()
+				+ toPath(isAttributeQuery(), attributeValues);
 
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return getPath();
 	}
 
-	public String getPath()
-	{
+	public String getPath() {
 		return pathFullNormalized;
 	}
 
-	public int getAttrCount()
-	{
+	public int getAttrCount() {
 		return attributeValues.size();
 	}
 
-	public NamespacedName getQueryAttribute()
-	{
+	public NamespacedName getQueryAttribute() {
 		return isAttributeQuery ? queryAttribute : null;
 	}
 
-	public Set<NamespacedName> getAttributesAsSet()
-	{
+	public Set<NamespacedName> getAttributesAsSet() {
 		return attributeValues.keySet();
 	}
 
-	private static String toPath(boolean isAttributeQuery, Map<NamespacedName, String> attributes)
-	{
+	private static String toPath(boolean isAttributeQuery,
+			Map<NamespacedName, String> attributes) {
 		StringBuilder result = new StringBuilder();
-		if (attributes.size() > 0)
-		{
+		if (attributes.size() > 0) {
 			result.append(isAttributeQuery ? "/" : "[");
 
 			// sorted list of attributes
@@ -233,17 +234,21 @@ final class PathElement extends NamespacedName {
 			Collections.sort(names);
 
 			boolean first = true;
-			for (NamespacedName attribute : names)
-			{
+			for (NamespacedName attribute : names) {
 				if (attribute == null)
-					throw new NullPointerException("NULL attribute name at " + attributes);
+					throw new NullPointerException("NULL attribute name at "
+							+ attributes);
 				String v = attributes.get(attribute);
 				if (v == null && !isAttributeQuery)
-					throw new NullPointerException("NULL value of attribute " + attribute + " at " + attributes);
+					throw new NullPointerException("NULL value of attribute "
+							+ attribute + " at " + attributes);
 
 				if (!first && isAttributeQuery)
-					throw new RuntimeException("Attrbiute query with multiple attributes " + attributes);
-				result.append((first ? "" : " and ") + "@" + attribute + (isAttributeQuery ? "" : ("='" + v + "'")));
+					throw new RuntimeException(
+							"Attrbiute query with multiple attributes "
+									+ attributes);
+				result.append((first ? "" : " and ") + "@" + attribute
+						+ (isAttributeQuery ? "" : ("='" + v + "'")));
 				first = false;
 			}
 			result.append(isAttributeQuery ? "" : "]");

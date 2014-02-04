@@ -15,21 +15,18 @@
  */
 package eu.europeana.enrichment.data.filters;
 
-
-
 /**
  * Filter for records.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface TwoIterationsRecordFilter extends RecordFilter
-{
+public interface TwoIterationsRecordFilter extends RecordFilter {
 	public void init() throws Exception;
 
 	public void load() throws Exception;
 
 	public void save() throws Exception;
-	
+
 	public void addIncludedRecord(String id);
 }

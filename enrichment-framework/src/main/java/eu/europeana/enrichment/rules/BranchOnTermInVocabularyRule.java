@@ -27,8 +27,7 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Borys Omelayenko
  * 
  */
-public class BranchOnTermInVocabularyRule extends AbstractBranchRule
-{
+public class BranchOnTermInVocabularyRule extends AbstractBranchRule {
 
 	Path propertyName;
 
@@ -41,27 +40,22 @@ public class BranchOnTermInVocabularyRule extends AbstractBranchRule
 	 * 
 	 * @param pattern
 	 * @param pathToEvaluate
-	 *          path which value should be evaluated. Use <code>null</code> if
-	 *          you want to use the current triple instead of naming it to avoid
-	 *          errors with multiple occurrences of this property in the same
-	 *          record.
+	 *            path which value should be evaluated. Use <code>null</code> if
+	 *            you want to use the current triple instead of naming it to
+	 *            avoid errors with multiple occurrences of this property in the
+	 *            same record.
 	 * @param success
 	 * @param failure
 	 */
-	public BranchOnTermInVocabularyRule(
-			Vocabulary vocabulary,
-			Path pathToEvaluate,
-			PropertyRule success,
-			PropertyRule failure)
-	{
+	public BranchOnTermInVocabularyRule(Vocabulary vocabulary,
+			Path pathToEvaluate, PropertyRule success, PropertyRule failure) {
 		super(success, failure);
 		this.propertyName = pathToEvaluate;
 		this.vocabulary = vocabulary;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 
 		// String value = null;
 		// current property is treated separately to avoid issues with multiple
@@ -73,10 +67,10 @@ public class BranchOnTermInVocabularyRule extends AbstractBranchRule
 
 		throw new Exception("FIX");
 		/*
-		 * if (value != null && vocabulary.getTermCodeByLabel(value, null) != null)
-		 * { if (success != null) { success.write(rdf, triple, converter); return; }
-		 * } else { if (failure != null) { failure.write(rdf, triple, converter);
-		 * return; } }
+		 * if (value != null && vocabulary.getTermCodeByLabel(value, null) !=
+		 * null) { if (success != null) { success.write(rdf, triple, converter);
+		 * return; } } else { if (failure != null) { failure.write(rdf, triple,
+		 * converter); return; } }
 		 */
 	}
 }

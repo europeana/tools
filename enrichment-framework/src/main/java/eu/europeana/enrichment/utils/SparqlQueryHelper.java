@@ -40,11 +40,11 @@ import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.utils.SesameWriter;
 
 /**
- * Apply a SPARQL query to a set of RDF files, and save the results of this query to another file;
- * made as a convenience method to use in XML converters. 
+ * Apply a SPARQL query to a set of RDF files, and save the results of this
+ * query to another file; made as a convenience method to use in XML converters.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
 public class SparqlQueryHelper {
 
@@ -52,18 +52,15 @@ public class SparqlQueryHelper {
 	RepositoryConnection connection;
 	TupleQueryResult queryResult;
 	final String namespacePrefix;
-	
+
 	public SparqlQueryHelper(String namespacePrefix) {
 		this.namespacePrefix = namespacePrefix;
 	}
 
-	public static void filter(
-			Namespaces namespaces, 
-			String namespacePrefix, 
-			String outputFilePrefix, 
-			String query, 
-			String... inputFilePattern) throws Exception {
-	
+	public static void filter(Namespaces namespaces, String namespacePrefix,
+			String outputFilePrefix, String query, String... inputFilePattern)
+			throws Exception {
+
 		List<File> files = new ArrayList<File>();
 		for (String pattern : inputFilePattern) {
 			files.addAll(Utils.expandFileTemplateFrom(new File("."), pattern));
@@ -71,7 +68,7 @@ public class SparqlQueryHelper {
 		SparqlQueryHelper sqh = new SparqlQueryHelper(namespacePrefix);
 		try {
 			sqh.open();
-			sqh.load(namespacePrefix, files.toArray(new File[]{}));
+			sqh.load(namespacePrefix, files.toArray(new File[] {}));
 			sqh.query(query);
 			sqh.save(namespaces, outputFilePrefix);
 		} finally {
@@ -83,41 +80,47 @@ public class SparqlQueryHelper {
 		rdf = Helper.createLocalRepository();
 	}
 
-	private void load(String namespace, File... files ) throws Exception {
+	private void load(String namespace, File... files) throws Exception {
 		Helper.importRDFXMLFile(rdf, namespace, files);
 	}
 
 	private void query(String query) throws Exception {
 		connection = rdf.getConnection();
-		TupleQuery preparedQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
+		TupleQuery preparedQuery = connection.prepareTupleQuery(
+				QueryLanguage.SPARQL, query);
 		preparedQuery.setIncludeInferred(false);
 		queryResult = preparedQuery.evaluate();
 	}
 
-	private void save(Namespaces namespaces, String outputFilePrefix) throws Exception {
-		
-		SesameWriter writer = SesameWriter.createRDFXMLWriter(new File(outputFilePrefix + ".1.rdf"), namespaces, "id", "description", 1000, 1000);
+	private void save(Namespaces namespaces, String outputFilePrefix)
+			throws Exception {
+
+		SesameWriter writer = SesameWriter.createRDFXMLWriter(new File(
+				outputFilePrefix + ".1.rdf"), namespaces, "id", "description",
+				1000, 1000);
 		ValueFactory valueFactory = connection.getValueFactory();
 		writer.startRDF();
 		while (queryResult.hasNext()) {
 			final BindingSet binding = queryResult.next();
-			final URI subject = valueFactory.createURI(binding.getBinding("subject").getValue().stringValue());
-			final URI property = valueFactory.createURI(binding.getBinding("property").getValue().stringValue());
+			final URI subject = valueFactory.createURI(binding
+					.getBinding("subject").getValue().stringValue());
+			final URI property = valueFactory.createURI(binding
+					.getBinding("property").getValue().stringValue());
 			final Value value = binding.getValue("value");
-			Statement statement = valueFactory.createStatement(
-					subject, 
-					property, 
-					value);
+			Statement statement = valueFactory.createStatement(subject,
+					property, value);
 			writer.handleStatement(statement);
-			
+
 			if (!subject.stringValue().startsWith(namespacePrefix)) {
-				throw new Exception("Expected " + subject.stringValue() + " to start with " + namespacePrefix);
+				throw new Exception("Expected " + subject.stringValue()
+						+ " to start with " + namespacePrefix);
 			}
 
-			writeStatementIntoSeparateFileByNamespace(statement, outputFilePrefix, namespaces);
-		}		
+			writeStatementIntoSeparateFileByNamespace(statement,
+					outputFilePrefix, namespaces);
+		}
 		writer.endRDF();
-		
+
 		closeWritersByNamespace();
 	}
 
@@ -127,11 +130,9 @@ public class SparqlQueryHelper {
 		}
 	}
 
-	private void writeStatementIntoSeparateFileByNamespace(
-			Statement statement,
-			String outputFilePrefix, 
-			Namespaces namespaces) throws Exception {
-		String subject = statement.getSubject().stringValue(); 
+	private void writeStatementIntoSeparateFileByNamespace(Statement statement,
+			String outputFilePrefix, Namespaces namespaces) throws Exception {
+		String subject = statement.getSubject().stringValue();
 		String nsFull = subject.substring(namespacePrefix.length());
 		String nss[] = nsFull.split("/");
 		String first = nss[0];
@@ -144,7 +145,9 @@ public class SparqlQueryHelper {
 		String ns = first + second;
 		if (!filesPerNamespace.containsKey(ns)) {
 			File nsFile = new File(outputFilePrefix + "_" + ns + ".1.rdf");
-			SesameWriter writer = SesameWriter.createRDFXMLWriter(nsFile, namespaces, "id", "Exported items belonging to " + nsFull, 1000, 1000);
+			SesameWriter writer = SesameWriter.createRDFXMLWriter(nsFile,
+					namespaces, "id", "Exported items belonging to " + nsFull,
+					1000, 1000);
 			writer.startRDF();
 			filesPerNamespace.put(ns, writer);
 		}
@@ -154,7 +157,7 @@ public class SparqlQueryHelper {
 	}
 
 	Map<String, SesameWriter> filesPerNamespace = new HashMap<String, SesameWriter>();
-	
+
 	private void close() throws Exception {
 		if (queryResult != null)
 			queryResult.close();
@@ -165,4 +168,3 @@ public class SparqlQueryHelper {
 	}
 
 }
-

@@ -33,22 +33,16 @@ import eu.europeana.enrichment.triple.Property;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
- * Looks places up in external vocabularies.
- * Should be applied to a <code>srcPath</code> that stores place labels.
+ * Looks places up in external vocabularies. Should be applied to a
+ * <code>srcPath</code> that stores place labels.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class LookupPlaceRule extends AbstractLookupRule
-{
-	public enum ContextContinents
-	{
-		Europe,
-		America,
-		Asia,
-		Africa
+public class LookupPlaceRule extends AbstractLookupRule {
+	public enum ContextContinents {
+		Europe, America, Asia, Africa
 	};
 
 	protected static List<VocabularyOfPlaces> vocabularies = new ArrayList<VocabularyOfPlaces>();
@@ -58,10 +52,9 @@ public class LookupPlaceRule extends AbstractLookupRule
 	 * <code>LookupPlaceRule</code> will be used.
 	 * 
 	 * @param v
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	public static void addVocabulary(VocabularyOfPlaces v) throws Exception
-	{
+	public static void addVocabulary(VocabularyOfPlaces v) throws Exception {
 		if (v == null) {
 			throw new Exception("NULL vocabulary passed.");
 		}
@@ -70,8 +63,7 @@ public class LookupPlaceRule extends AbstractLookupRule
 	}
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "VocabularyOfPlaces";
 	}
 
@@ -79,35 +71,21 @@ public class LookupPlaceRule extends AbstractLookupRule
 	private DisambiguationContext placeType;
 
 	/**
-	 *
-	 * Linking to external vocabularies is done directly, without the creation of local proxy terms. 
+	 * 
+	 * Linking to external vocabularies is done directly, without the creation
+	 * of local proxy terms.
 	 */
-	@AnnoCultor.XConverter(include=true, affix = "noLocalTerms")
-	public LookupPlaceRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
-			Property dstProperty,
-			Graph dstGraphLiterals,
-			Graph dstGraphLinks,
-			Property termsProperty,
-			String termsSignature,			 
-			String termsSplitPattern,
-			VocabularyOfPlaces... termsVocabulary)
-	{
-		super(				
-				dstProperty,
-				termsProperty,
-				Concepts.RDF.COMMENT,
-				null,
-				termsSignature,
-				termsSplitPattern,
-				dstGraphLiterals,
-				dstGraphLinks,
-				null,
-				null); // no proxy terms
+	@AnnoCultor.XConverter(include = true, affix = "noLocalTerms")
+	public LookupPlaceRule(@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Graph dstGraphLiterals, Graph dstGraphLinks,
+			Property termsProperty, String termsSignature,
+			String termsSplitPattern, VocabularyOfPlaces... termsVocabulary) {
+		super(dstProperty, termsProperty, Concepts.RDF.COMMENT, null,
+				termsSignature, termsSplitPattern, dstGraphLiterals,
+				dstGraphLinks, null, null); // no proxy terms
 
 		setSourcePath(srcPath);
-		for (VocabularyOfPlaces vocabulary : termsVocabulary)
-		{
+		for (VocabularyOfPlaces vocabulary : termsVocabulary) {
 			vocabularies.add(vocabulary);
 		}
 	}
@@ -116,87 +94,57 @@ public class LookupPlaceRule extends AbstractLookupRule
 	 * Looks triple values up in an external vocabulary.
 	 * 
 	 * @param linkRecordToTerm
-	 *          to create if mappings found
+	 *            to create if mappings found
 	 * @param linkRecordToLiteral
-	 *          to create if no mapping is found
+	 *            to create if no mapping is found
 	 * @param passedReportCategory
-	 *          report category
+	 *            report category
 	 * @param splitPattern
-	 *          to split a triple <code>value</code> into terms to be mapped
-	 *          separately. <code>null</code> sets the no-separation logic.
+	 *            to split a triple <code>value</code> into terms to be mapped
+	 *            separately. <code>null</code> sets the no-separation logic.
 	 * @param target
 	 */
-	public LookupPlaceRule(
-			Property linkRecordToTerm,
-			Property linkRecordToLiteral,
-			Property labelOfLinkTermToVocabulary,
-			Lang langLabelTermToVocabulary,
-			Namespace termsNamespace,
-			DisambiguationContext country,
-			DisambiguationContext placeType,
-			String reportCategory,
-			String splitPattern,
-			Graph graphTerms,
-			Graph linksGraph,
-			TermCreatorInt termCreator,
-			VocabularyOfPlaces... vocabulary)
-	{
-		super(
-				linkRecordToTerm,
-				linkRecordToLiteral,
-				labelOfLinkTermToVocabulary,
-				langLabelTermToVocabulary,
-				reportCategory,
-				splitPattern,
-				graphTerms,
-				linksGraph,
-				termCreator, 
-				new ProxyTermDefinition(termsNamespace, graphTerms, null));
+	public LookupPlaceRule(Property linkRecordToTerm,
+			Property linkRecordToLiteral, Property labelOfLinkTermToVocabulary,
+			Lang langLabelTermToVocabulary, Namespace termsNamespace,
+			DisambiguationContext country, DisambiguationContext placeType,
+			String reportCategory, String splitPattern, Graph graphTerms,
+			Graph linksGraph, TermCreatorInt termCreator,
+			VocabularyOfPlaces... vocabulary) {
+		super(linkRecordToTerm, linkRecordToLiteral,
+				labelOfLinkTermToVocabulary, langLabelTermToVocabulary,
+				reportCategory, splitPattern, graphTerms, linksGraph,
+				termCreator, new ProxyTermDefinition(termsNamespace,
+						graphTerms, null));
 		this.country = country;
 		this.placeType = placeType;
-		for (VocabularyOfPlaces voc : vocabulary)
-		{
+		for (VocabularyOfPlaces voc : vocabulary) {
 			vocabularies.add(voc);
 		}
 	}
 
 	@Override
-	protected TermList getDisambiguatedTerms(DataObject dataObject, String label, Lang lang) throws Exception
-	{
-		return LookupPlaceRule.getDisambiguatedTerms(
-				vocabularies, 
-				dataObject, 
-				label, 
-				lang, 
-				DisambiguationContext.getContextValue(country, dataObject), 
+	protected TermList getDisambiguatedTerms(DataObject dataObject,
+			String label, Lang lang) throws Exception {
+		return LookupPlaceRule.getDisambiguatedTerms(vocabularies, dataObject,
+				label, lang,
+				DisambiguationContext.getContextValue(country, dataObject),
 				DisambiguationContext.getContextValue(placeType, dataObject));
 	}
 
 	public static TermList getDisambiguatedTerms(
-			List<VocabularyOfPlaces> vocabularies,
-			DataObject dataObject,
-			String label,
-			Lang lang,
-			List<CodeURI> country,
-			List<CodeURI> placeType) 
-	throws Exception
-	{
+			List<VocabularyOfPlaces> vocabularies, DataObject dataObject,
+			String label, Lang lang, List<CodeURI> country,
+			List<CodeURI> placeType) throws Exception {
 		TermList result = new TermList();
-		for (VocabularyOfPlaces vocabulary : vocabularies)
-		{
-			try
-			{
+		for (VocabularyOfPlaces vocabulary : vocabularies) {
+			try {
 				TermList place = vocabulary.lookupPlace(label, null, country);
 				result.add(place);
-			}
-			catch (Exception e)
-			{
-				throw new Exception("Vocabulary lookup error on term '"
-						+ label
-						+ "', vocabulary "
-						+ vocabulary.getVocabularyName()
-						+ ": "
-						+ e.getMessage());
+			} catch (Exception e) {
+				throw new Exception("Vocabulary lookup error on term '" + label
+						+ "', vocabulary " + vocabulary.getVocabularyName()
+						+ ": " + e.getMessage());
 			}
 		}
 		return result;

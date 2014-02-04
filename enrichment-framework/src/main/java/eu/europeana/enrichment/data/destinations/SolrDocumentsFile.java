@@ -22,22 +22,17 @@ import org.apache.commons.io.output.FileWriterWithEncoding;
 import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.triple.Triple;
 
-public class SolrDocumentsFile extends AbstractFileWritingGraph
-{
+public class SolrDocumentsFile extends AbstractFileWritingGraph {
 
 	private String lastWrittenUri = null;
 
 	private PrintWriter writer;
 
-	public SolrDocumentsFile(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		super(datasetId, environment, datasetModifier, objectType, propertyType, "txt", comment);
+	public SolrDocumentsFile(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, "txt", comment);
 	}
 
 	@Override
@@ -45,16 +40,16 @@ public class SolrDocumentsFile extends AbstractFileWritingGraph
 		if (writingHappened()) {
 			writer.println("  </doc>");
 			writer.println("</add>");
-			writer.close();		
+			writer.close();
 			lastWrittenUri = null;
 		}
 	}
 
-
 	@Override
 	public void startRdf() throws Exception {
 		super.startRdf();
-		writer = new PrintWriter(new FileWriterWithEncoding(getFinalFile(getVolume()), "UTF-8"));
+		writer = new PrintWriter(new FileWriterWithEncoding(
+				getFinalFile(getVolume()), "UTF-8"));
 		writer.println("<add>");
 	}
 
@@ -63,13 +58,14 @@ public class SolrDocumentsFile extends AbstractFileWritingGraph
 
 		if (objectChanged(triple)) {
 			if (objectWasWritten()) {
-				writer.println("  </doc>");				
+				writer.println("  </doc>");
 			}
 			writer.println("  <doc>");
 			lastWrittenUri = triple.getSubject();
 		}
 
-		writer.println("  <field name=\"" + triple.getProperty() + "\">" + triple.getValue().getValue() + "</field>");
+		writer.println("  <field name=\"" + triple.getProperty() + "\">"
+				+ triple.getValue().getValue() + "</field>");
 
 	}
 

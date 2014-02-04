@@ -27,76 +27,62 @@ import org.apache.commons.collections.map.LRUMap;
 
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 
-
 /**
  * Reconstruct parent terms.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class ParentTermReconstructor 
-{
-    LRUMap cache;
-    
-   	public ParentTermReconstructor(int maxCacheSize) {
-   	    cache = new LRUMap(maxCacheSize);
-    }
+public class ParentTermReconstructor {
+	LRUMap cache;
 
-    @SuppressWarnings("unchecked")
-    List<Term> empty = UnmodifiableList.decorate(new ArrayList<Term>());
+	public ParentTermReconstructor(int maxCacheSize) {
+		cache = new LRUMap(maxCacheSize);
+	}
 
-   	
-//    public List<Term> allParents(TermList terms){
-//    	Iterator<Term> termIter = terms.iterator();
-//    	List<Term> parents = new ArrayList<Term>();
-//    	while(termIter.hasNext()){
-//    		Term term = termIter.next();
-//    		parents.addAll(thisAndAllParents(term.getParent()));
-//    	}
-//    	return parents;
-//    }
-    public List<Term> allParents(TermList term, String vocabulary) {
-        if(term.getFirst()!=null){
-    	Term immediateParent = term.getFirst().getParent();
-        if (immediateParent == null) {
-            return empty;
-        }
-    	
-        String code = immediateParent.getCode();
-//        if (cache.containsKey(code)) {
-//            return (List<Term>)cache.get(code);
-//        }
-        try {
-        	List<Term> terms = new ArrayList<Term>();
-        	TermList tList = MongoDatabaseUtils.findByCode(new CodeURI(code), vocabulary);
-			Iterator<Term> tIterator = tList.iterator();
-        	while( tIterator.hasNext()){
-        		Term trm = tIterator.next();
-        		if(!terms.contains(trm)){
-				terms.add(trm);
-        		}
+	@SuppressWarnings("unchecked")
+	List<Term> empty = UnmodifiableList.decorate(new ArrayList<Term>());
+
+	public List<Term> allParents(TermList term, String vocabulary) {
+		if (term.getFirst() != null) {
+			Term immediateParent = term.getFirst().getParent();
+			if (immediateParent == null) {
+				return empty;
 			}
-        	return terms;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+
+			String code = immediateParent.getCode();
+			try {
+				List<Term> terms = new ArrayList<Term>();
+				TermList tList = MongoDatabaseUtils.findByCode(
+						new CodeURI(code), vocabulary);
+				Iterator<Term> tIterator = tList.iterator();
+				while (tIterator.hasNext()) {
+					Term trm = tIterator.next();
+					if (!terms.contains(trm)) {
+						terms.add(trm);
+					}
+				}
+				return terms;
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+			List<Term> parents = thisAndAllParents(immediateParent);
+			return parents;
 		}
-        List<Term> parents = thisAndAllParents(immediateParent);
-        //cache.put(code, parents);
-        return parents;
-        }
-        return null;
-    }
-    
-    private List<Term> thisAndAllParents(Term parent) {
-	    List<Term> parentsToReturn = new ArrayList<Term>();
-	    Set<Term> parentsToCheckForCycles = new HashSet<Term>();
-	    
-	    Term chainParent = parent;
-	    while (chainParent != null && !parentsToCheckForCycles.contains(chainParent)) {
-	        parentsToCheckForCycles.add(chainParent);
-	        parentsToReturn.add(chainParent);
-	        chainParent = chainParent.getParent();
-	    }
-	    return parentsToReturn;
+		return null;
+	}
+
+	private List<Term> thisAndAllParents(Term parent) {
+		List<Term> parentsToReturn = new ArrayList<Term>();
+		Set<Term> parentsToCheckForCycles = new HashSet<Term>();
+
+		Term chainParent = parent;
+		while (chainParent != null
+				&& !parentsToCheckForCycles.contains(chainParent)) {
+			parentsToCheckForCycles.add(chainParent);
+			parentsToReturn.add(chainParent);
+			chainParent = chainParent.getParent();
+		}
+		return parentsToReturn;
 	}
 }

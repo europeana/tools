@@ -26,30 +26,25 @@ import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class FindClasspath
-{
-	public static void main(String[] args) throws Exception
-	{
+public class FindClasspath {
+	public static void main(String[] args) throws Exception {
 		FindClasspath fc = new FindClasspath();
 
 		System.out.println(fc.getClassesForPackage("java.math"));
 		System.out.println(fc.getClassesForPackage("classpath"));
 	}
 
-	static FilenameFilter classFilter = new FilenameFilter()
-	{
-		public boolean accept(File dir, String name)
-		{
-			if (name.endsWith(".class"))
-			{
+	static FilenameFilter classFilter = new FilenameFilter() {
+		public boolean accept(File dir, String name) {
+			if (name.endsWith(".class")) {
 				return true;
 			}
 			return false;
 		}
 	};
 
-	public Set<String> getClassesForPackage(String packagename) throws IOException
-	{
+	public Set<String> getClassesForPackage(String packagename)
+			throws IOException {
 		Set<String> classesForPackage = new TreeSet<String>();
 		List<String> resourcesToCheck = getClasspathEntries();
 		String[] pathEntries = packagename.split("\\.");
@@ -58,18 +53,13 @@ public class FindClasspath
 		// We need to make sure dir is in the right format for jars.
 		String jarDir = buildJarDirectoryName(pathEntries);
 
-		for (String resource : resourcesToCheck)
-		{
+		for (String resource : resourcesToCheck) {
 			File f = new File(resource);
-			if (f.exists() && f.isDirectory())
-			{
+			if (f.exists() && f.isDirectory()) {
 				addClassesFromDirectory(classesForPackage, dir, resource);
 
-			}
-			else
-			{
-				if (resource.endsWith(".jar"))
-				{
+			} else {
+				if (resource.endsWith(".jar")) {
 					addClassesFromJar(classesForPackage, jarDir, resource);
 				}
 			}
@@ -77,68 +67,60 @@ public class FindClasspath
 		return classesForPackage;
 	}
 
-	private void addClassesFromJar(Set<String> classesForPackage, String jarDir, String resource)
-			throws IOException
-	{
+	private void addClassesFromJar(Set<String> classesForPackage,
+			String jarDir, String resource) throws IOException {
 		// okay, a file should be a ZIP file of some kind; we're looking for zip
 		// entries.
-		try
-		{
+		try {
 			JarFile jarfile = new JarFile(resource);
 			// jarfile.entries() returns an enumeration,
 			// not an iterator or a Collection, so we get to walk it.
 			//
 			// darn that dragon!
 			Enumeration<JarEntry> jarEntries = jarfile.entries();
-			while (jarEntries.hasMoreElements())
-			{
+			while (jarEntries.hasMoreElements()) {
 				JarEntry je = jarEntries.nextElement();
-				if (je.getName().startsWith(jarDir))
-				{
-					if (classFilter.accept(null, je.getName()))
-					{
-						// we need to parse off the dir when we add the classname.
-						classesForPackage.add(stripClassExtension(je.getName().substring(jarDir.length() + 1)));
+				if (je.getName().startsWith(jarDir)) {
+					if (classFilter.accept(null, je.getName())) {
+						// we need to parse off the dir when we add the
+						// classname.
+						classesForPackage.add(stripClassExtension(je.getName()
+								.substring(jarDir.length() + 1)));
 					}
 				}
 			}
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			throw new IOException("File: " + resource + " jarDir: " + jarDir, e);
 		}
 	}
 
-	private void addClassesFromDirectory(Set<String> classesForPackage, String dir, String resource)
-	{
-		// if it's a directory, we need to descend the directory tree to the right
+	private void addClassesFromDirectory(Set<String> classesForPackage,
+			String dir, String resource) {
+		// if it's a directory, we need to descend the directory tree to the
+		// right
 		// package location, and scan.
 		File descentDir = new File(resource + dir);
-		if (descentDir.exists() && descentDir.isDirectory())
-		{
+		if (descentDir.exists() && descentDir.isDirectory()) {
 			// we have a valid hit, we need to try to explore it.
 			// for directories, all we have to do is get a list() of classes.
-			// I wanted to do this with one statement; I didn't for clarity's sake.
+			// I wanted to do this with one statement; I didn't for clarity's
+			// sake.
 			String[] dirListing = descentDir.list(classFilter);
-			for (String c : dirListing)
-			{
+			for (String c : dirListing) {
 				classesForPackage.add(stripClassExtension(c));
 			}
 		}
 	}
 
-	private String stripClassExtension(String className)
-	{
+	private String stripClassExtension(String className) {
 		return className.replaceAll("\\.class", "");
 	}
 
-	private String buildJarDirectoryName(String[] pathEntries)
-	{
+	private String buildJarDirectoryName(String[] pathEntries) {
 		return internalJoin(pathEntries, "/").substring(1);
 	}
 
-	private String buildDirectoryName(String[] pathEntries)
-	{
+	private String buildDirectoryName(String[] pathEntries) {
 		return internalJoin(pathEntries, System.getProperty("file.separator"));
 	}
 
@@ -146,17 +128,15 @@ public class FindClasspath
 	 * I swear sometimes I wish String had this.
 	 * 
 	 * @param array
-	 *          the array to concatenate into a single string
+	 *            the array to concatenate into a single string
 	 * @param separator
-	 *          the separator for each element
+	 *            the separator for each element
 	 * @return the concatenated array, with entries separated by the separator
 	 */
-	private String internalJoin(String[] array, String separator)
-	{
+	private String internalJoin(String[] array, String separator) {
 		StringBuilder sb = new StringBuilder();
 
-		for (String path : array)
-		{
+		for (String path : array) {
 			sb.append(separator);
 			sb.append(path);
 		}
@@ -169,8 +149,7 @@ public class FindClasspath
 	 * 
 	 * @return The classpath, as a system-dependent String
 	 */
-	public String getClasspath()
-	{
+	public String getClasspath() {
 		return System.getProperty("java.class.path");
 	}
 
@@ -180,10 +159,10 @@ public class FindClasspath
 	 * 
 	 * @return A list of strings representing resources in the classpath
 	 */
-	public final List<String> getClasspathEntries()
-	{
+	public final List<String> getClasspathEntries() {
 		String classpath = getClasspath();
-		String[] entries = classpath.split(System.getProperty("path.separator"));
+		String[] entries = classpath
+				.split(System.getProperty("path.separator"));
 		return Arrays.asList(entries);
 	}
 }

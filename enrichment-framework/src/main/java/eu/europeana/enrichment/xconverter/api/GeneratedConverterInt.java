@@ -17,7 +17,6 @@ package eu.europeana.enrichment.xconverter.api;
 
 import java.io.PrintWriter;
 
-public interface GeneratedConverterInt
-{
+public interface GeneratedConverterInt {
 	public int run(PrintWriter out) throws Exception;
 }

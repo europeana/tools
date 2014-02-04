@@ -31,7 +31,6 @@ import eu.europeana.enrichment.converter.ConverterHandlerDataObjects;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.triple.LiteralValue;
 
-
 /**
  * Source dataset to get data from a running SOLR server.
  * 
@@ -46,8 +45,8 @@ public class SolrServerDataSource extends AbstractQueryDataSource {
 
 	List<String> fields = new ArrayList<String>();
 
-	public SolrServerDataSource(Environment environment, String solrSelectUrl, String idField, String... field) 
-	throws MalformedURLException {
+	public SolrServerDataSource(Environment environment, String solrSelectUrl,
+			String idField, String... field) throws MalformedURLException {
 		server = new HttpSolrServer(solrSelectUrl);
 		this.idField = idField;
 		for (String f : field) {
@@ -58,10 +57,12 @@ public class SolrServerDataSource extends AbstractQueryDataSource {
 	}
 
 	@Override
-	protected boolean parseQuery(DefaultHandler handler, String query, Path recordSeparatingPath, Path recordIdentifyingPath) 
-	throws Exception {
+	protected boolean parseQuery(DefaultHandler handler, String query,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception {
 
-		ConverterHandlerDataObjects flatHandler = makeHandler(handler, recordSeparatingPath);
+		ConverterHandlerDataObjects flatHandler = makeHandler(handler,
+				recordSeparatingPath);
 
 		boolean passedARecord = false;
 
@@ -70,8 +71,8 @@ public class SolrServerDataSource extends AbstractQueryDataSource {
 		solrQuery.setQuery(query);
 		solrQuery.setRows(500);
 		solrQuery.setStart(0);
-        solrQuery.setParam("spellcheck", false);
-        
+		solrQuery.setParam("spellcheck", false);
+
 		System.out.println("query: " + solrQuery);
 		QueryResponse response = server.query(solrQuery);
 		System.out.println(response.getResponseHeader());
@@ -87,10 +88,13 @@ public class SolrServerDataSource extends AbstractQueryDataSource {
 
 				for (Object value : doc.getFieldValues(fieldName)) {
 
-					String preprocessedValue = preprocessValue(fieldName, value.toString());
+					String preprocessedValue = preprocessValue(fieldName,
+							value.toString());
 					if (preprocessedValue != null) {
-						flatHandler.addField(fieldName, new LiteralValue(preprocessedValue));
-						System.out.println(id + "-" + fieldName + "-" + preprocessedValue);
+						flatHandler.addField(fieldName, new LiteralValue(
+								preprocessedValue));
+						System.out.println(id + "-" + fieldName + "-"
+								+ preprocessedValue);
 					}
 				}
 			}

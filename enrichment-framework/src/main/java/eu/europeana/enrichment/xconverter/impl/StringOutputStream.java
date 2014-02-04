@@ -18,21 +18,17 @@ package eu.europeana.enrichment.xconverter.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class StringOutputStream extends OutputStream
-{
+public class StringOutputStream extends OutputStream {
 	private StringBuilder string = new StringBuilder();
 
 	@Override
-	public void write(int b) throws IOException
-	{
-		string.append((char)b);
+	public void write(int b) throws IOException {
+		string.append((char) b);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return string.toString();
 	}
-
 
 }

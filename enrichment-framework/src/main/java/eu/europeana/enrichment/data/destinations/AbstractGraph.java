@@ -23,8 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-public abstract class AbstractGraph implements Graph
-{
+public abstract class AbstractGraph implements Graph {
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	public AbstractGraph(String graphId, String... comments) {
@@ -39,14 +38,12 @@ public abstract class AbstractGraph implements Graph
 	private Graph realGraph = null;
 
 	@Override
-	public Graph getRealGraph()
-	{
+	public Graph getRealGraph() {
 		return realGraph;
 	}
 
 	@Override
-	public void setRealGraph(Graph realGraph)
-	{
+	public void setRealGraph(Graph realGraph) {
 		this.realGraph = realGraph;
 	}
 
@@ -59,27 +56,24 @@ public abstract class AbstractGraph implements Graph
 	}
 
 	protected void incVolume() {
-		volume ++;
+		volume++;
 	}
-	
+
 	/* Graph has an id (name) */
 	private String graphId;
 
 	@Override
-	public String getId()
-	{
+	public String getId() {
 		return graphId;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return getId().hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (!(obj instanceof Graph))
 			return false;
 		Graph tObj = (Graph) obj;
@@ -90,8 +84,7 @@ public abstract class AbstractGraph implements Graph
 	private List<String> comments = new ArrayList<String>();
 
 	@Override
-	public List<String> getComments()
-	{
+	public List<String> getComments() {
 		return comments;
 	}
 
@@ -99,8 +92,7 @@ public abstract class AbstractGraph implements Graph
 	private NamedGraphAddListener addListener;
 
 	@Override
-	public void addNamedGraphAddListener(NamedGraphAddListener addListener)
-	{
+	public void addNamedGraphAddListener(NamedGraphAddListener addListener) {
 		this.addListener = addListener;
 	}
 

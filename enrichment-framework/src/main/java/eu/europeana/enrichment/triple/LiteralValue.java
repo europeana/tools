@@ -19,29 +19,32 @@ import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.enrichment.common.Language.Lang;
 
-
 public class LiteralValue extends Value {
 	private String value;
 	private String lang;
+
 	@Override
 	public String getValue() {
 		return value;
 	}
+
 	public String getLang() {
 		return lang;
 	}
+
 	public LiteralValue(String value, String lang) {
 		this.value = value;
 		this.lang = lang;
-	}		
+	}
+
 	public LiteralValue(String value, Lang lang) {
 		this.value = value;
 		this.lang = lang == null ? null : lang.getCode();
-	}		
+	}
+
 	public LiteralValue(String value) {
 		this.value = value;
-	}	
-	
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -64,6 +67,7 @@ public class LiteralValue extends Value {
 			return false;
 		return true;
 	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

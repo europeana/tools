@@ -21,8 +21,7 @@ package eu.europeana.enrichment.api;
  * @author Borys Omelayenko
  * 
  */
-public interface ConverterTester
-{
+public interface ConverterTester {
 
 	/**
 	 * Post-conversion tests to be populated by the user.
@@ -32,7 +31,8 @@ public interface ConverterTester
 	public String testConversion() throws Exception;
 
 	/**
-	 * Post-conversion tests to be called by the converter, include loading files.
+	 * Post-conversion tests to be called by the converter, include loading
+	 * files.
 	 * 
 	 * @return <code>null</code> if all tests are passed, or an error message.
 	 */

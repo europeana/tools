@@ -9,7 +9,7 @@ import java.util.Map.Entry;
  * A field representation. 
  * name: the name of the field
  * values: the values of the field with language information if applicable 
- * @author gmamakis
+ * @author Yorgos.Mamakis@ kb.nl
  *
  */
 public class Field {

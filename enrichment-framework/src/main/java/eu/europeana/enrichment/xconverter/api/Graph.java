@@ -8,18 +8,16 @@ import java.util.Set;
 import eu.europeana.enrichment.triple.Property;
 import eu.europeana.enrichment.triple.Triple;
 
-
 /**
- * A destination named graph: a graph of RDF statements that are written to a separate file.
+ * A destination named graph: a graph of RDF statements that are written to a
+ * separate file.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface Graph
-{
+public interface Graph {
 
-	public interface NamedGraphAddListener
-	{
+	public interface NamedGraphAddListener {
 		public abstract void add(Triple triple);
 	}
 
@@ -38,7 +36,8 @@ public interface Graph
 	 * 
 	 * @param listener
 	 */
-	public abstract void addNamedGraphAddListener(NamedGraphAddListener addListener);
+	public abstract void addNamedGraphAddListener(
+			NamedGraphAddListener addListener);
 
 	/**
 	 * User comment describing this graph.
@@ -48,7 +47,9 @@ public interface Graph
 
 	/**
 	 * File where this graph should be copied after the conversion.
-	 * @param volume TODO
+	 * 
+	 * @param volume
+	 *            TODO
 	 * 
 	 * @return
 	 * @throws IOException
@@ -56,8 +57,8 @@ public interface Graph
 	public abstract File getFinalFile(int volume) throws IOException;
 
 	/**
-	 * Graph id that also makes the base for the file name. Depends on the dataset
-	 * name and both graph ids.
+	 * Graph id that also makes the base for the file name. Depends on the
+	 * dataset name and both graph ids.
 	 * 
 	 * @return
 	 */
@@ -78,11 +79,6 @@ public interface Graph
 	 */
 	public abstract Set<Property> getProperties();
 
-//	/**
-//	 * Subjects used in the graph.
-//	 */
-//	public abstract Set<String> getSubject();
-
 	/**
 	 * Size in triples.
 	 * 
@@ -94,8 +90,8 @@ public interface Graph
 	 * Last added triple, for debugging purpose
 	 * 
 	 * @param offset
-	 *          offset from end, <code>0</code> means the last triple,
-	 *          <code>1</code> one but the last, etc.
+	 *            offset from end, <code>0</code> means the last triple,
+	 *            <code>1</code> one but the last, etc.
 	 * @return
 	 */
 	public Triple getLastAddedTriple(int offset);
@@ -112,6 +108,7 @@ public interface Graph
 
 	/**
 	 * Finish writing this graph into RDF and close the RDF file.
+	 * 
 	 * @throws Exception
 	 */
 	public void endRdf() throws Exception;
@@ -119,7 +116,7 @@ public interface Graph
 	public boolean writingHappened() throws Exception;
 
 	public void startRdf() throws Exception;
-	
+
 	public int getVolume();
 
 }

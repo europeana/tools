@@ -15,7 +15,6 @@
  */
 package eu.europeana.enrichment.converters.solr;
 
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
@@ -37,8 +35,6 @@ import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.tagger.terms.ParentTermReconstructor;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.terms.TermList;
-import eu.europeana.enrichment.triple.LiteralValue;
-import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 
 /**
@@ -442,5 +438,4 @@ public abstract class SolrTagger {
 		return true;
 	}
 
-	
 }

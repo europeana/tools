@@ -23,7 +23,6 @@ import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.converter.ConverterHandlerDataObjects;
 import eu.europeana.enrichment.path.Path;
 
-
 /**
  * 
  * @author Borys Omelayenko
@@ -31,14 +30,16 @@ import eu.europeana.enrichment.path.Path;
  */
 public class AggregatingSparqlDataSource extends SparqlDataSource {
 
-	public AggregatingSparqlDataSource(Environment environment, String sparqlQuery, String... file) 
-	throws IOException {
+	public AggregatingSparqlDataSource(Environment environment,
+			String sparqlQuery, String... file) throws IOException {
 		super(environment, sparqlQuery, file);
 	}
 
 	@Override
-	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler, Path recordSeparatingPath) {
-		ConverterHandlerDataObjects handlerDataObjects = new ConverterHandlerDataObjects(handler, recordSeparatingPath);
+	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler,
+			Path recordSeparatingPath) {
+		ConverterHandlerDataObjects handlerDataObjects = new ConverterHandlerDataObjects(
+				handler, recordSeparatingPath);
 		handlerDataObjects.setAggregate(true);
 		return handlerDataObjects;
 	}

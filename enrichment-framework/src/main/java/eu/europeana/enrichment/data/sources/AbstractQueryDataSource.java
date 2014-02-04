@@ -30,15 +30,13 @@ import eu.europeana.enrichment.converter.ConverterHandlerDataObjects;
 import eu.europeana.enrichment.converter.ConverterHandler.ConversionResult;
 import eu.europeana.enrichment.path.Path;
 
-
 /**
  * Source dataset for queries.
  * 
  * @author Borys Omelayenko
  * 
  */
-abstract class AbstractQueryDataSource implements DataSource
-{
+abstract class AbstractQueryDataSource implements DataSource {
 	public final String ANNOCULTOR_DATASOURCE_ITERATOR_10 = "$ANNOCULTOR_DATASOURCE_ITERATOR_10";
 
 	Logger log = LoggerFactory.getLogger(getClass().getName());
@@ -66,39 +64,46 @@ abstract class AbstractQueryDataSource implements DataSource
 	}
 
 	@Override
-	public void feedData(ConverterHandler handler, Path recordSeparatingPath, Path recordIdentifyingPath)
-	throws Exception {
+	public void feedData(ConverterHandler handler, Path recordSeparatingPath,
+			Path recordIdentifyingPath) throws Exception {
 
-		boolean conversionResult = parseQueries(handler, recordSeparatingPath, recordIdentifyingPath);
-		handler.setConversionResult(conversionResult ? ConversionResult.success : ConversionResult.failure);
+		boolean conversionResult = parseQueries(handler, recordSeparatingPath,
+				recordIdentifyingPath);
+		handler.setConversionResult(conversionResult ? ConversionResult.success
+				: ConversionResult.failure);
 	}
 
-	protected boolean parseQueries(DefaultHandler handler, Path recordSeparatingPath, Path recordIdentifyingPath) 
-	throws Exception {
+	protected boolean parseQueries(DefaultHandler handler,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception {
 
 		boolean passedARecord = false;
 		for (String query : queries) {
 
 			for (String expandedQuery : expandIterators(query)) {
 				logBeforeQuery(expandedQuery, recordSeparatingPath.getPath());
-				passedARecord |= parseQuery(handler, expandedQuery, recordSeparatingPath, recordIdentifyingPath);			
+				passedARecord |= parseQuery(handler, expandedQuery,
+						recordSeparatingPath, recordIdentifyingPath);
 				logAfterQuery(expandedQuery);
 			}
-		}	
+		}
 		if (!passedARecord) {
 			throw new Exception("Error: Empty query result. Nothing is done.");
 		}
 		return passedARecord;
 	}
 
-	protected abstract boolean parseQuery(DefaultHandler handler, String query, Path recordSeparatingPath, Path recordIdentifyingPath) throws Exception;
+	protected abstract boolean parseQuery(DefaultHandler handler, String query,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception;
 
 	protected void logAfterQuery(String query) {
 		log.info("Passed query");
 	}
 
 	protected void logBeforeQuery(String query, String recordSeparatingPath) {
-		log.info("Prepareing query \n" + query + "\nWith separating path: " + recordSeparatingPath);
+		log.info("Prepareing query \n" + query + "\nWith separating path: "
+				+ recordSeparatingPath);
 	}
 
 	class QueryIterator implements Iterable<String>, Iterator<String> {
@@ -137,16 +142,19 @@ abstract class AbstractQueryDataSource implements DataSource
 
 	protected QueryIterator expandIterators(String query) {
 		if (query.contains(ANNOCULTOR_DATASOURCE_ITERATOR_10)) {
-			return new QueryIterator(query, ANNOCULTOR_DATASOURCE_ITERATOR_10, 10); 
-		} 
+			return new QueryIterator(query, ANNOCULTOR_DATASOURCE_ITERATOR_10,
+					10);
+		}
 		return new QueryIterator(query, null, 1);
 	}
-	
-	protected String preprocessValue(String fieldName, String fieldValue) throws Exception {
+
+	protected String preprocessValue(String fieldName, String fieldValue)
+			throws Exception {
 		return fieldValue;
 	}
 
-	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler, Path recordSeparatingPath) {
+	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler,
+			Path recordSeparatingPath) {
 		return new ConverterHandlerDataObjects(handler, recordSeparatingPath);
 	}
 }

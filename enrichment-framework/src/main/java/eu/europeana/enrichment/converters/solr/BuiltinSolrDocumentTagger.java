@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +35,6 @@ import eu.europeana.enrichment.context.EnvironmentImpl;
 import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.converters.europeana.Entity;
 import eu.europeana.enrichment.converters.europeana.EuropeanaLabelExtractor;
-import eu.europeana.enrichment.data.destinations.AbstractFileWritingGraph;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.rules.ObjectRuleImpl;
 import eu.europeana.enrichment.tagger.rules.LookupPersonRule;
@@ -81,8 +79,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		MongoDatabaseUtils.emptyCache();
 	}
 
-	
-
 	protected VocabularyOfTime vocabularyOfPeriods = new VocabularyOfTime(
 			"vocabularyOfTime", null) {
 
@@ -94,8 +90,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-//			log.write(message + "\n");
-//			log.flush();
+			// log.write(message + "\n");
+			// log.flush();
 		}
 
 	};
@@ -111,8 +107,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-//			log.write(message + "\n");
-//			log.flush();
 		}
 
 	};
@@ -128,8 +122,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-//			log.write(message + "\n");
-//			log.flush();
 		}
 
 	};
@@ -145,8 +137,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-//			log.write(message + "\n");
-//			log.flush();
 		}
 
 	};
@@ -161,8 +151,9 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 	SolrTagger placesTagger;
 	SolrTagger categoriesTagger;
 	SolrTagger peopleTagger;
-	final String DEFAULT_HOST="localhost";
-	final int DEFAULT_PORT=27017;
+	final String DEFAULT_HOST = "localhost";
+	final int DEFAULT_PORT = 27017;
+
 	public BuiltinSolrDocumentTagger(String idFieldName, String query,
 			String solrServerFrom, String solrServerTo, int start,
 			PrintWriter log) throws MalformedURLException {
@@ -197,6 +188,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				+ "SELECT ?code ?" + property + " " + "WHERE { ?code people:"
 				+ property + " ?" + property + " }";
 	}
+
 	@Deprecated
 	public void clearDestination(String query) throws Exception {
 		solrServerTo.deleteByQuery(query);
@@ -204,47 +196,48 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 			optimize();
 		}
 	}
+
 	@Deprecated
 	public void deleteCollection(String collection) throws SolrServerException,
 			IOException {
-//		log.println("Deleting collection by query: " + collection);
+		// log.println("Deleting collection by query: " + collection);
 		System.out.println("Deleting collection by query: " + collection);
 		solrServerTo.deleteByQuery(collection);
-//		log.println("Deleted collection by query: " + collection);
+		// log.println("Deleted collection by query: " + collection);
 		System.out.println("Deleted collection by query: " + collection);
 		solrServerTo.commit();
 	}
-	
+
 	@Deprecated
 	public void optimize() throws Exception {
-//		log.println("Started optimize...");
+		// log.println("Started optimize...");
 
 		solrServerTo.optimize();
-//		log.println("done.\n");
-//		log.flush();
+		// log.println("done.\n");
+		// log.flush();
 	}
 
-	public void init(String name,String...  args) throws Exception {
+	public void init(String name, String... args) throws Exception {
 
 		task = Factory.makeTask(name, "", "Solr tagging with time and place",
 				Namespaces.ANNOCULTOR_CONVERTER, environment);
 
 		environment.getDocDir().delete();
-//		AbstractFileWritingGraph.createTempDocToShowWhileWorking(new File(
-//				environment.getDocDir(), task.getDatasetId() + "/index.html"));
+		// AbstractFileWritingGraph.createTempDocToShowWhileWorking(new File(
+		// environment.getDocDir(), task.getDatasetId() + "/index.html"));
 
 		objectRule = ObjectRuleImpl.makeObjectRule(task, new Path(""),
 				new Path(""), new Path(""), null, false);
 		String host = DEFAULT_HOST;
 		int port = DEFAULT_PORT;
-		if(args!=null && args.length>1){
+		if (args != null && args.length > 1) {
 			host = args[0];
 			port = Integer.parseInt(args[1]);
 		}
-		if (!MongoDatabaseUtils.dbExists(host,port)) {
+		if (!MongoDatabaseUtils.dbExists(host, port)) {
 			File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 			File baseDir = environment.getVocabularyDir();
-//			MongoDatabaseUtils.dbExists(host,port);
+			// MongoDatabaseUtils.dbExists(host,port);
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(
@@ -287,7 +280,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 					baseDir, "concepts/wikipedia/*.rdf");
 
 			MongoDatabaseUtils.save("concept", vocabularyOfTerms);
-			
+
 			String peopleFiles = "people/*.rdf";
 			vocabularyOfPeople.loadTermsSPARQL(
 					vocabularyOfPeople.makeTermsQuery("dcterms:isPartOf"),
@@ -320,13 +313,11 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		"edm_place", "pl_skos_prefLabel", "pl_dcterms_isPartOf",
 				"pl_dcterms_isPartOf_label",
 
-
 				new SolrTagger.FieldRulePair("proxy_dcterms_spatial",
 						makePlaceLookupRule("proxy_dcterms_spatial")),
 				new SolrTagger.FieldRulePair("proxy_dc_coverage",
 						makePlaceLookupRule("proxy_dc_coverage")));
 		categoriesTagger = new SolrConceptsTagger(vocabularyOfTerms,
-
 
 		"skos_concept", "cc_skos_prefLabel", "cc_skos_broader",
 
@@ -347,8 +338,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 	LookupTimeRule makePeriodLookupRule(String field) throws Exception {
 		LookupTimeRule rule = new LookupTimeRule(null, null,
-				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""), null,
-				null, "periods", "(no_split_should_ever_happen)",
+				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""),
+				null, null, "periods", "(no_split_should_ever_happen)",
 				vocabularyOfPeriods) {
 
 			@Override
@@ -424,8 +415,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 	LookupPlaceRule makePlaceLookupRule(String field) throws Exception {
 		LookupPlaceRule rule = new LookupPlaceRule(null, null,
-				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""), null,
-				null, "places", "(no_split_should_ever_happen)",
+				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""),
+				null, null, "places", "(no_split_should_ever_happen)",
 				vocabularyOfPlaces) {
 
 			@Override
@@ -447,8 +438,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 	LookupTermRule makeTermLookupRule(String field) throws Exception {
 		LookupTermRule rule = new LookupTermRule(null, null,
-				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""), null,
-				null, "places", "(no_split_should_ever_happen)",
+				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""),
+				null, null, "places", "(no_split_should_ever_happen)",
 				vocabularyOfTerms) {
 
 			@Override
@@ -472,8 +463,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		LookupPersonRule rule = new LookupPersonRule(null,
 				new Property("dummy"),
 				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""),
-				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""), new Path(
-						"dummyBirthDatePath"), new Path("dummyDeathDatePath"),
+				eu.europeana.enrichment.api.Factory.makeIgnoreGraph(task, ""),
+				new Path("dummyBirthDatePath"), new Path("dummyDeathDatePath"),
 				new Property("dummy"), "actors",
 				"(no_split_should_ever_happen)", vocabularyOfPeople) {
 

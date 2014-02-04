@@ -20,6 +20,7 @@ import eu.europeana.enrichment.context.Namespace;
 public class ResourceValue extends Value {
 	private String value;
 	private String namespace;
+
 	@Override
 	public String getValue() {
 		return namespace + value;
@@ -32,17 +33,17 @@ public class ResourceValue extends Value {
 	public ResourceValue(String namespace, String value) {
 		this.value = value;
 		this.namespace = namespace;
-	}		
+	}
 
 	public ResourceValue(Namespace namespace, String value) {
 		this.value = value;
 		this.namespace = namespace.getUri();
-	}		
+	}
 
 	public ResourceValue(String value) {
 		this.value = value;
 		this.namespace = "";
-	}		
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -60,4 +61,3 @@ public class ResourceValue extends Value {
 	}
 
 }
-

@@ -76,8 +76,7 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class Analyser extends CustomConverter
-{
+public class Analyser extends CustomConverter {
 
 	private static final String OPT_VALUES = "maxValues";
 	private static final String OPT_MAX_VALUE_SIZE = "maxValueSize";
@@ -85,80 +84,49 @@ public class Analyser extends CustomConverter
 	public static int MAX_VALUE_SIZE = 100;
 	public static int MAX_VALUES = 50;
 
-	static public void main(String... args) throws Exception
-	{
+	static public void main(String... args) throws Exception {
 		// Handling command line parameters with Apache Commons CLI
 		Options options = new Options();
 
-		options.addOption(OptionBuilder.withArgName(OPT_FN)
-				.hasArg()
-				.isRequired()
-				.withDescription("XML file name to be analysed")
-				.withValueSeparator(',')
-				.create(OPT_FN)
-		);
+		options.addOption(OptionBuilder.withArgName(OPT_FN).hasArg()
+				.isRequired().withDescription("XML file name to be analysed")
+				.withValueSeparator(',').create(OPT_FN));
 
-		options.addOption(
-				OptionBuilder.withArgName(OPT_MAX_VALUE_SIZE)
+		options.addOption(OptionBuilder
+				.withArgName(OPT_MAX_VALUE_SIZE)
 				.hasArg()
-				.withDescription("Maximal size when values are counted separately. Longer values are counted altogether. Reasonable values are 100, 300, etc.")
-				.create(OPT_MAX_VALUE_SIZE)
-		);
+				.withDescription(
+						"Maximal size when values are counted separately. Longer values are counted altogether. Reasonable values are 100, 300, etc.")
+				.create(OPT_MAX_VALUE_SIZE));
 
-		options.addOption(
-				OptionBuilder.withArgName(OPT_VALUES)
+		options.addOption(OptionBuilder
+				.withArgName(OPT_VALUES)
 				.hasArg()
-				.withDescription("Maximal number of most frequent values displayed in the report. Reasonable values are 10, 25, 50")
-				.create(OPT_VALUES)
-		);
+				.withDescription(
+						"Maximal number of most frequent values displayed in the report. Reasonable values are 10, 25, 50")
+				.create(OPT_VALUES));
 
 		// now lets parse the input
 		CommandLineParser parser = new BasicParser();
 		CommandLine cmd;
-		try
-		{
-			cmd = parser.parse(options, Utils.getCommandLineFromANNOCULTOR_ARGS(args));
-		}
-		catch (ParseException pe)
-		{ 
+		try {
+			cmd = parser.parse(options,
+					Utils.getCommandLineFromANNOCULTOR_ARGS(args));
+		} catch (ParseException pe) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("analyse", options );
-			return; 
+			formatter.printHelp("analyse", options);
+			return;
 		}
 
-		MAX_VALUE_SIZE = Integer.parseInt(cmd.getOptionValue(OPT_MAX_VALUE_SIZE, Integer.toString(MAX_VALUE_SIZE)));
-		MAX_VALUES = Integer.parseInt(cmd.getOptionValue(OPT_VALUES, Integer.toString(MAX_VALUES)));
+		MAX_VALUE_SIZE = Integer.parseInt(cmd.getOptionValue(
+				OPT_MAX_VALUE_SIZE, Integer.toString(MAX_VALUE_SIZE)));
+		MAX_VALUES = Integer.parseInt(cmd.getOptionValue(OPT_VALUES,
+				Integer.toString(MAX_VALUES)));
 
 		Analyser analyser = new Analyser(new EnvironmentImpl());
 
-		// undo:
-		/*
-		analyser.task.setSrcFiles(new File("."), cmd.getOptionValue(OPT_FN));
-
-		if (analyser.task.getSrcFiles().size() > 1)
-		{
-			analyser.task.mergeSourceFiles();
-		}
-
-		if (analyser.task.getSrcFiles().size() == 0)
-		{
-			throw new Exception("No files to analyze, pattern " + cmd.getOptionValue(OPT_FN));
-		}
-
-		File trg = new File(analyser.task.getSrcFiles().get(0).getParentFile(), "rdf");
-		if (!trg.exists())
-			trg.mkdir();
-
-		System.out.println("[Analysis] Analysing files "
-				+ cmd.getOptionValue(OPT_FN)
-				+ ", writing analysis to "
-				+ trg.getCanonicalPath()
-				+ ", max value length (long values are aggregated into one 'long value' value) "
-				+ MAX_VALUE_SIZE
-				+ ", number most fequently used values per field shown in report "
-				+ MAX_VALUES);
-		 */
-		if (true) throw new Exception("unimplemented");
+		if (true)
+			throw new Exception("unimplemented");
 		System.exit(analyser.run());
 	}
 
@@ -166,95 +134,78 @@ public class Analyser extends CustomConverter
 	 * A facade for a task.
 	 * 
 	 */
-	private static class AnalyserTask implements Task
-	{
+	private static class AnalyserTask implements Task {
 		Task task;
 		ObjectRule rule;
 
 		/*
 		 * facade on task with the same rule for any tag
 		 */
-		public AnalyserTask(Task task)
-		{
+		public AnalyserTask(Task task) {
 			super();
 			this.task = task;
 		}
 
-		public List<ObjectRule> getObjectRules()
-		{
+		public List<ObjectRule> getObjectRules() {
 			return task.getObjectRules();
 		}
 
-		public void setRule(ObjectRule rule)
-		{
+		public void setRule(ObjectRule rule) {
 			this.rule = rule;
 		}
 
 		Path pathResponded = null;
 
-		public List<ObjectRule> getRuleForSourcePath(Path path)
-		{
+		public List<ObjectRule> getRuleForSourcePath(Path path) {
 			// here! the same rule for any source path
-			// return Collections.singletonList(rule);
-			if (pathResponded == null)
-			{
+			if (pathResponded == null) {
 				pathResponded = path;
 			}
 
-			if (pathResponded.equals(path))
-			{
+			if (pathResponded.equals(path)) {
 				return Collections.singletonList(rule);
 			}
 
 			return new ArrayList<ObjectRule>();
 		}
 
-		public Environment getEnvironment()
-		{
+		public Environment getEnvironment() {
 			return task.getEnvironment();
 		}
 
 		/*
 		 * link to the task
 		 */
-		public void addGraph(Graph graph)
-		{
+		public void addGraph(Graph graph) {
 			task.addGraph(graph);
 		}
 
-		public void addPartListener(ObjectRule map)
-		{
+		public void addPartListener(ObjectRule map) {
 			task.addPartListener(map);
 		}
 
-		public String getDatasetDescription()
-		{
+		public String getDatasetDescription() {
 			return task.getDatasetDescription();
 		}
 
-		public String getDatasetId()
-		{
+		public String getDatasetId() {
 			return task.getDatasetId();
 		}
 
-		public String getDatasetURI()
-		{
+		public String getDatasetURI() {
 			return task.getDatasetURI();
 		}
 
-		public Set<Graph> getGraphs()
-		{
+		public Set<Graph> getGraphs() {
 			return task.getGraphs();
 		}
 
-		public Namespace getTargetNamespace()
-		{
+		public Namespace getTargetNamespace() {
 			return task.getTargetNamespace();
 		}
 
 		@Override
-		public void setDataSource(DataSource dataSource)
-		throws IOException {
+		public void setDataSource(DataSource dataSource) throws IOException {
 			task.setDataSource(dataSource);
 		}
 
@@ -263,47 +214,37 @@ public class Analyser extends CustomConverter
 			return task.getDataSource();
 		}
 
-	
-
-
 	}
 
-	private static class ValueCount implements Comparable<ValueCount>
-	{
+	private static class ValueCount implements Comparable<ValueCount> {
 		public String value;
 		public int count;
 
-		public ValueCount(String value)
-		{
+		public ValueCount(String value) {
 			super();
 			this.value = value;
 			this.count = 0;
 		}
 
 		@Override
-		public int hashCode()
-		{
+		public int hashCode() {
 			return value.hashCode();
 		}
 
 		@Override
-		public boolean equals(java.lang.Object obj)
-		{
+		public boolean equals(java.lang.Object obj) {
 			return value.equals(obj);
 		}
 
-		public void inc()
-		{
+		public void inc() {
 			count++;
 		}
 
-		public String percent(int total)
-		{
+		public String percent(int total) {
 			return "" + ((count * 100) / total);
 		}
 
-		public int compareTo(ValueCount a)
-		{
+		public int compareTo(ValueCount a) {
 			// reverse order
 			if (this.count < a.count)
 				return 1;
@@ -322,8 +263,7 @@ public class Analyser extends CustomConverter
 	/**
 	 * Collected structure + statistics. <code>property, Map(value,count)</code>
 	 */
-	private SortedMap<String, Map<String, ValueCount>> statistics =
-		new TreeMap<String, Map<String, ValueCount>>();
+	private SortedMap<String, Map<String, ValueCount>> statistics = new TreeMap<String, Map<String, ValueCount>>();
 
 	private long passedBytes = 0;
 	private StopWatch elapsed;
@@ -331,12 +271,12 @@ public class Analyser extends CustomConverter
 	private ObjectRule recordsMap = null;
 
 	/*
-	 * We save all statistics from time to time, so we have reasonable statistics
-	 * before statistics of a large file goes out of memory
+	 * We save all statistics from time to time, so we have reasonable
+	 * statistics before statistics of a large file goes out of memory
 	 */
-	private void computeAndExportStatistics(SortedMap<String, Map<String, ValueCount>> statistics, File tmpDir)
-	throws SAXException
-	{
+	private void computeAndExportStatistics(
+			SortedMap<String, Map<String, ValueCount>> statistics, File tmpDir)
+			throws SAXException {
 
 		Graph trg = new RdfGraph(null, task.getEnvironment(), "analyse", "", "");
 		Namespaces namespaces = new Namespaces();
@@ -344,31 +284,25 @@ public class Analyser extends CustomConverter
 		/*
 		 * Header
 		 */
-		try
-		{
+		try {
 			// top how many
 			trg.add(new Triple(Namespaces.ANNOCULTOR_REPORT + "Summary",
 					new Property(Namespaces.ANNOCULTOR_REPORT + "topCount"),
-					new LiteralValue(MAX_VALUES + ""),
-					null));
-		}
-		catch (Exception e)
-		{
+					new LiteralValue(MAX_VALUES + ""), null));
+		} catch (Exception e) {
 			throw new SAXException(e);
 		}
 		/*
 		 * Here we find top ten and form an RDF report
 		 */
-		for (String propertyName : statistics.keySet())
-		{
+		for (String propertyName : statistics.keySet()) {
 			StringBuffer message = new StringBuffer(propertyName + " has ");
 			Map<String, ValueCount> values = statistics.get(propertyName);
 
 			// find top ten
 			int totalRecords = 0;
 			List<ValueCount> topTen = new LinkedList<ValueCount>();
-			for (String value : values.keySet())
-			{
+			for (String value : values.keySet()) {
 				ValueCount vc = values.get(value);
 				topTen.add(vc);
 				totalRecords += vc.count;
@@ -376,154 +310,130 @@ public class Analyser extends CustomConverter
 			Collections.sort(topTen);
 
 			// print
-			String propertyUrl = Namespaces.ANNOCULTOR_REPORT + "__" + propertyName.replace('@', 'a').replaceAll(";", "/");
+			String propertyUrl = Namespaces.ANNOCULTOR_REPORT + "__"
+					+ propertyName.replace('@', 'a').replaceAll(";", "/");
 
 			int totalValues = values.size();
 			message.append(totalValues + " values: ");
 			int i = 0;
 			boolean allUnique = false;
-			try
-			{
-				for (Iterator<ValueCount> it = topTen.iterator(); it.hasNext() && i < MAX_VALUES;)
-				{
+			try {
+				for (Iterator<ValueCount> it = topTen.iterator(); it.hasNext()
+						&& i < MAX_VALUES;) {
 					ValueCount count = it.next();
-					if (i == 0)
-					{
+					if (i == 0) {
 						allUnique = (count.count == 1);
 						message.append(allUnique ? " ALL UNIQUE \n" : "\n");
 						// RDF report on tag
 						trg.add(new Triple(propertyUrl,
 								Concepts.REPORTER.REPORT_NAME,
-								new LiteralValue(propertyName),
-								null));
+								new LiteralValue(propertyName), null));
 						trg.add(new Triple(propertyUrl,
 								Concepts.REPORTER.REPORT_LABEL,
-								new LiteralValue(Path.formatPath(new Path(propertyName.replace("*","/")), namespaces)),
-								null));
+								new LiteralValue(Path.formatPath(new Path(
+										propertyName.replace("*", "/")),
+										namespaces)), null));
 
 						trg.add(new Triple(propertyUrl,
 								Concepts.REPORTER.REPORT_TOTAL_VALUES,
-								new LiteralValue("" + totalValues),
-								null));
+								new LiteralValue("" + totalValues), null));
 
 						trg.add(new Triple(propertyUrl,
 								Concepts.REPORTER.REPORT_ALL_UNIQUE,
-								new LiteralValue("" + allUnique),
-								null));
+								new LiteralValue("" + allUnique), null));
 					}
 					message.append(count.value
-							+ (allUnique ? "" : (" (" + count.count + ", " + count.percent(totalRecords) + "%)"))
+							+ (allUnique ? "" : (" (" + count.count + ", "
+									+ count.percent(totalRecords) + "%)"))
 							+ " \n");
 
 					// RDF report on topTen
-					trg.add(new Triple(propertyUrl, Concepts.REPORTER.REPORT_VALUE, 
-							new LiteralValue(
-									String.format("%07d", i)
-									+ ","
-									+ count.count
-									+ ","
-									+ count.percent(totalRecords)
-									+ ","
-									+ count.value), 
-									null));
+					trg.add(new Triple(propertyUrl,
+							Concepts.REPORTER.REPORT_VALUE, new LiteralValue(
+									String.format("%07d", i) + ","
+											+ count.count + ","
+											+ count.percent(totalRecords) + ","
+											+ count.value), null));
 
 					i++;
 				}
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				throw new SAXException(e);
 			}
 		}
-		try
-		{
+		try {
 			trg.endRdf();
-			System.out.println("Statistic saved to " + trg.getFinalFile(1).getCanonicalPath());
+			System.out.println("Statistic saved to "
+					+ trg.getFinalFile(1).getCanonicalPath());
 			// transform results
 			Helper.xsl(
-					trg.getFinalFile(1), 
-					new File(trg.getFinalFile(1).getCanonicalPath().replaceFirst("\\.rdf",".html")), 
-					this.getClass().getResourceAsStream("/AnalyserReportRDF2HTML.xsl")
-			);
-		}
-		catch (Exception e)
-		{
+					trg.getFinalFile(1),
+					new File(trg.getFinalFile(1).getCanonicalPath()
+							.replaceFirst("\\.rdf", ".html")),
+					this.getClass().getResourceAsStream(
+							"/AnalyserReportRDF2HTML.xsl"));
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			throw new SAXException(e);
 		}
 
 	}
 
-	public Analyser(Environment environment) throws Exception
-	{
+	public Analyser(Environment environment) throws Exception {
 		super();
-		task = new AnalyserTask(
-				Factory.makeTask("xml",
-						"",
-						"Statistics report",
-						Namespaces.NS,
-						new AnalyzeEnvironment(environment)));
-		recordsMap =
-			ObjectRuleImpl.makeObjectRule(task,
-					new Path(""),
-					new Path(""),
-					new Path(""),
-					null,
-					true);
+		task = new AnalyserTask(Factory.makeTask("xml", "",
+				"Statistics report", Namespaces.NS, new AnalyzeEnvironment(
+						environment)));
+		recordsMap = ObjectRuleImpl.makeObjectRule(task, new Path(""),
+				new Path(""), new Path(""), null, true);
 
 		task.setRule(recordsMap);
 
 	}
 
-	private static class AnalyzeEnvironment extends EnvironmentAdapter
-	{
+	private static class AnalyzeEnvironment extends EnvironmentAdapter {
 
 		public AnalyzeEnvironment(Environment environment) {
 			super(environment);
 		}
 
 		@Override
-		public void completeWithDefaults() throws Exception
-		{
+		public void completeWithDefaults() throws Exception {
 			super.completeWithDefaults();
-			setParameter(PARAMETERS.ANNOCULTOR_OUTPUT_DIR, getDocDir().getCanonicalPath());
+			setParameter(PARAMETERS.ANNOCULTOR_OUTPUT_DIR, getDocDir()
+					.getCanonicalPath());
 		}
 	}
 
 	@Override
-	public int run() throws Exception
-	{
-		ConverterHandler converterHandler = new StatisticsGatheringConverter(this);
-		ConverterKernel converter = new Converter(task, converterHandler, null)
-		{
+	public int run() throws Exception {
+		ConverterHandler converterHandler = new StatisticsGatheringConverter(
+				this);
+		ConverterKernel converter = new Converter(task, converterHandler, null) {
 
 			@Override
-			public BufferedInputStream makeInputStream(File src) throws FileNotFoundException
-			{
+			public BufferedInputStream makeInputStream(File src)
+					throws FileNotFoundException {
 
 				elapsed = new StopWatch();
-				try
-				{
+				try {
 					elapsed.start();
-				}
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-				return new BufferedInputStream(new FileInputStream(src), 1024 * 1024)
-				{
+				return new BufferedInputStream(new FileInputStream(src),
+						1024 * 1024) {
 
 					@Override
-					public synchronized int read() throws IOException
-					{
+					public synchronized int read() throws IOException {
 						int r = super.read();
 						passedBytes += r;
 						return r;
 					}
 
 					@Override
-					public synchronized int read(byte[] b, int off, int len) throws IOException
-					{
+					public synchronized int read(byte[] b, int off, int len)
+							throws IOException {
 
 						int r = super.read(b, off, len);
 						passedBytes += r;
@@ -541,43 +451,39 @@ public class Analyser extends CustomConverter
 	 * Overrides endDocument to compute statistics.
 	 * 
 	 */
-	private class StatisticsGatheringConverter extends ConverterHandler
-	{
+	private class StatisticsGatheringConverter extends ConverterHandler {
 
 		Analyser analyser;
 
-		public StatisticsGatheringConverter(Analyser analyser)
-		{
+		public StatisticsGatheringConverter(Analyser analyser) {
 			super(analyser.task);
 			this.analyser = analyser;
 		}
 
 		@Override
-		protected String getTopCompletedPartSubject()
-		{
+		protected String getTopCompletedPartSubject() {
 			// simulate one object
 			return "OBJECT";// + ( nr ++) ;
 		}
 
 		@Override
-		public void multiFileEndDocument() throws SAXException
-		{
+		public void multiFileEndDocument() throws SAXException {
 			super.multiFileEndDocument();
 			log.info("Writing statistcis in RDF");
-			computeAndExportStatistics(statistics, analyser.task.getEnvironment().getTmpDir());
+			computeAndExportStatistics(statistics, analyser.task
+					.getEnvironment().getTmpDir());
 		}
 
 		@Override
-		protected DataObject makeDataObjectForNewRecord(Path path, ObjectRule rule, DataObject parent)
-		{
-			return new StatisticsDataObject(path, rule, parent, statistics, analyser);
+		protected DataObject makeDataObjectForNewRecord(Path path,
+				ObjectRule rule, DataObject parent) {
+			return new StatisticsDataObject(path, rule, parent, statistics,
+					analyser);
 		}
-
 
 	}
 
-	private static class StatisticsDataObject extends DataObjectImpl
-	{
+	private static class StatisticsDataObject extends DataObjectImpl {
 
 		SortedMap<String, Map<String, ValueCount>> statistics = null;
 
@@ -585,55 +491,47 @@ public class Analyser extends CustomConverter
 
 		Analyser analyser;
 
-		public StatisticsDataObject(
-				Path path,
-				ObjectRule rule,
+		public StatisticsDataObject(Path path, ObjectRule rule,
 				DataObject parent,
 				SortedMap<String, Map<String, ValueCount>> statistics,
-				Analyser analyser)
-		{
+				Analyser analyser) {
 			super(path, rule, parent);
 			this.statistics = statistics;
 			this.analyser = analyser;
 		}
 
 		@Override
-		public ListOfValues getValues(Path query)
-		{
+		public ListOfValues getValues(Path query) {
 			ListOfValues r = new ListOfValues();
 			r.add(new XmlValue("dummy"));
 			return r;
 		}
 
 		@Override
-		public void addValue(Path path2, XmlValue newValue) throws Exception
-		{
+		public void addValue(Path path2, XmlValue newValue) throws Exception {
 
 			// all explicated properties
 			Set<Path> allProperties = new HashSet<Path>();
 			allProperties.addAll(path2.explicate());
 
 			// count per explicated property
-			for (Path path : allProperties)
-			{
+			for (Path path : allProperties) {
 				String pathStr = path.getPath();
 				Map<String, ValueCount> propertyStats = statistics.get(pathStr);
-				if (propertyStats == null)
-				{
+				if (propertyStats == null) {
 					propertyStats = new TreeMap<String, ValueCount>();
 					statistics.put(pathStr, propertyStats);
 				}
 
 				// per value
-				String value = path.isAttributeQuery() ? path.getValue() : newValue.getValue().trim();
+				String value = path.isAttributeQuery() ? path.getValue()
+						: newValue.getValue().trim();
 
-				if (MAX_VALUE_SIZE > 0 && value.length() > MAX_VALUE_SIZE)
-				{
+				if (MAX_VALUE_SIZE > 0 && value.length() > MAX_VALUE_SIZE) {
 					value = "LONG VALUE (MAX " + MAX_VALUE_SIZE + ")";
 				}
 				ValueCount vc = propertyStats.get(value);
-				if (vc == null)
-				{
+				if (vc == null) {
 					vc = new ValueCount(value);
 					propertyStats.put(value, vc);
 				}
@@ -642,32 +540,24 @@ public class Analyser extends CustomConverter
 
 			final int _1000 = 100000;
 
-			if (passedTags % _1000 == 0)
-			{
+			if (passedTags % _1000 == 0) {
 				int distinctCounts = 0;
 				int distinctValues = 1;
 				System.out.print("Prop stat:");
-				for (Entry<String, Map<String, ValueCount>> e : statistics.entrySet())
-				{
+				for (Entry<String, Map<String, ValueCount>> e : statistics
+						.entrySet()) {
 					System.out.print(e.getValue().size() + ",");
-					for (Entry<String, ValueCount> ev : e.getValue().entrySet())
-					{
+					for (Entry<String, ValueCount> ev : e.getValue().entrySet()) {
 						distinctValues++;
 						distinctCounts += ev.getValue().count;
 					}
 				}
 				System.out.println();
 				System.out.println("Passed: "
-						+ (analyser.elapsed.getTime() / 1000)
-						+ " s, "
-						+ (analyser.passedBytes / 1000000)
-						+ " Mb XML, "
-						+ passedTags
-						+ " values, "
-						+ statistics.size()
-						+ " paths, "
-						+ distinctValues
-						+ " distinct values, "
+						+ (analyser.elapsed.getTime() / 1000) + " s, "
+						+ (analyser.passedBytes / 1000000) + " Mb XML, "
+						+ passedTags + " values, " + statistics.size()
+						+ " paths, " + distinctValues + " distinct values, "
 						+ (distinctValues / (statistics.size() + 1))
 						+ " av values per property, "
 						+ (distinctCounts / distinctValues)

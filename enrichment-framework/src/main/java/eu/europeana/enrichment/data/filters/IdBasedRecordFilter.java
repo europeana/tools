@@ -26,11 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.europeana.enrichment.common.Utils;
 
-
 /**
  * A filter that operates in two independent runs:
  * <ul>
- * <li>collect a list of values and persist it to a file. Typically these are IDs</li>
+ * <li>collect a list of values and persist it to a file. Typically these are
+ * IDs</li>
  * <li>read the list of values and check if a new value is included in the list</li>
  * </ul>
  * 
@@ -51,18 +51,19 @@ public class IdBasedRecordFilter implements TwoIterationsRecordFilter {
 	protected Set<String> includedRecords = new HashSet<String>();
 
 	@Override
-	public void init()
-	throws Exception {
+	public void init() throws Exception {
 
-		String fileToReadName = Utils.getLocalOrGlobalEnvironmentVariable(ANNOCULTOR_FILTERS_FILE_TO_READ);
+		String fileToReadName = Utils
+				.getLocalOrGlobalEnvironmentVariable(ANNOCULTOR_FILTERS_FILE_TO_READ);
 		if (!StringUtils.isEmpty(fileToReadName)) {
 			fileToRead = new File(fileToReadName);
 		}
-		String fileToWriteName = Utils.getLocalOrGlobalEnvironmentVariable(ANNOCULTOR_FILTERS_FILE_TO_WRITE);
+		String fileToWriteName = Utils
+				.getLocalOrGlobalEnvironmentVariable(ANNOCULTOR_FILTERS_FILE_TO_WRITE);
 		if (!StringUtils.isEmpty(fileToWriteName)) {
 			fileToWrite = new File(fileToWriteName);
 		}
-		
+
 		if (isReadMode()) {
 			log.info("Read mode is on");
 		}

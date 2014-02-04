@@ -9,39 +9,32 @@ import java.util.Set;
 import org.apache.commons.collections.map.IdentityMap;
 import org.apache.commons.lang.NotImplementedException;
 
-
 /**
  * Map Path to other objects.
  */
 @SuppressWarnings("unchecked")
-public class PathMap<T>
-{
+public class PathMap<T> {
 	Map<Path, T> map = new IdentityMap();
 
-	public T get(Path path)
-	{
+	public T get(Path path) {
 		return map.get(path);
 	}
 
 	/*
 	 * Two update operations.
 	 */
-	public void put(Path path, T value)
-	{
+	public void put(Path path, T value) {
 		map.put(path, value);
 	}
 
-	public void remove(Path path)
-	{
+	public void remove(Path path) {
 		map.remove(path);
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		String result = "Format: path = value \n";
-		for (Path path : map.keySet())
-		{
+		for (Path path : map.keySet()) {
 			result += path + "=" + map.get(path) + "\n";
 		}
 		return result;
@@ -55,9 +48,7 @@ public class PathMap<T>
 	 * @param query
 	 * @return
 	 */
-	public MatchResultIterable<T> ask(Path query)
-	throws Exception
-	{
+	public MatchResultIterable<T> ask(Path query) throws Exception {
 		return matchAll(query, true);
 	}
 
@@ -68,9 +59,7 @@ public class PathMap<T>
 	 * @param data
 	 * @return
 	 */
-	public MatchResultIterable<T> answer(Path data)
-	throws Exception
-	{
+	public MatchResultIterable<T> answer(Path data) throws Exception {
 		if (!data.isEmpty() && data.getLast().isAttributeQuery()) {
 			throw new Exception("Cannot answer an attribute query " + data);
 		}
@@ -78,22 +67,25 @@ public class PathMap<T>
 	}
 
 	private MatchResultIterable<T> matchAll(Path x, boolean ask)
-	throws Exception
-	{
+			throws Exception {
 
 		List<MatchResult<T>> result = new ArrayList<MatchResult<T>>();
 
 		for (Path candidate : map.keySet()) {
 
 			if (ask) {
-				if (!candidate.isEmpty() && candidate.getLast().isAttributeQuery()) {
-					throw new Exception("Attribute query path cannot server as  a data: " + candidate);
+				if (!candidate.isEmpty()
+						&& candidate.getLast().isAttributeQuery()) {
+					throw new Exception(
+							"Attribute query path cannot server as  a data: "
+									+ candidate);
 				}
 			}
-			
+
 			// element queries should have the same length
 			// attribute queries should not be longer
-			boolean lengthCheck = ask ? checkLength(x, candidate) : checkLength(candidate, x);
+			boolean lengthCheck = ask ? checkLength(x, candidate)
+					: checkLength(candidate, x);
 
 			if (lengthCheck) {
 				MatchResult<T> matchResult = matchPath(candidate, x, ask);
@@ -105,7 +97,7 @@ public class PathMap<T>
 					if (value != null) {
 						matchResult.setStoredObject(value);
 					}
-					result.add(matchResult);						
+					result.add(matchResult);
 				}
 			}
 
@@ -114,7 +106,7 @@ public class PathMap<T>
 	}
 
 	private boolean checkLength(Path query, Path candidate) {
-		
+
 		if (query.isEmpty()) {
 			return candidate.isEmpty();
 		} else {
@@ -128,8 +120,8 @@ public class PathMap<T>
 		}
 	}
 
-	private MatchResult<T> matchPath(Path query, Path data, boolean ask) 
-	throws Exception {
+	private MatchResult<T> matchPath(Path query, Path data, boolean ask)
+			throws Exception {
 
 		if (query.isEmpty() && data.isEmpty()) {
 			return new MatchResult<T>();
@@ -139,9 +131,11 @@ public class PathMap<T>
 		Iterator<PathElement> dataIterator = data.iterator();
 		for (PathElement q : query) {
 
-			//			if (matchResult != null && matchResult.getResult() == MatchResult.Result.attribute_match) {
-			//				throw new Exception ("Error: attribute query in the middle of a path: " + query);
-			//			}
+			// if (matchResult != null && matchResult.getResult() ==
+			// MatchResult.Result.attribute_match) {
+			// throw new Exception
+			// ("Error: attribute query in the middle of a path: " + query);
+			// }
 
 			// data shorter than query
 			if (!dataIterator.hasNext()) {
@@ -160,9 +154,8 @@ public class PathMap<T>
 		return matchResult;
 	}
 
-	private MatchResult<T> matchPathElement(PathElement d, PathElement q) 
-	throws Exception
-	{
+	private MatchResult<T> matchPathElement(PathElement d, PathElement q)
+			throws Exception {
 		if (q.getExpanded().equals(d.getExpanded())) {
 
 			// element match
@@ -172,16 +165,18 @@ public class PathMap<T>
 				// 1. query for attribute value (by attribute name, EL[@att])
 				if (q.isAttributeQuery()) {
 
-					String dataAttrValue = d.getAttributeValue(q.getQueryAttribute());
+					String dataAttrValue = d.getAttributeValue(q
+							.getQueryAttribute());
 
 					if (dataAttrValue == null) {
 
 						// failed on a attribute query
 						return null;
-					} else {	
+					} else {
 
 						// found attribute value
-						return new MatchResult<T>(q.getQueryAttribute(), d.getAttributeValue(q.getQueryAttribute()));
+						return new MatchResult<T>(q.getQueryAttribute(),
+								d.getAttributeValue(q.getQueryAttribute()));
 					}
 
 				} else {
@@ -189,27 +184,27 @@ public class PathMap<T>
 					// 2. query for element value (by attribute-value pair)
 					for (NamespacedName queryAttr : q.getAttributesAsSet()) {
 
-						if ( ! q.getAttributeValue(queryAttr).equals(d.getAttributeValue(queryAttr))) {
+						if (!q.getAttributeValue(queryAttr).equals(
+								d.getAttributeValue(queryAttr))) {
 
-							// an attr-value pair from query has no match in data
+							// an attr-value pair from query has no match in
+							// data
 							return null;
-						} 
+						}
 					}
 				}
 			}
 			return new MatchResult<T>();
 		} else {
-			return null;			
+			return null;
 		}
 	}
 
-	public Set<Path> keySet()
-	{
+	public Set<Path> keySet() {
 		return map.keySet();
 	}
 
-	public boolean containsPath(Path path)
-	{
+	public boolean containsPath(Path path) {
 		return map.containsKey(path);
 	}
 
@@ -220,28 +215,34 @@ public class PathMap<T>
 		}
 
 	}
+
 	/**
 	 * Matching result: {@link MatchResult#getAttributeValue()} hold the value
 	 * in the case of an attribute value match of <code>null</code> in the case
 	 * of an element value match.
 	 * 
 	 */
-	public static class MatchResult<T>
-	{
+	public static class MatchResult<T> {
 		private NamespacedName attributeName;
 		private String attributeValue;
 		private T storedObject;
-		//		private Path matchedData;
+		// private Path matchedData;
 		private Path answeredQuery;
-		public enum Result {element_match, attribute_match };
-		private Result result; 
+
+		public enum Result {
+			element_match, attribute_match
+		};
+
+		private Result result;
 
 		public Result getResult() {
 			return result;
 		}
+
 		public T getStoredObject() {
 			return storedObject;
 		}
+
 		public void setStoredObject(T storedObject) {
 			this.storedObject = storedObject;
 		}
@@ -253,13 +254,12 @@ public class PathMap<T>
 		public void setAnsweredQuery(Path answeredQuery) {
 			this.answeredQuery = answeredQuery;
 		}
-		public MatchResult()
-		{
+
+		public MatchResult() {
 			this.result = Result.element_match;
 		}
 
-		public MatchResult(NamespacedName attributeName, String attributeValue)
-		{
+		public MatchResult(NamespacedName attributeName, String attributeValue) {
 			this.attributeValue = attributeValue;
 			this.result = Result.attribute_match;
 		}
@@ -267,20 +267,21 @@ public class PathMap<T>
 		@Override
 		public String toString() {
 			return "MatchResult [result=" + result + ", attributeName="
-			+ attributeName + ", attributeValue=" + attributeValue
-			+ ", answeredQuery=" + answeredQuery + ", storedObject="
-			+ storedObject + "]";
+					+ attributeName + ", attributeValue=" + attributeValue
+					+ ", answeredQuery=" + answeredQuery + ", storedObject="
+					+ storedObject + "]";
 		}
-
 
 	}
 
-	public static class MatchResultIterator<T> implements Iterator<MatchResult<T>> {
+	public static class MatchResultIterator<T> implements
+			Iterator<MatchResult<T>> {
 
 		// TODO replace with more efficient storage
 		Iterator<MatchResult<T>> iterator;
 
 		boolean isEmpty = true;
+
 		public MatchResultIterator(List<MatchResult<T>> list) {
 			isEmpty = list.isEmpty();
 			this.iterator = list.iterator();
@@ -303,12 +304,12 @@ public class PathMap<T>
 
 		public boolean isEmpty() {
 			return isEmpty;
-		}		
-		
+		}
+
 	}
 
-
-	public static class MatchResultIterable<T> implements Iterable<MatchResult<T>> {
+	public static class MatchResultIterable<T> implements
+			Iterable<MatchResult<T>> {
 
 		private MatchResultIterator<T> iterator;
 
@@ -324,7 +325,6 @@ public class PathMap<T>
 
 		public boolean isEmpty() {
 			return iterator.isEmpty();
-		}		
+		}
 	}
 }
-

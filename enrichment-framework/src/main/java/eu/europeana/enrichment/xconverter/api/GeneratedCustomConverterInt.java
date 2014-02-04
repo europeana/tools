@@ -17,14 +17,13 @@ package eu.europeana.enrichment.xconverter.api;
 
 import java.io.PrintWriter;
 
-public interface GeneratedCustomConverterInt
-{
+public interface GeneratedCustomConverterInt {
 	public int run(PrintWriter out) throws Exception;
 
 	public void selectDataSource() throws Exception;
 
 	public void onConversionStarts() throws Exception;
-	
+
 	public void onConversionEnds() throws Exception;
 
 }

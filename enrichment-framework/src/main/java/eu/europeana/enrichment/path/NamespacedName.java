@@ -15,14 +15,11 @@
  */
 package eu.europeana.enrichment.path;
 
-
-
 /**
  * 
  * @author Borys Omelayenko
  */
-class NamespacedName implements Comparable<NamespacedName>
-{
+class NamespacedName implements Comparable<NamespacedName> {
 	private String name;
 	private String namespaceUri;
 	private String expanded;
@@ -35,12 +32,11 @@ class NamespacedName implements Comparable<NamespacedName>
 		return namespaceUri;
 	}
 
-	public String getExpanded()
-	{
+	public String getExpanded() {
 		return expanded;
 	}
 
-	public NamespacedName(String name, String namespaceUri){
+	public NamespacedName(String name, String namespaceUri) {
 		this.name = name;
 		this.namespaceUri = namespaceUri;
 		this.expanded = namespaceUri + name;
@@ -66,6 +62,5 @@ class NamespacedName implements Comparable<NamespacedName>
 	public String toString() {
 		return getExpanded();
 	}
-
 
 }

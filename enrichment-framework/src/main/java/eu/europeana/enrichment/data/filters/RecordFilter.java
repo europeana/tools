@@ -15,15 +15,12 @@
  */
 package eu.europeana.enrichment.data.filters;
 
-
-
 /**
  * Filter for records.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface RecordFilter 
-{
+public interface RecordFilter {
 	public boolean isIncluded(String url);
 }

@@ -28,8 +28,6 @@ import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.terms.TermList;
-import eu.europeana.enrichment.tagger.vocabularies.Vocabulary.NormaliseCaller;
-
 
 /**
  * Encapsulates a vocabulary with (de-)serialization.
@@ -37,30 +35,27 @@ import eu.europeana.enrichment.tagger.vocabularies.Vocabulary.NormaliseCaller;
  * @author Borys Omelayenko
  * 
  */
-public class VocabularySerializer
-{
-	private static final long serialVersionUID = Common.getCommonSerialVersionUID();
+public class VocabularySerializer {
+	private static final long serialVersionUID = Common
+			.getCommonSerialVersionUID();
 
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	private Vocabulary voc;
-	// private List<CodeURI> parents = new ArrayList<CodeURI>();
 	private String vocabularyName;
 	private Map<String, String> termParentMap = new HashMap<String, String>();
 
-	public String getParentCode(String termCode)
-	{
+	public String getParentCode(String termCode) {
 		return termParentMap.get(termCode);
 	}
 
-	public VocabularySerializer(Vocabulary voc, String vocabularyName)
-	{
+	public VocabularySerializer(Vocabulary voc, String vocabularyName) {
 		this.voc = voc;
 		this.vocabularyName = vocabularyName;
 	}
 
-	public Term parseValue(CodeURI code, CodeURI parent, String value, Lang lang) throws Exception
-	{
+	public Term parseValue(CodeURI code, CodeURI parent, String value, Lang lang)
+			throws Exception {
 		Term term = new Term(value, lang, code, vocabularyName);
 		voc.putTerm(term);
 		if (parent != null)
@@ -68,100 +63,93 @@ public class VocabularySerializer
 		return term;
 	}
 
-	public void parseValue(CodeURI code, CodeURI parent, String value) throws Exception
-	{
+	public void parseValue(CodeURI code, CodeURI parent, String value)
+			throws Exception {
 		parseValue(code, parent, value, null);
 	}
 
-	public static class SerializedProperties
-	{
+	public static class SerializedProperties {
 		private Properties terms;
 		private Properties parents;
 
-		public SerializedProperties()
-		{
+		public SerializedProperties() {
 			super();
 			this.terms = new Properties();
 			this.parents = new Properties();
 		}
 
-		public Properties getTerms()
-		{
+		public Properties getTerms() {
 			return terms;
 		}
 
-		public Properties getParents()
-		{
+		public Properties getParents() {
 			return parents;
 		}
 	}
 
-	public void deserializeFromProperties(SerializedProperties props) throws Exception
-	{
-		for (Map.Entry<Object, Object> entry : props.getTerms().entrySet())
-		{
+	public void deserializeFromProperties(SerializedProperties props)
+			throws Exception {
+		for (Map.Entry<Object, Object> entry : props.getTerms().entrySet()) {
 			CodeURI termURI = new CodeURI(entry.getKey().toString());
 			String labelLine = entry.getValue().toString();
 			if (!labelLine.contains("."))
 				throw new RuntimeException("Error in cache line " + labelLine);
-			String[] sizes = labelLine.substring(0, labelLine.indexOf('.')).split(",");
+			String[] sizes = labelLine.substring(0, labelLine.indexOf('.'))
+					.split(",");
 			labelLine = labelLine.substring(labelLine.indexOf('.') + 1);
 
 			int start = 0;
-			for (int i = 0; i < sizes.length; i++)
-			{
+			for (int i = 0; i < sizes.length; i++) {
 				int langPos = sizes[i].indexOf("+");
 				int size;
-				if (langPos < 0)
-				{
+				if (langPos < 0) {
 					size = Integer.parseInt(sizes[i]);
-				}
-				else
-				{
+				} else {
 					size = Integer.parseInt(sizes[i].substring(0, langPos));
 				}
 				String label = labelLine.substring(start, start + size);
 				start += size + 1; // +1 for separator
 				Lang lang = null;
-				if (langPos >= 0)
-				{
-					int langSize = Integer.parseInt(sizes[i].substring(langPos + 1));
-					String langStr = labelLine.substring(start, start + langSize);
+				if (langPos >= 0) {
+					int langSize = Integer.parseInt(sizes[i]
+							.substring(langPos + 1));
+					String langStr = labelLine.substring(start, start
+							+ langSize);
 					start += langSize + 1;
 					lang = Lang.valueOf(langStr);
 				}
 
-				String parent = props.getParents().getProperty(termURI.toString());
-				Term term = parseValue(termURI, parent == null ? null : new CodeURI(parent), label, lang);
-				Collection<Term> additionalTerms = voc.expandVocabularyTermOnLoad(term);
-				for (Term t : additionalTerms)
-				{
+				String parent = props.getParents().getProperty(
+						termURI.toString());
+				Term term = parseValue(termURI, parent == null ? null
+						: new CodeURI(parent), label, lang);
+				Collection<Term> additionalTerms = voc
+						.expandVocabularyTermOnLoad(term);
+				for (Term t : additionalTerms) {
 					voc.putTerm(t);
 				}
 			}
 		}
 	}
 
-	public SerializedProperties serializeToProperties() throws Exception
-	{
+	public SerializedProperties serializeToProperties() throws Exception {
 		SerializedProperties props = new SerializedProperties();
 
-		for (TermList termList : voc.listAllByCode())
-		{
+		for (TermList termList : voc.listAllByCode()) {
 			// make serialized line for a term
 			String sizes = null;
 			String values = null;
 			String codeOfFirstTerm = null;
 			Term parentOfFirstTerm = null;
-			for (Term t : termList)
-			{
+			for (Term t : termList) {
 				codeOfFirstTerm = t.getCode();
 				parentOfFirstTerm = t.getParent();
 
-				sizes = sizes == null ? ("" + t.getLabel().length()) : (sizes + "," + t.getLabel().length());
-				values = values == null ? t.getLabel() : (values + ";" + t.getLabel());
-				if (t.getLang() != null)
-				{
+				sizes = sizes == null ? ("" + t.getLabel().length()) : (sizes
+						+ "," + t.getLabel().length());
+				values = values == null ? t.getLabel() : (values + ";" + t
+						.getLabel());
+				if (t.getLang() != null) {
 					sizes += "+" + t.getLang().getCode().length();
 					values += "@" + t.getLang().getCode();
 				}
@@ -174,7 +162,8 @@ public class VocabularySerializer
 
 			// write parent
 			if (parentOfFirstTerm != null)
-				props.getParents().put(codeOfFirstTerm, parentOfFirstTerm.getCode());
+				props.getParents().put(codeOfFirstTerm,
+						parentOfFirstTerm.getCode());
 		}
 		return props;
 	}

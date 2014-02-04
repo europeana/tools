@@ -6,15 +6,13 @@ import eu.europeana.enrichment.tagger.rules.VocabularyMatchResult;
 import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 
-
 /**
  * Collector of various counters and messages for reporting.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface Reporter
-{
+public interface Reporter {
 
 	public static final String CATEGORY_CONVERTER = "Converter";
 
@@ -29,39 +27,35 @@ public interface Reporter
 	 * 
 	 * @param counterName
 	 */
-	public abstract void incTotals(Rule rule, final String categoryName, final String counterName)
-			throws Exception;
+	public abstract void incTotals(Rule rule, final String categoryName,
+			final String counterName) throws Exception;
 
 	/**
 	 * Increments a named counter.
 	 * 
 	 * @param rule
-	 *          rule we are counting for
+	 *            rule we are counting for
 	 * @param categoryOrContextProperty
-	 *          counter category, typically the context property the rule is
-	 *          applied to
+	 *            counter category, typically the context property the rule is
+	 *            applied to
 	 * @param subCategoryOrVocabulary
-	 *          counter subcategory
+	 *            counter subcategory
 	 * @param counterName
-	 *          name of the counter
+	 *            name of the counter
 	 * @param term
-	 *          term label
+	 *            term label
 	 * @param incrementOffset
-	 *          typically, 1.
+	 *            typically, 1.
 	 */
-	public abstract void inc(
-			Rule rule,
-			String categoryOrContextProperty,
-			String subCategoryOrVocabulary,
-			String counterName,
-			String term,
+	public abstract void inc(Rule rule, String categoryOrContextProperty,
+			String subCategoryOrVocabulary, String counterName, String term,
 			long incrementOffset) throws Exception;
 
 	/**
 	 * Adds a message. Duplicating messages are ignored.
 	 * 
 	 * @param msg
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public abstract void log(String msg) throws IOException;
 
@@ -86,8 +80,10 @@ public interface Reporter
    */
 	void reportRuleInstantiation(Rule rule);
 
-	void reportRuleInvocation(Rule rule, Triple triple, DataObject dataObject) throws IOException;
+	void reportRuleInvocation(Rule rule, Triple triple, DataObject dataObject)
+			throws IOException;
 
-	public void reportLookupRuleInvocation(Rule rule, String label, String code, VocabularyMatchResult result) throws Exception;
+	public void reportLookupRuleInvocation(Rule rule, String label,
+			String code, VocabularyMatchResult result) throws Exception;
 
 }

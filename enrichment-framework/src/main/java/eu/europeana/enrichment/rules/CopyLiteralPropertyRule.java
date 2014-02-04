@@ -26,22 +26,19 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * 
  * @author Borys Omelayenko
  */
-public class CopyLiteralPropertyRule extends RenameLiteralPropertyRule
-{
+public class CopyLiteralPropertyRule extends RenameLiteralPropertyRule {
 
 	/**
 	 * Copies to a literal property, keeping property name intact.
 	 * 
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public CopyLiteralPropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Graph dstGraph) {
 		super(srcPath, dstProperty, dstGraph);
 	}
-	
+
 	protected Triple renameProperty(Triple triple) throws Exception {
 		return triple;
 	}

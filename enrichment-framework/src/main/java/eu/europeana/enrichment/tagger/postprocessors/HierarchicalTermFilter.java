@@ -29,7 +29,8 @@ import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 public class HierarchicalTermFilter extends TermFilter {
 
 	@Override
-	public TermList disambiguate(TermList allTerms, DisambiguationContext disambiguationContext) throws Exception {
+	public TermList disambiguate(TermList allTerms,
+			DisambiguationContext disambiguationContext) throws Exception {
 
 		// no parents means no disambiguation
 		if (disambiguationContext == null
@@ -44,8 +45,8 @@ public class HierarchicalTermFilter extends TermFilter {
 		TermList selectedTerms = new TermList();
 		// disambiguate
 		for (Term term : allTerms) {
-			
-			for (CodeURI parentCode : disambiguationContext.getParents()) {				
+
+			for (CodeURI parentCode : disambiguationContext.getParents()) {
 				// a null parent would allow children of null to go
 				boolean match = false;
 				if (parentCode == null) {

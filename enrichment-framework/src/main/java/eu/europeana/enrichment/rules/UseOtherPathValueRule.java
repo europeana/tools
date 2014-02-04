@@ -25,56 +25,53 @@ import eu.europeana.enrichment.triple.Value;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
-
 /**
- * Applies a sequence of rules to the value of some other path.
- * It is typically used together with other branching rules,
- * when the condition of branching is specified on one path, 
- * while the other path needs to be processed.
+ * Applies a sequence of rules to the value of some other path. It is typically
+ * used together with other branching rules, when the condition of branching is
+ * specified on one path, while the other path needs to be processed.
  * 
  * For example, consider a record with two paths:
  * <ul>
- *  <li> <code>public</code> taking values <code>true</code> and <code>false</code> </li>
- *  <li> <code>name</code> with person names.</li>
+ * <li> <code>public</code> taking values <code>true</code> and
+ * <code>false</code></li>
+ * <li> <code>name</code> with person names.</li>
  * </ul>
  * 
- * We want to convert public names only. Then, a branching rule may be placed on path <code>public</code>.
- * This rule invokes another rule that should rename <code>name</code> if <code>public=true</code>.
- * However, the current value is <code>true</code> or <code>false</code>, and not the name. 
- * This rule is need to get hold on the <code>name</code>, being invoked from <code>public</code>.
+ * We want to convert public names only. Then, a branching rule may be placed on
+ * path <code>public</code>. This rule invokes another rule that should rename
+ * <code>name</code> if <code>public=true</code>. However, the current value is
+ * <code>true</code> or <code>false</code>, and not the name. This rule is need
+ * to get hold on the <code>name</code>, being invoked from <code>public</code>.
  * 
  * 
  * @author Borys Omelayenko
  * 
  */
-public class UseOtherPathValueRule extends SequenceRule
-{
+public class UseOtherPathValueRule extends SequenceRule {
 	Path propertyName;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Value";
 	}
 
 	/**
 	 * 
-	 * @param srcValuePath property which value would be taken and fed to the rules
-	 * @param rule rules that would be applied to this value
+	 * @param srcValuePath
+	 *            property which value would be taken and fed to the rules
+	 * @param rule
+	 *            rules that would be applied to this value
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public UseOtherPathValueRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Path srcValuePath, 
-			PropertyRule... rule)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Path srcValuePath, PropertyRule... rule) {
 		super(rule);
 		this.propertyName = srcValuePath;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		List<Value> values = new ArrayList<Value>();
 
 		// current property is treated separately to avoid issues with multiple
@@ -84,8 +81,7 @@ public class UseOtherPathValueRule extends SequenceRule
 		else
 			values.addAll(dataObject.getValues(propertyName));
 
-		for (Value value : values)
-		{
+		for (Value value : values) {
 			super.fire(triple.changeValue(value), dataObject);
 		}
 	}

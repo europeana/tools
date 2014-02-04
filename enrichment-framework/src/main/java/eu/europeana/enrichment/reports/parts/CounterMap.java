@@ -18,7 +18,6 @@ package eu.europeana.enrichment.reports.parts;
 import java.io.IOException;
 import java.util.HashMap;
 
-
 /**
  * Named counter.
  * 
@@ -26,14 +25,15 @@ import java.util.HashMap;
  * 
  */
 public class CounterMap<T> extends HashMap<T, Integer> {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public void inc(T category, Integer offset) throws IOException {
 		Integer count = 0;
 		if (containsKey(category)) {
 			count = get(category);
-		};
+		}
+		;
 
 		put(category, count + offset);
 

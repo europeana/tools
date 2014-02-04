@@ -23,11 +23,9 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Borys Omelayenko
  * 
  */
-public abstract class AbstractNoBranchRule extends PropertyRule
-{
+public abstract class AbstractNoBranchRule extends PropertyRule {
 
-	public AbstractNoBranchRule()
-	{
+	public AbstractNoBranchRule() {
 		super();
 	}
 

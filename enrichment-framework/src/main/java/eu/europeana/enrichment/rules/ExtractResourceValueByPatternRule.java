@@ -25,7 +25,6 @@ import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * Rule to create an RDF literal property with the value specified by a regular
  * expression.
@@ -33,16 +32,12 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class ExtractResourceValueByPatternRule extends RenameResourcePropertyRule
-{
+public class ExtractResourceValueByPatternRule extends
+		RenameResourcePropertyRule {
 	private Pattern pattern;
 
-	public ExtractResourceValueByPatternRule(
-			Property trgProperty,
-			String pattern,
-			Namespace trgNamespace,
-			Graph trgGraph)
-	{
+	public ExtractResourceValueByPatternRule(Property trgProperty,
+			String pattern, Namespace trgNamespace, Graph trgGraph) {
 		super(trgProperty, trgNamespace, trgGraph);
 		this.pattern = Pattern.compile(pattern);
 	}
@@ -51,13 +46,12 @@ public class ExtractResourceValueByPatternRule extends RenameResourcePropertyRul
 	 * @inheritDoc
 	 */
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		Matcher matcher = pattern.matcher(triple.getValue().getValue());
 
-		if (matcher.find())
-		{
-			super.fire(triple.changeValue(new ResourceValue(matcher.group(1))), dataObject);
+		if (matcher.find()) {
+			super.fire(triple.changeValue(new ResourceValue(matcher.group(1))),
+					dataObject);
 		}
 	}
 }

@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
 
-
 /**
  * Lists.
  * 
@@ -39,7 +38,7 @@ import com.thoughtworks.xstream.XStream;
  * 
  */
 public class ReportList<T> extends AbstractReportPart implements Iterable<T> {
-	
+
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	private List<T> list = new ArrayList<T>();
@@ -63,13 +62,13 @@ public class ReportList<T> extends AbstractReportPart implements Iterable<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void load() throws IOException {
-		InputStream is = new FileInputStream(getFile()); 
+		InputStream is = new FileInputStream(getFile());
 		try {
 			XStream xStream = new XStream();
 			list = (List<T>) xStream.fromXML(is);
 		} finally {
-			is.close(); 
-		} 
+			is.close();
+		}
 	}
 
 	public void add(T item) throws IOException {
@@ -84,6 +83,5 @@ public class ReportList<T> extends AbstractReportPart implements Iterable<T> {
 	public Iterator<T> iterator() {
 		return list.iterator();
 	}
-
 
 }

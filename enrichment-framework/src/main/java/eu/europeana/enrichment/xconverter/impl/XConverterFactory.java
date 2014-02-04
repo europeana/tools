@@ -31,116 +31,93 @@ import eu.europeana.enrichment.triple.Property;
 import eu.europeana.enrichment.xconverter.api.Graph;
 import eu.europeana.enrichment.xconverter.api.Resource;
 
-
 /**
  * XML API factory.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class XConverterFactory
-{
+public class XConverterFactory {
 
 	public static final String MERGED_SOURCES_OUTER_TAG_FILE = "file";
-    public static final String MERGED_SOURCES_OUTER_TAG_FILESET = "fileset";
+	public static final String MERGED_SOURCES_OUTER_TAG_FILESET = "fileset";
 
-    public void init()
-	throws Exception
-	{
+	public void init() throws Exception {
 
 	}
 
-	public XConverterFactory(Environment environment)
-	{
+	public XConverterFactory(Environment environment) {
 		super();
 		this.environment = environment;
-		try
-		{
+		try {
 			init();
+		} catch (Exception e) {
 		}
-		catch (Exception e) 
-		{
-			//throw new RuntimeException(e);
-		}	
 	}
 
 	Map<String, Graph> destinations = new HashMap<String, Graph>();
 
-	public void addGraph(String id, Graph graph)
-	{
-		if (graph == null)
-		{
+	public void addGraph(String id, Graph graph) {
+		if (graph == null) {
 			throw new RuntimeException("Null graph");
 		}
 		destinations.put(id, graph);
 	}
 
-	public Graph makeGraph(String id)
-	throws Exception
-	{
-		if (!destinations.containsKey(id))
-		{
-			throw new Exception("Named graph with id " + id + " was not declared in the destinations section");
+	public Graph makeGraph(String id) throws Exception {
+		if (!destinations.containsKey(id)) {
+			throw new Exception("Named graph with id " + id
+					+ " was not declared in the destinations section");
 		}
 		return destinations.get(id);
 	}
 
-	public void addNamespace(String nick, String url)
-	throws Exception
-	{
+	public void addNamespace(String nick, String url) throws Exception {
 		environment.getNamespaces().addNamespace(url, nick);
 	}
 
 	private Environment environment;
 
-	public Environment getEnvironment()
-	{
+	public Environment getEnvironment() {
 		return environment;
 	}
 
-	public String makeString(String string)
-	{
+	public String makeString(String string) {
 		return string;
 	}
 
-	public Resource makeResource(String uri)
-	throws Exception
-	{
-		return new Resource(new URI(new Path(uri, environment.getNamespaces()).getPath()));
+	public Resource makeResource(String uri) throws Exception {
+		return new Resource(new URI(
+				new Path(uri, environment.getNamespaces()).getPath()));
 	}
 
-	public Path makePath(String path)
-	throws Exception
-	{
-    // Prefix fileset/file/ is here for a purpose: 
-    // (multiple) source files are wrapped into a single XML file
-    // where each file is surrounded with fileset/file tag
-		return new Path(path.startsWith("/") ? ("/" + MERGED_SOURCES_OUTER_TAG_FILESET + "/" + MERGED_SOURCES_OUTER_TAG_FILE + path) : path, environment.getNamespaces());
+	public Path makePath(String path) throws Exception {
+		// Prefix fileset/file/ is here for a purpose:
+		// (multiple) source files are wrapped into a single XML file
+		// where each file is surrounded with fileset/file tag
+		return new Path(path.startsWith("/") ? ("/"
+				+ MERGED_SOURCES_OUTER_TAG_FILESET + "/"
+				+ MERGED_SOURCES_OUTER_TAG_FILE + path) : path,
+				environment.getNamespaces());
 	}
 
-	public Namespace makeNamespace(String nick)
-	throws Exception
-	{
-		if (environment == null || environment.getNamespaces() == null)
-		{
+	public Namespace makeNamespace(String nick) throws Exception {
+		if (environment == null || environment.getNamespaces() == null) {
 			throw new Exception("Null environment or namespaces");
 		}
 		String uri = environment.getNamespaces().getUri(nick);
 		if (uri == null) {
-			throw new Exception("Namespaces with nick " + nick + " is not declared in the <namespaces> section");
+			throw new Exception("Namespaces with nick " + nick
+					+ " is not declared in the <namespaces> section");
 		}
 		return new Namespace(uri, nick, true);
 	}
 
-	public Property makeProperty(String path)
-	throws Exception
-	{
+	public Property makeProperty(String path) throws Exception {
 		return new Property(new Path(path, environment.getNamespaces()));
 	}
 
-	public Lang makeLang(String lang)
-	throws Exception
-	{
+	public Lang makeLang(String lang) throws Exception {
 		return Lang.valueOf(lang);
 	}
 
@@ -149,151 +126,119 @@ public class XConverterFactory
 	private Map<String, VocabularyOfPlaces> vocabulariesOfPlaces = new HashMap<String, VocabularyOfPlaces>();
 	private Map<String, VocabularyOfTime> vocabulariesOfTime = new HashMap<String, VocabularyOfTime>();
 
-	public VocabularyOfTerms makeVocabularyOfTerms(String id)
-	throws Exception
-	{
+	public VocabularyOfTerms makeVocabularyOfTerms(String id) throws Exception {
 		VocabularyOfTerms vocabulary = vocabulariesOfTerms.get(id);
 		if (vocabulary == null)
-			throw new NullPointerException("Vocabulary " + id + " is not defined in XML under tag <vocabularies>");
+			throw new NullPointerException("Vocabulary " + id
+					+ " is not defined in XML under tag <vocabularies>");
 		return vocabulary;
 	}
 
 	public void addVocabularyOfTerms(String id, VocabularyOfTerms vocabulary)
-	throws Exception
-	{
-		if (vocabulariesOfTerms.containsKey(id))
-		{
+			throws Exception {
+		if (vocabulariesOfTerms.containsKey(id)) {
 			throw new Exception("Vocabulary " + id + " already exists");
 		}
 		vocabulariesOfTerms.put(id, vocabulary);
 	}
 
-	public VocabularyOfTime makeVocabularyOfTime(String id)
-	throws Exception
-	{
+	public VocabularyOfTime makeVocabularyOfTime(String id) throws Exception {
 		VocabularyOfTime vocabulary = vocabulariesOfTime.get(id);
 		if (vocabulary == null)
-			throw new NullPointerException("Vocabulary " + id + " is not defined in XML under tag <vocabularies>");
+			throw new NullPointerException("Vocabulary " + id
+					+ " is not defined in XML under tag <vocabularies>");
 		return vocabulary;
 	}
 
 	public void addVocabularyOfTime(String id, VocabularyOfTime vocabulary)
-	throws Exception
-	{
-		if (vocabulariesOfTime.containsKey(id))
-		{
+			throws Exception {
+		if (vocabulariesOfTime.containsKey(id)) {
 			throw new Exception("Vocabulary " + id + " already exists");
 		}
 		vocabulariesOfTime.put(id, vocabulary);
 	}
 
-//	public VocabularyOfTerms getVocabularyOfTerms(String id)
-//	{
-//		return vocabulariesOfTerms.get(id);
-//	}
-
 	public VocabularyOfPeople makeVocabularyOfPeople(String id)
-	throws Exception
-	{
+			throws Exception {
 		VocabularyOfPeople vocabulary = vocabulariesOfPeople.get(id);
 		if (vocabulary == null)
-			throw new NullPointerException("Vocabulary " + id + " is not defined in XML under tag <vocabularies>");
+			throw new NullPointerException("Vocabulary " + id
+					+ " is not defined in XML under tag <vocabularies>");
 		return vocabulary;
 	}
 
 	public void addVocabularyOfPeople(String id, VocabularyOfPeople vocabulary)
-	throws Exception
-	{
-		if (vocabulariesOfPeople.containsKey(id))
-		{
+			throws Exception {
+		if (vocabulariesOfPeople.containsKey(id)) {
 			throw new Exception("Vocabulary " + id + " already exists");
 		}
 		vocabulariesOfPeople.put(id, vocabulary);
 	}
 
-//	public VocabularyOfPeople getVocabularyOfPeople(String id)
-//	{
-//		return vocabulariesOfPeople.get(id);
-//	}
-
-
 	public VocabularyOfPlaces makeVocabularyOfPlaces(String id)
-	throws Exception
-	{
+			throws Exception {
 		VocabularyOfPlaces vocabulary = vocabulariesOfPlaces.get(id);
 		if (vocabulary == null)
-			throw new NullPointerException("Vocabulary " + id + " is not defined in XML under tag <vocabularies>");
+			throw new NullPointerException("Vocabulary " + id
+					+ " is not defined in XML under tag <vocabularies>");
 		return vocabulary;
 	}
 
 	public void addVocabularyOfPlaces(String id, VocabularyOfPlaces vocabulary)
-	throws Exception
-	{
-		if (vocabulariesOfPlaces.containsKey(id))
-		{
+			throws Exception {
+		if (vocabulariesOfPlaces.containsKey(id)) {
 			throw new Exception("Vocabulary " + id + " already exists");
 		}
 		vocabulariesOfPlaces.put(id, vocabulary);
 	}
 
-//	public VocabularyOfPlaces getVocabularyOfPlaces(String id)
-//	{
-//		return vocabulariesOfPlaces.get(id);
-//	}
-	
-	public class MapPathToProperty
-	{
-		public MapPathToProperty(Path srcPath, Property dstProperty)
-		{
+	public class MapPathToProperty {
+		public MapPathToProperty(Path srcPath, Property dstProperty) {
 			super();
 			this.srcPath = srcPath;
 			this.dstProperty = dstProperty;
 		}
+
 		private Path srcPath;
 		private Property dstProperty;
-		
-		public Path getSrcPath()
-		{
+
+		public Path getSrcPath() {
 			return srcPath;
 		}
-		public Property getDstProperty()
-		{
+
+		public Property getDstProperty() {
 			return dstProperty;
 		}
-		
+
 	}
 
 	public MapObjectToObject makeMap(String srcValue, String dstValue)
-	throws Exception
-	{
+			throws Exception {
 		return new MapObjectToObject(makeString(srcValue), makeString(dstValue));
 	}
 
 	public MapObjectToObject makeMap(Path srcValue, Property dstValue)
-	throws Exception
-	{
+			throws Exception {
 		return new MapObjectToObject(srcValue, dstValue);
 	}
 
-	public class MapObjectToObject
-	{
-		public MapObjectToObject(Object srcValue, Object dstValue)
-		{
+	public class MapObjectToObject {
+		public MapObjectToObject(Object srcValue, Object dstValue) {
 			super();
 			this.srcValue = srcValue;
 			this.dstValue = dstValue;
 		}
+
 		private Object srcValue;
 		private Object dstValue;
-		
-		public Object getSrcValue()
-		{
+
+		public Object getSrcValue() {
 			return srcValue;
 		}
-		public Object getDstValue()
-		{
+
+		public Object getDstValue() {
 			return dstValue;
 		}
-		
+
 	}
 }

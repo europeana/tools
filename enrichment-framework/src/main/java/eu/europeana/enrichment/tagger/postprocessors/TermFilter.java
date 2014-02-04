@@ -19,21 +19,23 @@ import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
 /**
- * Disambiguation: reducing the list of found terms given the disambiguation context.
- * Improves precision.
+ * Disambiguation: reducing the list of found terms given the disambiguation
+ * context. Improves precision.
  * 
  * @author Borys Omelayenko
  * 
  */
-public abstract class TermFilter 
-{
+public abstract class TermFilter {
 	/**
-	 * Reduce the list by removing terms irrelevant to the disambiguation context.
-	 * @param allTerms 
-	 *          original list of terms
+	 * Reduce the list by removing terms irrelevant to the disambiguation
+	 * context.
+	 * 
+	 * @param allTerms
+	 *            original list of terms
 	 * @param disambiguationContext
 	 * @return list of selected terms
 	 * @throws Exception
 	 */
-	public abstract TermList disambiguate(TermList allTerms, DisambiguationContext disambiguationContext) throws Exception;
+	public abstract TermList disambiguate(TermList allTerms,
+			DisambiguationContext disambiguationContext) throws Exception;
 }

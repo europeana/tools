@@ -25,20 +25,15 @@ import org.apache.commons.io.IOUtils;
 import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.triple.Triple;
 
-public class SolrSynonymsFile extends AbstractFileWritingGraph
-{
+public class SolrSynonymsFile extends AbstractFileWritingGraph {
 
 	private Properties synonyms = new Properties();
 
-	public SolrSynonymsFile(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		super(datasetId, environment, datasetModifier, objectType, propertyType, "txt", comment);
+	public SolrSynonymsFile(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, "txt", comment);
 	}
 
 	@Override
@@ -47,9 +42,10 @@ public class SolrSynonymsFile extends AbstractFileWritingGraph
 		if (writingHappened()) {
 			OutputStream os = new FileOutputStream(getFinalFile(getVolume()));
 			for (Entry<Object, Object> entry : synonyms.entrySet()) {
-				IOUtils.write(entry.getKey() + "," + entry.getValue() + "\n", os, "UTF-8");
+				IOUtils.write(entry.getKey() + "," + entry.getValue() + "\n",
+						os, "UTF-8");
 			}
-			os.close();		
+			os.close();
 		}
 	}
 
@@ -57,9 +53,12 @@ public class SolrSynonymsFile extends AbstractFileWritingGraph
 	public void writeTriple(Triple triple) throws Exception {
 
 		String collectedValues = synonyms.getProperty(triple.getSubject(), "");
-		String newValue = triple.getValue().getValue().replaceAll("[\\s\\p{Punct}]", " ").trim();
+		String newValue = triple.getValue().getValue()
+				.replaceAll("[\\s\\p{Punct}]", " ").trim();
 		if (!newValue.isEmpty()) {
-			synonyms.setProperty(triple.getSubject(), (collectedValues.isEmpty() ? "" : (collectedValues + ",")) + newValue);
+			synonyms.setProperty(triple.getSubject(),
+					(collectedValues.isEmpty() ? "" : (collectedValues + ","))
+							+ newValue);
 		}
 	}
 

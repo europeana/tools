@@ -21,26 +21,17 @@ import java.util.List;
 import eu.europeana.enrichment.api.CustomConverter;
 import eu.europeana.enrichment.common.Helper;
 
+public class WriterUsageStats {
 
-public class WriterUsageStats
-{
-
-	public static void main(String... args) throws Exception
-	{
-		List<Class> converters =
-				Helper
-						.findAllClasses(CustomConverter.class, "nl.multimedian.eculture.annocultor.eculture.converters");
-		for (Class converter : converters)
-		{
-			Constructor constructor = converter.getConstructor(new Class[]
-			{});
-			CustomConverter conv = (CustomConverter) constructor.newInstance(new Object[]
-			{});
+	public static void main(String... args) throws Exception {
+		List<Class> converters = Helper.findAllClasses(CustomConverter.class,
+				"nl.multimedian.eculture.annocultor.eculture.converters");
+		for (Class converter : converters) {
+			Constructor constructor = converter.getConstructor(new Class[] {});
+			CustomConverter conv = (CustomConverter) constructor
+					.newInstance(new Object[] {});
 		}
 
-		// System.out.println(ConvertObjectRule.mappingReport.report(true));
-
-		// System.out.println(ConvertObjectRule.mappingReport.printTermOccurranceMatrix());
 	}
 
 }

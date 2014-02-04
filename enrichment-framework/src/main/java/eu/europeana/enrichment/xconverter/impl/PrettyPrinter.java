@@ -18,9 +18,7 @@ package eu.europeana.enrichment.xconverter.impl;
 import eu.europeana.enrichment.utils.XmlUtils;
 
 public class PrettyPrinter {
-	public static void main(String... args) 
-	throws Exception
-	{
+	public static void main(String... args) throws Exception {
 		XmlUtils.main(args);
 	}
 }

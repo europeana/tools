@@ -24,82 +24,72 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
 /**
- * Invokes several other rules in a sequence.
- * Typical use is to chain several <code>CreateResourcePropertyRule</code>s
- * to create several constant triples.
+ * Invokes several other rules in a sequence. Typical use is to chain several
+ * <code>CreateResourcePropertyRule</code>s to create several constant triples.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class SequenceRule extends PropertyRule
-{
+public class SequenceRule extends PropertyRule {
 
-	public enum ExecultionMode
-	{
-		AllowSingleExecutionPerDataObject,
-		AllowedMultipleExecutionsPerDataObject
+	public enum ExecultionMode {
+		AllowSingleExecutionPerDataObject, AllowedMultipleExecutionsPerDataObject
 	}
 
 	private ExecultionMode executionMode;
 	private String lastDataObject = null;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Sequence";
 	}
 
 	/**
-	 * The sequence of rules would be applied once
-	 * per data object. This is useful when applying the rules to 
-	 * an attribute value, located in the beginning of XML path. 
+	 * The sequence of rules would be applied once per data object. This is
+	 * useful when applying the rules to an attribute value, located in the
+	 * beginning of XML path.
 	 * 
-	 * @param rule rules to be invoked
+	 * @param rule
+	 *            rules to be invoked
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "single" )
-	public SequenceRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			PropertyRule... rule)
-	{
+	@AnnoCultor.XConverter(include = true, affix = "single")
+	public SequenceRule(@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			PropertyRule... rule) {
 		this(ExecultionMode.AllowSingleExecutionPerDataObject, rule);
 		setSourcePath(srcPath);
 	}
 
 	/**
-	 * @param rules to be invoked
+	 * @param rules
+	 *            to be invoked
 	 */
-	public SequenceRule(PropertyRule... rule)
-	{
+	public SequenceRule(PropertyRule... rule) {
 		this(ExecultionMode.AllowedMultipleExecutionsPerDataObject, rule);
 	}
 
-	public SequenceRule(ExecultionMode executionMode, PropertyRule... rules)
-	{
+	public SequenceRule(ExecultionMode executionMode, PropertyRule... rules) {
 		super(rules);
 		this.executionMode = executionMode;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		XmlValue firstValue = dataObject.getFirstValue(dataObject.getIdPath());
 		String newId = firstValue == null ? null : firstValue.getValue();
-		if (executionMode == ExecultionMode.AllowSingleExecutionPerDataObject)
-		{
-			if (newId.equals(lastDataObject))
-			{
-				// attempt to apply this rule to the same data object multiple times
+		if (executionMode == ExecultionMode.AllowSingleExecutionPerDataObject) {
+			if (newId.equals(lastDataObject)) {
+				// attempt to apply this rule to the same data object multiple
+				// times
 				return;
 			}
 			lastDataObject = newId;
 		}
-		for (Rule rule : getChildRules())
-		{
+		for (Rule rule : getChildRules()) {
 			if (rule == this)
 				throw new Exception("Cycle in sequence on rule " + rule);
 
 			rule.fire(triple.changeRule(rule), dataObject);
-			
+
 		}
 	}
 

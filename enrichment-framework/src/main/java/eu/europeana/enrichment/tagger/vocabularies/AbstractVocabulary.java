@@ -256,8 +256,8 @@ public abstract class AbstractVocabulary implements Vocabulary {
 
 		reconstructParents(handler);
 
-		//if (codeSet().size() == 0)
-		//	throw new Exception("No terms loaded to vocabulary " + name);
+		// if (codeSet().size() == 0)
+		// throw new Exception("No terms loaded to vocabulary " + name);
 
 		StopWatch timeElapsed = new StopWatch();
 		timeElapsed.start();
@@ -288,21 +288,21 @@ public abstract class AbstractVocabulary implements Vocabulary {
 		File cacheFileParents = makeCacheFileName("cacheparents.", signature,
 				locations, query, cacheDir);
 
-		 boolean wasLoadedFromCache = loadFromCache(locations,
-		 locationDescriptionForExceptionLogging, handler,
-		 cacheFileTerms, cacheFileParents);
-		
-		 if (!wasLoadedFromCache) {
+		boolean wasLoadedFromCache = loadFromCache(locations,
+				locationDescriptionForExceptionLogging, handler,
+				cacheFileTerms, cacheFileParents);
 
-		Repository rdf = createRepository(locations);
-//		if (!new File("/host/linux_servers/annocultor/lock").exists()) {
+		if (!wasLoadedFromCache) {
+
+			Repository rdf = createRepository(locations);
+			// if (!new File("/host/linux_servers/annocultor/lock").exists()) {
 			populateRepositoryWithTerms(query, isSesame, handler, rdf);
-//		}
-		reconstructParents(handler);
+			// }
+			reconstructParents(handler);
 
-		 saveToCache(locations, query, cacheDir, handler, cacheFileTerms,
-		 cacheFileParents);
-		 }
+			saveToCache(locations, query, cacheDir, handler, cacheFileTerms,
+					cacheFileParents);
+		}
 	}
 
 	File makeCacheFileName(String prefix, String signature,
@@ -542,8 +542,6 @@ public abstract class AbstractVocabulary implements Vocabulary {
 		applyTermPropertiesToTerms(propertyName, attributeVocabulary);
 	}
 
-	
-	
 	void applyTermPropertiesToTerms(String propertyName,
 			VocabularyOfTerms attributeVocabulary) throws Exception {
 

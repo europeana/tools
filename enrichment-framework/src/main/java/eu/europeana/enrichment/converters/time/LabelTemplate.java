@@ -15,34 +15,37 @@
  */
 package eu.europeana.enrichment.converters.time;
 
-
 /**
  * Template for centuries/periods labels.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
-public class LabelTemplate 
-{
+public class LabelTemplate {
 	String lang;
 	private String pattern_1;
 	private String pattern_2;
 	private String pattern_3;
 	private String pattern_N;
+
 	public String getLang() {
 		return lang;
 	}
+
 	public String getPattern_1() {
 		return pattern_1;
 	}
+
 	public String getPattern_2() {
 		return pattern_2;
 	}
+
 	public String getPattern_3() {
 		return pattern_3;
 	}
+
 	public String getPattern_N() {
 		return pattern_N;
 	}
-	
+
 }

@@ -29,17 +29,16 @@ import eu.europeana.enrichment.triple.Value;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.DataObject.ListOfValues;
 
-
 /**
  * Disambiguation context for vocabulary lookup.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class DisambiguationContext
-{
+public class DisambiguationContext {
 
-	private static final long serialVersionUID = Common.getCommonSerialVersionUID();
+	private static final long serialVersionUID = Common
+			.getCommonSerialVersionUID();
 
 	public static DisambiguationContext NO_DISAMBIGUATION = null;
 
@@ -51,15 +50,15 @@ public class DisambiguationContext
 
 	List<Path> pathToParent = new ArrayList<Path>();
 
-	public DisambiguationContext(Lang lang, Lang defaultLang, Collection<CodeURI> parents)
-	{
+	public DisambiguationContext(Lang lang, Lang defaultLang,
+			Collection<CodeURI> parents) {
 		this.parents = parents;
 		this.lang = lang;
 		this.defaultLang = lang;
 	}
 
-	public DisambiguationContext(String... parents) throws MalformedURLException
-	{
+	public DisambiguationContext(String... parents)
+			throws MalformedURLException {
 		this(null, null, CodeURI.stringToCodeURI(parents));
 	}
 
@@ -68,32 +67,26 @@ public class DisambiguationContext
 	 * Multiple values are treated as union.
 	 * 
 	 * @param pathToParent
-	 *          source path
+	 *            source path
 	 */
-	public DisambiguationContext(Path... pathToParent)
-	{
+	public DisambiguationContext(Path... pathToParent) {
 		this.pathToParent = Arrays.asList(pathToParent);
 	}
 
-	public List<Path> getPathToParent()
-	{
+	public List<Path> getPathToParent() {
 		return pathToParent;
 	}
 
-	public static List<CodeURI> getContextValue(DisambiguationContext context, DataObject dataObject)
-	throws Exception
-	{
+	public static List<CodeURI> getContextValue(DisambiguationContext context,
+			DataObject dataObject) throws Exception {
 		List<CodeURI> result = new ArrayList<CodeURI>();
-		if (context != null)
-		{
+		if (context != null) {
 			// constants
 			result.addAll(context.getParents());
 			// variables
-			for (Path contextPath : context.getPathToParent())
-			{
+			for (Path contextPath : context.getPathToParent()) {
 				ListOfValues values = dataObject.getValues(contextPath);
-				for (Value value : values)
-				{
+				for (Value value : values) {
 					result.add(new CodeURI(value.getValue()));
 				}
 			}
@@ -101,18 +94,15 @@ public class DisambiguationContext
 		return result;
 	}
 
-	public Collection<CodeURI> getParents()
-	{
+	public Collection<CodeURI> getParents() {
 		return parents;
 	}
 
-	public Lang getLang()
-	{
+	public Lang getLang() {
 		return lang;
 	}
 
-	public Lang getDefaultLang()
-	{
+	public Lang getDefaultLang() {
 		return defaultLang;
 	}
 
@@ -123,5 +113,4 @@ public class DisambiguationContext
 				+ pathToParent + "]";
 	}
 
-	
 }

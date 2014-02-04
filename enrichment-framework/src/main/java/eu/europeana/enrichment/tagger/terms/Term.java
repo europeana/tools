@@ -19,15 +19,13 @@ import java.util.Properties;
 
 import eu.europeana.enrichment.common.Language.Lang;
 
-
 /**
  * Terms stored in vocabularies.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class Term implements Comparable<Term>
-{
+public class Term implements Comparable<Term> {
 	private static final String SLASH = "/";
 	private String label;
 	// very private namespace
@@ -40,8 +38,7 @@ public class Term implements Comparable<Term>
 	private String disambiguatingComment;
 	private String confidenceComment;
 
-	public Term(String label, Lang lang, CodeURI termCode, String vocabularyName)
-	{
+	public Term(String label, Lang lang, CodeURI termCode, String vocabularyName) {
 		if (label == null || termCode == null || vocabularyName == null) {
 			throw new NullPointerException("One of parameters is null");
 		}
@@ -49,13 +46,10 @@ public class Term implements Comparable<Term>
 		this.lang = lang;
 		this.code = termCode.toString();
 		int p = code.lastIndexOf(SLASH);
-		if (p > 0 && p < code.length())
-		{
+		if (p > 0 && p < code.length()) {
 			this.ns = code.substring(0, p + 1);
 			this.code = code.substring(p + 1);
-		}
-		else
-		{
+		} else {
 			this.ns = null;
 		}
 
@@ -63,44 +57,36 @@ public class Term implements Comparable<Term>
 		this.properties = new Properties();
 	}
 
-	public String getCode()
-	{
+	public String getCode() {
 		if (ns == null)
 			return code;
 		return ns + code;
 	}
 
-	public String getVocabularyName()
-	{
+	public String getVocabularyName() {
 		return vocabularyName;
 	}
 
-	public String getLabel()
-	{
+	public String getLabel() {
 		return label;
 	}
 
-	public Lang getLang()
-	{
+	public Lang getLang() {
 		return lang;
 	}
 
-	public Term getParent()
-	{
+	public Term getParent() {
 		return parent;
 	}
 
-	public void setParent(Term parent)
-	{
+	public void setParent(Term parent) {
 		this.parent = parent;
 	}
 
-	public boolean hasParent(CodeURI potentialParentCode)
-	{
+	public boolean hasParent(CodeURI potentialParentCode) {
 		String potentialParentStr = potentialParentCode.toString();
 		Term term = this.parent;
-		while (term != null)
-		{
+		while (term != null) {
 			if (potentialParentStr.equals(term.getCode()))
 				return true;
 			term = term.parent;
@@ -108,24 +94,21 @@ public class Term implements Comparable<Term>
 		return false;
 	}
 
-	public String getProperty(String propertyName)
-	{
+	public String getProperty(String propertyName) {
 		return properties.getProperty(propertyName);
 	}
 
-	public void setProperty(String propertyName, String value)
-	{
+	public void setProperty(String propertyName, String value) {
 		properties.setProperty(propertyName, value);
 	}
 
 	@Override
-	public String toString()
-	{
-		return "\"" + getCode() + "=" + label + (lang == null ? "" : ("@" + lang)) + "\"";
+	public String toString() {
+		return "\"" + getCode() + "=" + label
+				+ (lang == null ? "" : ("@" + lang)) + "\"";
 	}
 
-	public int compareTo(Term t)
-	{
+	public int compareTo(Term t) {
 		int r;
 		r = this.getVocabularyName().compareTo(t.getVocabularyName());
 		if (r != 0)
@@ -146,23 +129,19 @@ public class Term implements Comparable<Term>
 		return r;
 	}
 
-	public String getDisambiguatingComment()
-	{
+	public String getDisambiguatingComment() {
 		return disambiguatingComment;
 	}
 
-	public void setDisambiguatingComment(String disambiguatingComment)
-	{
+	public void setDisambiguatingComment(String disambiguatingComment) {
 		this.disambiguatingComment = disambiguatingComment;
 	}
 
-	public String getConfidenceComment()
-	{
+	public String getConfidenceComment() {
 		return confidenceComment;
 	}
 
-	public void setConfidenceComment(String confidenceComment)
-	{
+	public void setConfidenceComment(String confidenceComment) {
 		this.confidenceComment = confidenceComment;
 	}
 }

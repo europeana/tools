@@ -24,7 +24,6 @@ import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary.NormaliseCaller;
 
-
 /**
  * Intervals, e.g. time periods.
  * 
@@ -34,7 +33,8 @@ import eu.europeana.enrichment.tagger.vocabularies.Vocabulary.NormaliseCaller;
 public class VocabularyOfTime extends AbstractVocabulary {
 
 	public String filterExactTimestamps(String termLabel) {
-		final Pattern datePattern = Pattern.compile("^(\\d\\d\\d\\d)(-\\d\\d-\\d\\d)?( 00:00:00)?$");
+		final Pattern datePattern = Pattern
+				.compile("^(\\d\\d\\d\\d)(-\\d\\d-\\d\\d)?( 00:00:00)?$");
 		Matcher m = datePattern.matcher(termLabel);
 		if (m.find()) {
 			String year = m.group(1);
@@ -43,29 +43,28 @@ public class VocabularyOfTime extends AbstractVocabulary {
 		return termLabel;
 	}
 
-	public TermList lookupTerm(String startLabel, String endLabel, Lang language, String parentCode) throws Exception {
+	public TermList lookupTerm(String startLabel, String endLabel,
+			Lang language, String parentCode) throws Exception {
 		TermList result = new TermList();
 		String startYear = filterExactTimestamps(startLabel);
 		String endYear = filterExactTimestamps(endLabel);
 
 		DisambiguationContext disambiguationContext = new DisambiguationContext(
-				language, 
-				Lang.en, 
-				parentCode == null ? null : Collections.singleton(new CodeURI(parentCode)));
+				language, Lang.en, parentCode == null ? null
+						: Collections.singleton(new CodeURI(parentCode)));
 
 		result.add(findByLabel(startYear, disambiguationContext));
 		result.add(findByLabel(endYear, disambiguationContext));
 		return result;
 	}
 
-	public VocabularyOfTime(String name, Lang lang)
-	{
+	public VocabularyOfTime(String name, Lang lang) {
 		super(name, lang);
 	}
 
 	@Override
 	public String onNormaliseLabel(String label, NormaliseCaller caller)
-	throws Exception {
+			throws Exception {
 		return super.onNormaliseLabel(label, caller).toLowerCase();
 	}
 

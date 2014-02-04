@@ -30,29 +30,22 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class CreateLiteralPropertyRule extends RenameLiteralPropertyRule
-{
+public class CreateLiteralPropertyRule extends RenameLiteralPropertyRule {
 	private String value;
 	private String lang;
 
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public CreateLiteralPropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			String dstValue, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, String dstValue, Graph dstGraph) {
 		this(srcPath, dstProperty, dstValue, null, dstGraph);
 	}
 
-	@AnnoCultor.XConverter( include = true, affix = "lang" )
+	@AnnoCultor.XConverter(include = true, affix = "lang")
 	public CreateLiteralPropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			String dstValue, 
-			String dstLang, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, String dstValue, String dstLang,
+			Graph dstGraph) {
 		super(dstProperty, dstLang, dstGraph);
 		this.value = dstValue;
 		this.lang = dstLang;
@@ -63,8 +56,7 @@ public class CreateLiteralPropertyRule extends RenameLiteralPropertyRule
 	 * @inheritDoc
 	 */
 	@Override
-	public void fire(Triple triple, DataObject converter) throws Exception
-	{
+	public void fire(Triple triple, DataObject converter) throws Exception {
 		super.fire(triple.changeValue(new LiteralValue(value, lang)), converter);
 	}
 }

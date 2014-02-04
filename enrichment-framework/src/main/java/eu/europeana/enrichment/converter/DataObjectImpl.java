@@ -30,7 +30,6 @@ import eu.europeana.enrichment.path.PathMap.MatchResult;
 import eu.europeana.enrichment.triple.XmlValue;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 
-
 /**
  * A record consists of one or more parts with arbitrary nesting that are
  * converted one-by-one. I think we first convert the whole and then convert the
@@ -39,8 +38,7 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
  * @author Borys Omelayenko
  * 
  */
-class DataObjectImpl implements DataObject
-{
+class DataObjectImpl implements DataObject {
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	// values of this object
@@ -56,13 +54,11 @@ class DataObjectImpl implements DataObject
 
 	private List<DataObject> children = new ArrayList<DataObject>();
 
-	public List<DataObject> getChildren()
-	{
+	public List<DataObject> getChildren() {
 		return children;
 	}
 
-	public DataObjectImpl(Path path, ObjectRule map, DataObject parent)
-	{
+	public DataObjectImpl(Path path, ObjectRule map, DataObject parent) {
 		this.dataObjectRule = map;
 		this.separatingPath = path;
 		this.parent = parent;
@@ -71,35 +67,30 @@ class DataObjectImpl implements DataObject
 		}
 	}
 
-	public List<DataObject> findAllChildren()
-	{
+	public List<DataObject> findAllChildren() {
 		List<DataObject> allChildren = new ArrayList<DataObject>();
-		for (DataObject directChild : children)
-		{
+		for (DataObject directChild : children) {
 			allChildren.add(directChild);
 			allChildren.addAll(directChild.findAllChildren());
 		}
 		return allChildren;
 	}
 
-	public DataObject getParent()
-	{
+	public DataObject getParent() {
 		return parent;
 	}
 
-	public long size()
-	{
+	public long size() {
 		return mapPathToValue.keySet().size();
 	}
 
-	public ListOfValues getValues(Path query)
-	throws Exception {
-		
+	public ListOfValues getValues(Path query) throws Exception {
+
 		ListOfValues result = new ListOfValues();
 		for (MatchResult<ListOfValues> match : mapPathToValue.ask(query)) {
 			if (match.getAttributeValue() == null) {
 				for (XmlValue xmlValue : match.getStoredObject()) {
-					result.add(xmlValue);						
+					result.add(xmlValue);
 				}
 			} else {
 				result.add(new XmlValue(match.getAttributeValue()));
@@ -108,28 +99,24 @@ class DataObjectImpl implements DataObject
 		return result;
 	}
 
-	public XmlValue getFirstValue(Path propertyName)
-	throws Exception
-	{
+	public XmlValue getFirstValue(Path propertyName) throws Exception {
 		if (propertyName == null)
 			return null;
 		ListOfValues allValues = getValues(propertyName);
 		if (allValues.isEmpty())
 			return null;
 		if (!allValues.isSingleValued())
-			log.warn("Possibly missing other values of "
-					+ propertyName
-					+ ", used value '"
-					+ allValues.get(0)
-					+ "', all values: "
+			log.warn("Possibly missing other values of " + propertyName
+					+ ", used value '" + allValues.get(0) + "', all values: "
 					+ allValues);
 		return allValues.get(0);
 	}
 
 	public void addValue(Path path, XmlValue value) throws Exception {
-		
+
 		if (path.isAttributeQuery())
-			throw new Exception("Query for a specific attribute is not allowed as data path");
+			throw new Exception(
+					"Query for a specific attribute is not allowed as data path");
 
 		if (value != null) {
 			try {
@@ -138,57 +125,53 @@ class DataObjectImpl implements DataObject
 					allValues = new ListOfValues();
 					mapPathToValue.put(path, allValues);
 				}
-				allValues.add(new XmlValue(value.getValue(), chooseLang(path, value)));
+				allValues.add(new XmlValue(value.getValue(), chooseLang(path,
+						value)));
 			} catch (Exception e) {
 				e.printStackTrace();
-				throw new Exception("Data object add value failed: " + path + " " + value, e);
+				throw new Exception("Data object add value failed: " + path
+						+ " " + value, e);
 			}
 		}
 	}
 
 	String chooseLang(Path path, XmlValue value) {
-        String langFromPath = path.getLang();
-        if ( !StringUtils.isBlank(langFromPath)) {
-            return langFromPath; 
-        }
-        String langFromValue = value.getLang();
-        if ( !StringUtils.isBlank(langFromValue)) {
-            return langFromValue; 
-        }
-        return null;
+		String langFromPath = path.getLang();
+		if (!StringUtils.isBlank(langFromPath)) {
+			return langFromPath;
+		}
+		String langFromValue = value.getLang();
+		if (!StringUtils.isBlank(langFromValue)) {
+			return langFromValue;
+		}
+		return null;
 	}
+
 	@Override
-	public Iterator<Path> iterator()
-	{
+	public Iterator<Path> iterator() {
 		return mapPathToValue.keySet().iterator();
 	}
 
-	public ListOfValues getValueByExactMatch(Path pathToMatch)
-	{
+	public ListOfValues getValueByExactMatch(Path pathToMatch) {
 		return mapPathToValue.get(pathToMatch);
 	}
 
-	public ObjectRule getDataObjectRule()
-	{
+	public ObjectRule getDataObjectRule() {
 		return dataObjectRule;
 	}
 
-	public Path getIdPath()
-	{
+	public Path getIdPath() {
 		return dataObjectRule.getPrimaryRecordIdPath();
 	}
 
-	public Path getSeparatingPath()
-	{
+	public Path getSeparatingPath() {
 		return separatingPath;
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		String result = "";
-		for (Path p : mapPathToValue.keySet())
-		{
+		for (Path p : mapPathToValue.keySet()) {
 			result += p.getPath() + "=" + mapPathToValue.get(p) + "\n";
 		}
 		return result;

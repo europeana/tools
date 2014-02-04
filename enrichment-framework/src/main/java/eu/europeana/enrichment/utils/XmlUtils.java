@@ -48,45 +48,40 @@ import eu.europeana.enrichment.converter.ConverterHandler;
  * @author Borys Omelayenko
  * 
  */
-public class XmlUtils
-{
+public class XmlUtils {
 	private static final String OPT_FN = "fn";
 
-	public static void main(String... args) throws Exception
-	{
+	public static void main(String... args) throws Exception {
 		// Handling command line parameters with Apache Commons CLI
 		Options options = new Options();
 
-		options.addOption(OptionBuilder.withArgName(OPT_FN)
-				.hasArg()
+		options.addOption(OptionBuilder.withArgName(OPT_FN).hasArg()
 				.isRequired()
 				.withDescription("XML file name to be pretty-printed")
-				.create(OPT_FN)
-		);
+				.create(OPT_FN));
 
 		// now lets parse the input
 		CommandLineParser parser = new BasicParser();
 		CommandLine cmd;
-		try
-		{
-			cmd = parser.parse(options, Utils.getCommandLineFromANNOCULTOR_ARGS(args));
-		}
-		catch (ParseException pe)
-		{ 
+		try {
+			cmd = parser.parse(options,
+					Utils.getCommandLineFromANNOCULTOR_ARGS(args));
+		} catch (ParseException pe) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("pretty", options );
-			return; 
+			formatter.printHelp("pretty", options);
+			return;
 		}
 
-		List<File> files = Utils.expandFileTemplateFrom(new File("."), cmd.getOptionValue(OPT_FN));
-		for (File file : files) 
-		{
+		List<File> files = Utils.expandFileTemplateFrom(new File("."),
+				cmd.getOptionValue(OPT_FN));
+		for (File file : files) {
 			// XML pretty print
 			System.out.println("Pretty-print for file " + file);
 			if (file.exists())
 				prettyPrintXmlFileSAX(file.getCanonicalPath());
 			else
-				throw new Exception("File not found: " + file.getCanonicalPath());
+				throw new Exception("File not found: "
+						+ file.getCanonicalPath());
 		}
 	}
 
@@ -98,59 +93,54 @@ public class XmlUtils
 	 * @return <code>true</code> on success.
 	 * @throws Exception
 	 */
-	public static int parseXmlFileSAX(File sourceFile, ConverterHandler handler, boolean validating)
-	throws Exception
-	{
+	public static int parseXmlFileSAX(File sourceFile,
+			ConverterHandler handler, boolean validating) throws Exception {
 		// Create a builder factory
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		factory.setValidating(validating);
 		factory.setNamespaceAware(true);
 
-		InputStream fileStream = new BufferedInputStream(new FileInputStream(sourceFile), 1024 * 1024);
+		InputStream fileStream = new BufferedInputStream(new FileInputStream(
+				sourceFile), 1024 * 1024);
 
-		if (fileStream == null) 
-		{
+		if (fileStream == null) {
 			throw new Exception("Null input XML file stream");
 		}
-		if (handler == null) 
-		{
+		if (handler == null) {
 			throw new Exception("Null XML handler");
 		}
-		try
-		{
+		try {
 			// Create the builder and parse the file
 			SAXParser newSAXParser = factory.newSAXParser();
-			if (newSAXParser == null)
-			{
+			if (newSAXParser == null) {
 				throw new Exception("null SAX parser");
 			}
 			newSAXParser.parse(fileStream, handler);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			System.err.println("\n"
 					+ "*****************************************************\n"
-					+ "EXCEPTION OCCURRED in file " + sourceFile.getCanonicalPath() + "\n"
-					+ "at line " + handler.getDocumentLocator().getLineNumber() + ", column " + handler.getDocumentLocator().getColumnNumber());
+					+ "EXCEPTION OCCURRED in file "
+					+ sourceFile.getCanonicalPath() + "\n" + "at line "
+					+ handler.getDocumentLocator().getLineNumber()
+					+ ", column "
+					+ handler.getDocumentLocator().getColumnNumber());
 			e.printStackTrace();
-			System.err.println("\n"
-					+ "TRYING TO CLOSE FILES GRACEFULLY \n"
-					+ "*****************************************************\n");
+			System.err
+					.println("\n"
+							+ "TRYING TO CLOSE FILES GRACEFULLY \n"
+							+ "*****************************************************\n");
 			return -1;
 		}
 		return 0;
 	}
 
-	public static void prettyPrintXmlFileSAX(String filename) throws Exception
-	{
+	public static void prettyPrintXmlFileSAX(String filename) throws Exception {
 		FileOutputStream fos = new FileOutputStream(filename + ".pretty");
 		// XERCES 1 or 2 additional classes.
 		OutputFormat of = new OutputFormat("XML", "UTF-8", true);
 		of.setIndenting(true);
 		of.setIndent(1);
 
-		// of.setLineWidth(200);
-		// of.setDoctype(null,"users.dtd");
 		XMLSerializer serializer = new XMLSerializer(fos, of);
 		// SAX2.0 ContentHandler.
 		ContentHandler hd = serializer.asContentHandler();
@@ -158,79 +148,72 @@ public class XmlUtils
 		fos.close();
 	}
 
-	private static class PrettyPrintHandler extends ConverterHandler
-	{
+	private static class PrettyPrintHandler extends ConverterHandler {
 		ContentHandler hd;
 
-		public PrettyPrintHandler(ContentHandler hd)
-		{
+		public PrettyPrintHandler(ContentHandler hd) {
 			super(null);
 			this.hd = hd;
 		}
 
 		@Override
-		public void characters(char[] arg0, int arg1, int arg2) throws SAXException
-		{
+		public void characters(char[] arg0, int arg1, int arg2)
+				throws SAXException {
 			hd.characters(arg0, arg1, arg2);
 		}
 
 		@Override
-		public void endDocument() throws SAXException
-		{
+		public void endDocument() throws SAXException {
 			hd.endDocument();
 		}
 
 		@Override
-		public void endElement(String arg0, String arg1, String arg2) throws SAXException
-		{
+		public void endElement(String arg0, String arg1, String arg2)
+				throws SAXException {
 			hd.endElement(arg0, arg1, arg2);
 		}
 
 		@Override
-		public void endPrefixMapping(String arg0) throws SAXException
-		{
+		public void endPrefixMapping(String arg0) throws SAXException {
 			hd.endPrefixMapping(arg0);
 		}
 
 		@Override
-		public void ignorableWhitespace(char[] arg0, int arg1, int arg2) throws SAXException
-		{
+		public void ignorableWhitespace(char[] arg0, int arg1, int arg2)
+				throws SAXException {
 			hd.ignorableWhitespace(arg0, arg1, arg2);
 		}
 
 		@Override
-		public void processingInstruction(String arg0, String arg1) throws SAXException
-		{
+		public void processingInstruction(String arg0, String arg1)
+				throws SAXException {
 			hd.processingInstruction(arg0, arg1);
 		}
 
 		@Override
-		public void setDocumentLocator(Locator arg0)
-		{
+		public void setDocumentLocator(Locator arg0) {
 			hd.setDocumentLocator(arg0);
 		}
 
 		@Override
-		public void skippedEntity(String arg0) throws SAXException
-		{
+		public void skippedEntity(String arg0) throws SAXException {
 			hd.skippedEntity(arg0);
 		}
 
 		@Override
-		public void startDocument() throws SAXException
-		{
+		public void startDocument() throws SAXException {
 			hd.startDocument();
 		}
 
 		@Override
-		public void startElement(String arg0, String arg1, String arg2, Attributes arg3) throws SAXException
-		{
+		public void startElement(String arg0, String arg1, String arg2,
+				Attributes arg3) throws SAXException {
 			hd.startElement(arg0, arg1, arg2, arg3);
 		}
 
 		@Override
-		public void startPrefixMapping(String arg0, String arg1) throws SAXException
-		{
+		public void startPrefixMapping(String arg0, String arg1)
+				throws SAXException {
 			hd.startPrefixMapping(arg0, arg1);
 		}
 

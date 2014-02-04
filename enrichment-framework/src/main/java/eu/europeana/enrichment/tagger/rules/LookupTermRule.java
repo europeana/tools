@@ -30,21 +30,18 @@ import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 import eu.europeana.enrichment.triple.Property;
-import eu.europeana.enrichment.utils.DatabaseUtils;
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
- * Looks terms up in external vocabularies.
- * Should be applied to a <code>srcPath</code> that stores term labels.
+ * Looks terms up in external vocabularies. Should be applied to a
+ * <code>srcPath</code> that stores term labels.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class LookupTermRule extends AbstractLookupRule
-{
+public class LookupTermRule extends AbstractLookupRule {
 
 	protected static List<VocabularyOfTerms> allVocabularies = new ArrayList<VocabularyOfTerms>();
 
@@ -53,11 +50,11 @@ public class LookupTermRule extends AbstractLookupRule
 	/**
 	 * Project-specific vocabularies should be added before
 	 * <code>LookupTermRule</code> will be used.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 * 
 	 */
-	public static void addVocabulary(VocabularyOfTerms v) throws Exception
-	{
+	public static void addVocabulary(VocabularyOfTerms v) throws Exception {
 		if (v == null) {
 			throw new Exception("NULL vocabulary passed.");
 		}
@@ -65,78 +62,47 @@ public class LookupTermRule extends AbstractLookupRule
 	}
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "VocabularyOfTerms";
 	}
 
 	private DisambiguationContext parent;
 
 	/**
-	 * For each new label, a proxy local term is created and linked to.
-	 * Then, this term is mapped to a term in external vocabularies.
+	 * For each new label, a proxy local term is created and linked to. Then,
+	 * this term is mapped to a term in external vocabularies.
 	 * 
-	 * @param termSplitPattern regular expression that defines how to separate multiple term labels merged into a single string.
-	 *    For example the following pattern (quotes excluded) "( *; *)|( *, *)" would split terms by semicolon or comma
+	 * @param termSplitPattern
+	 *            regular expression that defines how to separate multiple term
+	 *            labels merged into a single string. For example the following
+	 *            pattern (quotes excluded) "( *; *)|( *, *)" would split terms
+	 *            by semicolon or comma
 	 */
-	@AnnoCultor.XConverter(include=true, affix = "withLocalTerms")
-	public LookupTermRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
-			Property dstProperty,
-			Graph dstGraphLiterals,
-			Graph dstGraphLinks,
-			Property termsProperty,
-			String termsSignature,			 
-			Graph termsGraph,
-			Namespace termsNamespace,
-			Lang termsLang,
-			String termsSplitPattern,
-			VocabularyOfTerms termsVocabulary)
-	{
-		this(
-				dstProperty,
-				termsProperty,
-				Concepts.RDF.COMMENT,
-				null,
-				null,
-				null,
-				termsSignature,
-				termsSplitPattern,
-				dstGraphLiterals,
-				dstGraphLinks,
-				null,
-				new ProxyTermDefinition(termsNamespace, termsGraph, termsLang),
-				termsVocabulary);
+	@AnnoCultor.XConverter(include = true, affix = "withLocalTerms")
+	public LookupTermRule(@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Graph dstGraphLiterals, Graph dstGraphLinks,
+			Property termsProperty, String termsSignature, Graph termsGraph,
+			Namespace termsNamespace, Lang termsLang, String termsSplitPattern,
+			VocabularyOfTerms termsVocabulary) {
+		this(dstProperty, termsProperty, Concepts.RDF.COMMENT, null, null,
+				null, termsSignature, termsSplitPattern, dstGraphLiterals,
+				dstGraphLinks, null, new ProxyTermDefinition(termsNamespace,
+						termsGraph, termsLang), termsVocabulary);
 		setSourcePath(srcPath);
 	}
 
 	/**
-	 * Linking external vocabularies is done directly, without the creation of local proxy terms. 
+	 * Linking external vocabularies is done directly, without the creation of
+	 * local proxy terms.
 	 */
-	@AnnoCultor.XConverter(include=true, affix = "noLocalTerms")
-	public LookupTermRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
-			Property dstProperty,
-			Graph dstGraphLiterals,
-			Graph dstGraphLinks,
-			Property termsProperty,
-			String termsSignature,			 
-			String termsSplitPattern,
-			VocabularyOfTerms termsVocabulary)
-	{
-		this(
-				dstProperty,
-				termsProperty,
-				Concepts.RDF.COMMENT,
-				null,
-				null,
-				null,
-				termsSignature,
-				termsSplitPattern,
-				dstGraphLiterals,
-				dstGraphLinks,
-				null,
-				null, // no proxy terms
+	@AnnoCultor.XConverter(include = true, affix = "noLocalTerms")
+	public LookupTermRule(@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Graph dstGraphLiterals, Graph dstGraphLinks,
+			Property termsProperty, String termsSignature,
+			String termsSplitPattern, VocabularyOfTerms termsVocabulary) {
+		this(dstProperty, termsProperty, Concepts.RDF.COMMENT, null, null,
+				null, termsSignature, termsSplitPattern, dstGraphLiterals,
+				dstGraphLinks, null, null, // no proxy terms
 				termsVocabulary);
 		setSourcePath(srcPath);
 	}
@@ -145,83 +111,68 @@ public class LookupTermRule extends AbstractLookupRule
 	 * Looks triple values up in an external vocabulary.
 	 * 
 	 * @param langTermLabel
-	 *          a non-null value enforces lang on pref labels of the generated terms. 
+	 *            a non-null value enforces lang on pref labels of the generated
+	 *            terms.
 	 * @param linkRecordToTerm
-	 *          to create if mappings found
+	 *            to create if mappings found
 	 * @param linkRecordToLiteral
-	 *          to create if no mapping is found
+	 *            to create if no mapping is found
 	 * @param splitPattern
-	 *          to split a triple <code>value</code> into terms to be mapped
-	 *          separately. <code>null</code> sets the no-separation logic.
+	 *            to split a triple <code>value</code> into terms to be mapped
+	 *            separately. <code>null</code> sets the no-separation logic.
 	 * @param graphTerms
-	 *          graph for generated terms with local ids
+	 *            graph for generated terms with local ids
 	 * @param graphLinksRecordToTerm
-	 *          graph for links between records (often works) and terms with local
-	 *          ids
+	 *            graph for links between records (often works) and terms with
+	 *            local ids
 	 */
-	public LookupTermRule(
-			Property linkRecordToTerm,
-			Property linkRecordToLiteral,
-			Property labelOfLinkTermToVocabulary,
-			Lang langLabelTermToVocabulary,
-			DisambiguationContext labels,
-			DisambiguationContext parent,
-			String reportCategory,
-			String splitPattern,
-			Graph dstGraphLiterals,
-			Graph dstGraphLinks,
+	public LookupTermRule(Property linkRecordToTerm,
+			Property linkRecordToLiteral, Property labelOfLinkTermToVocabulary,
+			Lang langLabelTermToVocabulary, DisambiguationContext labels,
+			DisambiguationContext parent, String reportCategory,
+			String splitPattern, Graph dstGraphLiterals, Graph dstGraphLinks,
 			TermCreatorInt termCreator,
 			ProxyTermDefinition proxyTermDefinition,
-			VocabularyOfTerms... localVocabulary)
-	{
-		super(
-				linkRecordToTerm,
-				linkRecordToLiteral,
-				labelOfLinkTermToVocabulary,
-				langLabelTermToVocabulary,
-				reportCategory,
-				splitPattern,
-				dstGraphLiterals,
-				dstGraphLinks,
-				termCreator, 
-				proxyTermDefinition);
+			VocabularyOfTerms... localVocabulary) {
+		super(linkRecordToTerm, linkRecordToLiteral,
+				labelOfLinkTermToVocabulary, langLabelTermToVocabulary,
+				reportCategory, splitPattern, dstGraphLiterals, dstGraphLinks,
+				termCreator, proxyTermDefinition);
 		// if localVocabularies are provided then we only search them
-		for (VocabularyOfTerms vocabulary : localVocabulary)
-		{
+		for (VocabularyOfTerms vocabulary : localVocabulary) {
 			vocabularies.add(vocabulary);
 		}
-		if (vocabularies.isEmpty())
-		{
+		if (vocabularies.isEmpty()) {
 			vocabularies.addAll(allVocabularies);
 		}
 		this.parent = parent;
 	}
 
 	@Override
-	protected TermList getDisambiguatedTerms(DataObject converter, String label, Lang lang) throws Exception
-	{
-		//TODO:change to database
-		return new MongoDatabaseUtils().findByLabel(label,"concept");
-//		
-//		
-//		for (VocabularyOfTerms vocabulary : vocabularies)
-//		{
-//			try
-//			{
-//				TermList term = vocabulary.lookupTerm(label, null, null);
-//				result.add(term);
-//			}
-//			catch (Exception e)
-//			{
-//				throw new Exception("Vocabulary lookup error on term '"
-//						+ label
-//						+ "', vocabulary '"
-//						+ vocabulary.getVocabularyName()
-//						+ "', original message: "
-//						+ e.getMessage());
-//			}
-//		}
-//		return result;
+	protected TermList getDisambiguatedTerms(DataObject converter,
+			String label, Lang lang) throws Exception {
+		// TODO:change to database
+		return new MongoDatabaseUtils().findByLabel(label, "concept");
+		//
+		//
+		// for (VocabularyOfTerms vocabulary : vocabularies)
+		// {
+		// try
+		// {
+		// TermList term = vocabulary.lookupTerm(label, null, null);
+		// result.add(term);
+		// }
+		// catch (Exception e)
+		// {
+		// throw new Exception("Vocabulary lookup error on term '"
+		// + label
+		// + "', vocabulary '"
+		// + vocabulary.getVocabularyName()
+		// + "', original message: "
+		// + e.getMessage());
+		// }
+		// }
+		// return result;
 	}
 
 	@Override

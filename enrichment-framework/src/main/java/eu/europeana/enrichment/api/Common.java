@@ -32,14 +32,12 @@ import eu.europeana.enrichment.context.Namespace;
  * @author Borys Omelayenko
  * 
  */
-public class Common
-{
+public class Common {
 
 	/**
 	 * Provides shared version id for the whole project.
 	 */
-	public static final long getCommonSerialVersionUID()
-	{
+	public static final long getCommonSerialVersionUID() {
 		return 7;
 	}
 
@@ -52,12 +50,8 @@ public class Common
 	 * @param propertyType
 	 * @return
 	 */
-	public static String makeNewNamedGraphId(
-			String dataset,
-			String datasetModifier,
-			String objectType,
-			String propertyType)
-	{
+	public static String makeNewNamedGraphId(String dataset,
+			String datasetModifier, String objectType, String propertyType) {
 		String graphId = "";
 		graphId = appendPartOfGraphId(graphId, dataset);
 		graphId = appendPartOfGraphId(graphId, datasetModifier);
@@ -77,16 +71,18 @@ public class Common
 			}
 		}
 	}
-	
+
 	private static Map<String, String> generatedNameBasedUris = new HashMap<String, String>();
 
-	private static Pattern removeDiacriticPattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+	private static Pattern removeDiacriticPattern = Pattern
+			.compile("\\p{InCombiningDiacriticalMarks}+");
 
 	public static String removeDiacritics(String text) {
-		String nfdNormalizedString = Normalizer.normalize(text, Normalizer.Form.NFD);
-		return removeDiacriticPattern.matcher(nfdNormalizedString).replaceAll("");
+		String nfdNormalizedString = Normalizer.normalize(text,
+				Normalizer.Form.NFD);
+		return removeDiacriticPattern.matcher(nfdNormalizedString).replaceAll(
+				"");
 	}
-
 
 	/**
 	 * The single place where RDF ids are generated from term labels
@@ -96,8 +92,8 @@ public class Common
 	 * @return
 	 * @throws Exception
 	 */
-	public static String generateNameBasedUri(Namespace namespace, String value) throws Exception
-	{
+	public static String generateNameBasedUri(Namespace namespace, String value)
+			throws Exception {
 		if (namespace == null)
 			throw new NullPointerException("Namespace is null");
 		if (value == null)
@@ -108,21 +104,15 @@ public class Common
 		String accentsGone = removeDiacritics(value);
 		// UTF-8
 		String uri = namespace + URLEncoder.encode(accentsGone, "UTF-8");
-		if (generatedNameBasedUris.containsKey(uri))
-		{
+		if (generatedNameBasedUris.containsKey(uri)) {
 			String existingValue = generatedNameBasedUris.get(uri);
 			if (accentsGone.equals(existingValue))
 				return uri;
 			else
-				throw new Exception("Error: duplicated generated uri "
-						+ uri
-						+ ", this value "
-						+ value
-						+ ", already used for value "
+				throw new Exception("Error: duplicated generated uri " + uri
+						+ ", this value " + value + ", already used for value "
 						+ existingValue);
-		}
-		else
-		{
+		} else {
 			generatedNameBasedUris.put(uri, accentsGone);
 			return uri;
 		}

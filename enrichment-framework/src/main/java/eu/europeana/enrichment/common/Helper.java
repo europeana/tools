@@ -74,10 +74,6 @@ public class Helper {
 	 */
 	public static Repository createLocalRepository() throws RepositoryException {
 		// initializing RDF repository
-		// Repository repository = new SailRepository(
-		// new DirectTypeHierarchyInferencer(
-		// new ForwardChainingRDFSInferencer(new NativeStore(new
-		// File("/host/linux_servers/annocultor")))));
 		Repository repository = new SailRepository(
 				new DirectTypeHierarchyInferencer(
 						new ForwardChainingRDFSInferencer(new MemoryStore())));
@@ -108,7 +104,6 @@ public class Helper {
 		// initializing RDF repository
 		Repository myRepository = new SailRepository(
 				new ForwardChainingRDFSInferencer(new MemoryStore(tempDir)));// ,
-		// "spoc,posc,cosp")));
 		// NB! MemoryStore(dir) will restore its contents!
 
 		myRepository.initialize();
@@ -320,7 +315,6 @@ public class Helper {
 			try {
 				// multi-threaded load to enjoy multi-core CPUs
 				Thread thread = new FileLoadingThread(rdf, file, ns);
-				// threads.push(thread);
 				log.info("Loading  file "
 						+ file
 						+ " of "
@@ -328,13 +322,7 @@ public class Helper {
 								.length()) + " bytes");// , thread " +
 														// threads.size());
 				System.setProperty("entityExpansionLimit", "1000000");
-				// thread.start();
 				thread.run();
-
-				// if (file.getCanonicalPath().endsWith(".ntriples"))
-				// connection.add(file, ns, RDFFormat.NTRIPLES);
-				// else
-				// connection.add(file, ns, RDFFormat.RDFXML);
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new Exception("Failed to load file "
@@ -420,8 +408,6 @@ public class Helper {
 			SourceLocator locator = e.getLocator();
 			int col = locator.getColumnNumber();
 			int line = locator.getLineNumber();
-			// String publicId = locator.getPublicId();
-			// String systemId = locator.getSystemId();
 			throw new Exception(String.format(
 					"XSL exception line %d col %d message: %s", line, col,
 					e.getMessage()));

@@ -22,68 +22,63 @@ import java.util.Map;
 
 import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.EnvironmentImpl;
-import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
-import eu.europeana.enrichment.tagger.vocabularies.Vocabulary.NormaliseCaller;
-
 
 /**
  * Tagging (aka semantic enrichment) of records from SOLR.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
-public class FetcherOfConceptsFromDbpediaSparqlEndpoint 
-{
-    protected VocabularyOfTerms vocabularyOfTerms = new VocabularyOfTerms("dbpedia.world.war.one", null) {
+public class FetcherOfConceptsFromDbpediaSparqlEndpoint {
+	protected VocabularyOfTerms vocabularyOfTerms = new VocabularyOfTerms(
+			"dbpedia.world.war.one", null) {
 
-        @Override
-        public String onNormaliseLabel(String label, NormaliseCaller caller) throws Exception {
-            return label;//StringUtils.lowerCase(label);
-        }
+		@Override
+		public String onNormaliseLabel(String label, NormaliseCaller caller)
+				throws Exception {
+			return label;
+		}
 
-    };
+	};
 
-    protected Environment environment = new EnvironmentImpl();
- 
-    public void fetch() throws Exception {
+	protected Environment environment = new EnvironmentImpl();
 
-        File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
+	public void fetch() throws Exception {
 
-            vocabularyOfTerms.loadTermsFromSparqlEndpoint(
-                    makeDbpediaSparqlQuery(), cacheDir, new URL("http://dbpedia.org/sparql"));    
-    }
+		File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 
-    String makeDbpediaSparqlQuery() {
-        return
-        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
-        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-        "PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
-        "PREFIX dbo: <http://dbpedia.org/ontology/> " +
-        "SELECT ?battle ?label WHERE { " +
-        " ?battle <http://dbpedia.org/ontology/partOf> <http://dbpedia.org/resource/World_War_I>  . " +
-        " ?battle rdfs:label ?label      }    ";
-    }
+		vocabularyOfTerms.loadTermsFromSparqlEndpoint(makeDbpediaSparqlQuery(),
+				cacheDir, new URL("http://dbpedia.org/sparql"));
+	}
 
-    public void save() throws Exception {
-        environment.getNamespaces().addNamespace("http://dbpedia.org/ontology/", "dbpedia");
-        Map<String, String> resourcePropertiesToExport = new HashMap<String, String>();
-//        resourcePropertiesToExport.put("", "dbpedia:birth");
-//        propertiesToExport.put("death", "dbpedia:death");
-        
-        vocabularyOfTerms.saveAsRDF(
-                "Selection from DBPedia WorldWar I: battles \n" 
-                + "Extracted from http://dbpedia.org/snorql/ \n"
-                + "Original data is distributed under the GNU General Public License", 
-                environment.getNamespaces(),
-                null,
-                resourcePropertiesToExport);
-    }
-    
-    public static void main(String[] args) throws Exception {
-        FetcherOfConceptsFromDbpediaSparqlEndpoint fetcher = new FetcherOfConceptsFromDbpediaSparqlEndpoint();
-        fetcher.fetch();
-        fetcher.save();
-    }
+	String makeDbpediaSparqlQuery() {
+		return "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "
+				+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
+				+ "PREFIX foaf: <http://xmlns.com/foaf/0.1/> "
+				+ "PREFIX dbo: <http://dbpedia.org/ontology/> "
+				+ "SELECT ?battle ?label WHERE { "
+				+ " ?battle <http://dbpedia.org/ontology/partOf> <http://dbpedia.org/resource/World_War_I>  . "
+				+ " ?battle rdfs:label ?label      }    ";
+	}
 
- }
+	public void save() throws Exception {
+		environment.getNamespaces().addNamespace(
+				"http://dbpedia.org/ontology/", "dbpedia");
+		Map<String, String> resourcePropertiesToExport = new HashMap<String, String>();
+		vocabularyOfTerms
+				.saveAsRDF(
+						"Selection from DBPedia WorldWar I: battles \n"
+								+ "Extracted from http://dbpedia.org/snorql/ \n"
+								+ "Original data is distributed under the GNU General Public License",
+						environment.getNamespaces(), null,
+						resourcePropertiesToExport);
+	}
+
+	public static void main(String[] args) throws Exception {
+		FetcherOfConceptsFromDbpediaSparqlEndpoint fetcher = new FetcherOfConceptsFromDbpediaSparqlEndpoint();
+		fetcher.fetch();
+		fetcher.save();
+	}
+
+}

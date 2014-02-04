@@ -24,103 +24,104 @@ import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary;
 
-
 /**
  * Tagging (aka semantic enrichment) of records from SOLR.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
 public class SolrPlacesTagger extends SolrTagger {
 
-    private class Coordinates {
-        String latitude = null;
-        String longitude = null;
-        public Coordinates(String latitude, String longitude) {
-            this.latitude = latitude;
-            this.longitude = longitude;
-        }      
+	private class Coordinates {
+		String latitude = null;
+		String longitude = null;
 
-        boolean isAssigned() {
-            return latitude != null && longitude != null;
-        }
-    }
+		public Coordinates(String latitude, String longitude) {
+			this.latitude = latitude;
+			this.longitude = longitude;
+		}
 
-    public SolrPlacesTagger(
-            Vocabulary vocabulary, 
-            String termFieldName, 
-            String labelFieldName, 
-            String broaderTermFieldName,
-            String broaderLabelFieldName,            
-            FieldRulePair... fieldRulePairs) {
-    	super("place", termFieldName, labelFieldName, broaderTermFieldName, broaderLabelFieldName, fieldRulePairs);
-    }
+		boolean isAssigned() {
+			return latitude != null && longitude != null;
+		}
+	}
 
-    Coordinates coordinates = null;
+	public SolrPlacesTagger(Vocabulary vocabulary, String termFieldName,
+			String labelFieldName, String broaderTermFieldName,
+			String broaderLabelFieldName, FieldRulePair... fieldRulePairs) {
+		super("place", termFieldName, labelFieldName, broaderTermFieldName,
+				broaderLabelFieldName, fieldRulePairs);
+	}
 
-    @Override
-    void beforeDocument(SolrInputDocument document) {
-        coordinates = null;
-    }
+	Coordinates coordinates = null;
 
-    @Override
-    void afterTermMatched(Term term) {
-        if (!StringUtils.endsWith(term.getProperty("division"), "A.PCLI")) {
-            if (coordinates == null || !coordinates.isAssigned()) {
-                coordinates = new Coordinates(term.getProperty("latitude"), term.getProperty("longitude"));
-            }
-        }
-    }
+	@Override
+	void beforeDocument(SolrInputDocument document) {
+		coordinates = null;
+	}
 
-    @Override
-    void afterDocument(SolrInputDocument document) {
-        if (coordinates != null && coordinates.isAssigned()) {
-            document.addField(getPlaceTagLatitudeFieldName(), coordinates.latitude);
-            document.addField(getPlaceTagLongitudeFieldName(), coordinates.longitude);
-        }
-    }
+	@Override
+	void afterTermMatched(Term term) {
+		if (!StringUtils.endsWith(term.getProperty("division"), "A.PCLI")) {
+			if (coordinates == null || !coordinates.isAssigned()) {
+				coordinates = new Coordinates(term.getProperty("latitude"),
+						term.getProperty("longitude"));
+			}
+		}
+	}
 
-    String getPlaceTagLatitudeFieldName() {
-        return "pl_wgs84_pos_lat";
-    }
+	@Override
+	void afterDocument(SolrInputDocument document) {
+		if (coordinates != null && coordinates.isAssigned()) {
+			document.addField(getPlaceTagLatitudeFieldName(),
+					coordinates.latitude);
+			document.addField(getPlaceTagLongitudeFieldName(),
+					coordinates.longitude);
+		}
+	}
 
-    String getPlaceTagLongitudeFieldName() {
-        return "pl_wgs84_pos_long";
-    }
+	String getPlaceTagLatitudeFieldName() {
+		return "pl_wgs84_pos_lat";
+	}
 
-    HashSet<Lang> languagesForAltLabels = new HashSet<Lang>();
-    {
-        languagesForAltLabels.add(Lang.en);
-        languagesForAltLabels.add(Lang.ru);
-        languagesForAltLabels.add(Lang.uk);
-        languagesForAltLabels.add(Lang.de);
-        languagesForAltLabels.add(Lang.fr);
-        languagesForAltLabels.add(Lang.nl);
-        languagesForAltLabels.add(Lang.es);
-        languagesForAltLabels.add(Lang.pl);
-        languagesForAltLabels.add(Lang.it);
-        languagesForAltLabels.add(Lang.pt);
-        languagesForAltLabels.add(Lang.el);
-        languagesForAltLabels.add(Lang.bg);
-        languagesForAltLabels.add(Lang.sv);
-        languagesForAltLabels.add(Lang.fi);
-        languagesForAltLabels.add(Lang.no);
-        languagesForAltLabels.add(Lang.hu);
-        languagesForAltLabels.add(Lang.da);
-        languagesForAltLabels.add(Lang.sk);
-        languagesForAltLabels.add(Lang.sl);
-        languagesForAltLabels.add(Lang.la);
-        languagesForAltLabels.add(Lang.lt);
-        languagesForAltLabels.add(Lang.et);
-        languagesForAltLabels.add(Lang.ro);
-        languagesForAltLabels.add(Lang.cs);
-        languagesForAltLabels.add(Lang.zh);
-        languagesForAltLabels.add(Lang.id);
-    }
+	String getPlaceTagLongitudeFieldName() {
+		return "pl_wgs84_pos_long";
+	}
 
-    @Override
-    boolean shouldInclude(Term term) {
-        return term.getLang() == null || languagesForAltLabels.contains(term.getLang());
-    }
+	HashSet<Lang> languagesForAltLabels = new HashSet<Lang>();
+	{
+		languagesForAltLabels.add(Lang.en);
+		languagesForAltLabels.add(Lang.ru);
+		languagesForAltLabels.add(Lang.uk);
+		languagesForAltLabels.add(Lang.de);
+		languagesForAltLabels.add(Lang.fr);
+		languagesForAltLabels.add(Lang.nl);
+		languagesForAltLabels.add(Lang.es);
+		languagesForAltLabels.add(Lang.pl);
+		languagesForAltLabels.add(Lang.it);
+		languagesForAltLabels.add(Lang.pt);
+		languagesForAltLabels.add(Lang.el);
+		languagesForAltLabels.add(Lang.bg);
+		languagesForAltLabels.add(Lang.sv);
+		languagesForAltLabels.add(Lang.fi);
+		languagesForAltLabels.add(Lang.no);
+		languagesForAltLabels.add(Lang.hu);
+		languagesForAltLabels.add(Lang.da);
+		languagesForAltLabels.add(Lang.sk);
+		languagesForAltLabels.add(Lang.sl);
+		languagesForAltLabels.add(Lang.la);
+		languagesForAltLabels.add(Lang.lt);
+		languagesForAltLabels.add(Lang.et);
+		languagesForAltLabels.add(Lang.ro);
+		languagesForAltLabels.add(Lang.cs);
+		languagesForAltLabels.add(Lang.zh);
+		languagesForAltLabels.add(Lang.id);
+	}
+
+	@Override
+	boolean shouldInclude(Term term) {
+		return term.getLang() == null
+				|| languagesForAltLabels.contains(term.getLang());
+	}
 
 }

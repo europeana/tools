@@ -46,7 +46,7 @@ import eu.europeana.enrichment.utils.SesameWriter;
  * Loads first file and saves, subtracting the second file.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
 public class OntologySubtractor implements CliExecutable {
 
@@ -54,7 +54,7 @@ public class OntologySubtractor implements CliExecutable {
 
 	private static class FilesWhereDeletedFromFilter implements FilenameFilter {
 
-		String pattern; 
+		String pattern;
 
 		public FilesWhereDeletedFromFilter(String stam) {
 
@@ -70,31 +70,31 @@ public class OntologySubtractor implements CliExecutable {
 
 	private static class FilesToDeleteFilter implements FilenameFilter {
 
-		String stam; 
+		String stam;
 
 		public FilesToDeleteFilter(String stam) {
-			
+
 			this.stam = stam;
 		}
 
 		@Override
 		public boolean accept(File dir, String name) {
 
-			return name.matches((stam + ".(\\w+)" + DELETED_RDF).replaceAll("\\.", "\\."));
+			return name.matches((stam + ".(\\w+)" + DELETED_RDF).replaceAll(
+					"\\.", "\\."));
 		}
 	}
 
-	
 	@Override
-    public void mainMethod(String... args) throws Exception {
-        OntologySubtractor.main(args);
-    }
+	public void mainMethod(String... args) throws Exception {
+		OntologySubtractor.main(args);
+	}
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
 		boolean copy = checkNoCopyOption(args);
 
-		if (args.length == 2 || args.length == 3) {		
+		if (args.length == 2 || args.length == 3) {
 
 			File sourceDir = new File(args[0]);
 			File destinationDir = new File(args[1]);
@@ -104,22 +104,27 @@ public class OntologySubtractor implements CliExecutable {
 			Collection<String> filesWithDeletedStatements = listNameStamsForFilesWithDeletedStatements(sourceDir);
 
 			if (filesWithDeletedStatements.isEmpty()) {
-				System.out.println("Did not found any file *.*.*.deleted.rdf with statements to be deleted. Do nothing and exit.");
+				System.out
+						.println("Did not found any file *.*.*.deleted.rdf with statements to be deleted. Do nothing and exit.");
 			} else {
 
-				System.out.println("Found " + filesWithDeletedStatements.size() + " files with statements to be deleted");
-				System.out.println("Copying all RDF files from " + sourceDir.getName() + " to " + destinationDir.getName());
+				System.out.println("Found " + filesWithDeletedStatements.size()
+						+ " files with statements to be deleted");
+				System.out.println("Copying all RDF files from "
+						+ sourceDir.getName() + " to "
+						+ destinationDir.getName());
 
 				if (copy) {
 					copyRdfFiles(sourceDir, destinationDir);
 				}
 
-				sutractAll(sourceDir, destinationDir, filesWithDeletedStatements);
+				sutractAll(sourceDir, destinationDir,
+						filesWithDeletedStatements);
 			}
 		} else {
-			for (Object string : IOUtils.readLines(
-					new AutoCloseInputStream(
-							OntologySubtractor.class.getResourceAsStream("/subtractor/readme.txt")))) {
+			for (Object string : IOUtils.readLines(new AutoCloseInputStream(
+					OntologySubtractor.class
+							.getResourceAsStream("/subtractor/readme.txt")))) {
 				System.out.println(string.toString());
 			}
 		}
@@ -132,7 +137,8 @@ public class OntologySubtractor implements CliExecutable {
 		return true;
 	}
 
-	private static Collection<String> listNameStamsForFilesWithDeletedStatements(File sourceDir) {
+	private static Collection<String> listNameStamsForFilesWithDeletedStatements(
+			File sourceDir) {
 		Set<String> stamms = new HashSet<String>();
 		for (String file : sourceDir.list(new FilenameFilter() {
 
@@ -150,7 +156,7 @@ public class OntologySubtractor implements CliExecutable {
 	}
 
 	private static void copyRdfFiles(File sourceDir, File destinationDir)
-	throws IOException {
+			throws IOException {
 		File[] allRdfFiles = sourceDir.listFiles(new FilenameFilter() {
 
 			@Override
@@ -160,51 +166,63 @@ public class OntologySubtractor implements CliExecutable {
 		});
 
 		for (File file : allRdfFiles) {
-			FileUtils.copyFileToDirectory(file, destinationDir);					
+			FileUtils.copyFileToDirectory(file, destinationDir);
 		}
 	}
 
 	private static void checkSrcAndDstDirs(File sourceDir, File destinationDir)
-	throws Exception, IOException {
-		
+			throws Exception, IOException {
+
 		if (!sourceDir.isDirectory()) {
-			throw new Exception("Directory expected but this found: " + sourceDir.getCanonicalPath());
+			throw new Exception("Directory expected but this found: "
+					+ sourceDir.getCanonicalPath());
 		}
 		if (!destinationDir.isDirectory()) {
-			throw new Exception("Directory expected but this found: " + destinationDir.getCanonicalPath());
+			throw new Exception("Directory expected but this found: "
+					+ destinationDir.getCanonicalPath());
 		}
 		if (!destinationDir.canWrite()) {
-			throw new Exception("Directory is not writeable: " + destinationDir.getCanonicalPath());
+			throw new Exception("Directory is not writeable: "
+					+ destinationDir.getCanonicalPath());
 		}
 	}
 
-	private static void sutractAll(File sourceDir, File destinationDir,	Collection<String> nameStamsOfFilesWithDeletedStatements) 
-	throws Exception {
-		
+	private static void sutractAll(File sourceDir, File destinationDir,
+			Collection<String> nameStamsOfFilesWithDeletedStatements)
+			throws Exception {
+
 		for (String stam : nameStamsOfFilesWithDeletedStatements) {
-			File[] filesWhereDeletedFrom = sourceDir.listFiles(new FilesWhereDeletedFromFilter(stam));
-			File[] filesToDelete = sourceDir.listFiles(new FilesToDeleteFilter(stam));
-			
-			System.out.println("Subtracting files " + StringUtils.join(filesToDelete, ",") + " from " + StringUtils.join(filesWhereDeletedFrom, ","));
+			File[] filesWhereDeletedFrom = sourceDir
+					.listFiles(new FilesWhereDeletedFromFilter(stam));
+			File[] filesToDelete = sourceDir.listFiles(new FilesToDeleteFilter(
+					stam));
+
+			System.out.println("Subtracting files "
+					+ StringUtils.join(filesToDelete, ",") + " from "
+					+ StringUtils.join(filesWhereDeletedFrom, ","));
 			for (File fileFrom : filesWhereDeletedFrom) {
 				File fileTo = new File(destinationDir, fileFrom.getName());
-				subtractStam(fileFrom, filesToDelete, fileTo);				
+				subtractStam(fileFrom, filesToDelete, fileTo);
 			}
 		}
 	}
 
-	static void subtractStam(File fileFrom, File[] filesToDelete, File fileTo) throws Exception {
+	static void subtractStam(File fileFrom, File[] filesToDelete, File fileTo)
+			throws Exception {
 
 		Repository fromRdf = Helper.createLocalRepository();
-		Helper.importRDFXMLFile(fromRdf, Namespaces.ANNOCULTOR_CONVERTER.getUri(), fileFrom);
+		Helper.importRDFXMLFile(fromRdf,
+				Namespaces.ANNOCULTOR_CONVERTER.getUri(), fileFrom);
 		RepositoryConnection fromConnection = fromRdf.getConnection();
 		System.out.println("Loaded " + fromConnection.size() + " statements");
 
 		Repository whatRdf = Helper.createLocalRepository();
-		Helper.importRDFXMLFile(whatRdf, Namespaces.ANNOCULTOR_CONVERTER.getUri(), filesToDelete);
+		Helper.importRDFXMLFile(whatRdf,
+				Namespaces.ANNOCULTOR_CONVERTER.getUri(), filesToDelete);
 		RepositoryConnection whatConnection = whatRdf.getConnection();
 
-		fromConnection.remove(whatConnection.getStatements(null, null, null, false));
+		fromConnection.remove(whatConnection.getStatements(null, null, null,
+				false));
 		fromConnection.commit();
 
 		// save
@@ -213,17 +231,14 @@ public class OntologySubtractor implements CliExecutable {
 			namespaces.addNamespace(ns.getName(), ns.getPrefix());
 		}
 
-		SesameWriter destination = SesameWriter.createRDFXMLWriter(
-				fileTo, 
-				namespaces, 
-				"deleted " + StringUtils.join(filesToDelete, ",") + " from " + fileFrom.getName(), 
-				"More info at http:// annocultor.eu",
-				1024,
-				1024
-		);
+		SesameWriter destination = SesameWriter.createRDFXMLWriter(fileTo,
+				namespaces, "deleted " + StringUtils.join(filesToDelete, ",")
+						+ " from " + fileFrom.getName(),
+				"More info at http:// annocultor.eu", 1024, 1024);
 		destination.startRDF();
 
-		List<Statement> destinationStatemenets = fromConnection.getStatements(null, null, null, false).asList();
+		List<Statement> destinationStatemenets = fromConnection.getStatements(
+				null, null, null, false).asList();
 
 		for (Statement statement : destinationStatemenets) {
 
@@ -231,18 +246,15 @@ public class OntologySubtractor implements CliExecutable {
 			eu.europeana.enrichment.triple.Value tripleValue = null;
 			if (rdfValue instanceof Literal) {
 				Literal literal = (Literal) rdfValue;
-				tripleValue = new LiteralValue(literal.getLabel(), literal.getLanguage());
+				tripleValue = new LiteralValue(literal.getLabel(),
+						literal.getLanguage());
 			} else {
 				tripleValue = new ResourceValue(rdfValue.stringValue());
 			}
 
-			destination.handleTriple(
-					new Triple(
-							statement.getSubject().stringValue(), 
-							new Property(statement.getPredicate().stringValue()),
-							tripleValue, 
-							null)
-			);		
+			destination.handleTriple(new Triple(statement.getSubject()
+					.stringValue(), new Property(statement.getPredicate()
+					.stringValue()), tripleValue, null));
 		}
 		destination.endRDF();
 		System.out.println("Saved file " + fileTo + " with deletions.");

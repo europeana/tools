@@ -25,19 +25,16 @@ import eu.europeana.enrichment.context.Concepts.SKOS;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * (RDF) Property.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class Property implements Concept
-{
+public class Property implements Concept {
 	private static List<Property> properties = new ArrayList<Property>();
 
-	public static List<Property> getProperties()
-	{
+	public static List<Property> getProperties() {
 		return properties;
 	}
 
@@ -57,13 +54,12 @@ public class Property implements Concept
 	private Property parent;
 
 	private String tag;
-	
+
 	/**
 	 * Property wrap-up created for XML paths when they are passed to converter.
 	 * Should be never called by users.
 	 */
-	public Property(Path path)
-	{
+	public Property(Path path) {
 		this.uri = path.getPath();
 		this.parent = NO_PARENT;
 		this.comment = null;
@@ -72,8 +68,8 @@ public class Property implements Concept
 		this.aatCode = NO_AAT;
 	}
 
-	public Property(String uri, Property parent, String enLabel, String nlLabel, String comment, String aatCode)
-	{
+	public Property(String uri, Property parent, String enLabel,
+			String nlLabel, String comment, String aatCode) {
 		this.uri = uri;
 		this.parent = parent;
 		this.comment = comment;
@@ -84,122 +80,93 @@ public class Property implements Concept
 	}
 
 	@Deprecated
-	public Property(String uri, Property parent, String tag)
-	{
+	public Property(String uri, Property parent, String tag) {
 		this(uri, parent, null, null, null, NO_AAT);
 		this.tag = tag;
 	}
 
-	public Property(String uri, Property parent)
-	{
+	public Property(String uri, Property parent) {
 		this(uri, parent, null, null, null, NO_AAT);
 	}
 
-	public Property(String uri, Property parent, String enLabel, String nlLabel)
-	{
+	public Property(String uri, Property parent, String enLabel, String nlLabel) {
 		this(uri, parent, enLabel, nlLabel, null, NO_AAT);
 	}
 
-	public Property(String uri)
-	{
+	public Property(String uri) {
 		this(uri, NO_PARENT, null, null, null, NO_AAT);
 	}
 
-
-	public Property(String uri, Lang lang)
-	{
+	public Property(String uri, Lang lang) {
 		this(uri + lang == null ? "" : lang.getCode());
 	}
-/*
-	public Property(
-			Namespace namespace,
-			String enLabel,
-			String nlLabel,
-			Property parent,
-			Map<String, Property> mapSignatureToProperty,
-			String aatCode)
-	{
-		this(
-				namespace + nlLabel.replaceAll("_", "__").replaceAll("[^\\w]", "_"),
-				parent,
-				enLabel,
-				nlLabel,
-				null,
-				aatCode);
-		mapSignatureToProperty.put(nlLabel, this);
-	}
-*/
+
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		// dependency below
 		return uri;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return uri.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj instanceof Property)
-		{
+	public boolean equals(Object obj) {
+		if (obj instanceof Property) {
 			return uri.equals(obj.toString());
 		}
 		return false;
 	}
 
-	public void defineInRdf(Graph definitions, Graph alignment) throws Exception
-	{
+	public void defineInRdf(Graph definitions, Graph alignment)
+			throws Exception {
 		if (comment != null)
-			definitions.add(new Triple(uri, RDF.COMMENT, new LiteralValue(comment), null));
+			definitions.add(new Triple(uri, RDF.COMMENT, new LiteralValue(
+					comment), null));
 		if (parent != null)
-			alignment.add(new Triple(uri, RDF.SUBPROPERTY, new ResourceValue(parent.uri), null));
+			alignment.add(new Triple(uri, RDF.SUBPROPERTY, new ResourceValue(
+					parent.uri), null));
 		if (enLabel != null)
-			definitions.add(new Triple(uri, SKOS.LABEL_PREFERRED, new LiteralValue(enLabel), null));
+			definitions.add(new Triple(uri, SKOS.LABEL_PREFERRED,
+					new LiteralValue(enLabel), null));
 		if (nlLabel != null)
-			definitions.add(new Triple(uri, SKOS.LABEL_PREFERRED, new LiteralValue(nlLabel), null));
+			definitions.add(new Triple(uri, SKOS.LABEL_PREFERRED,
+					new LiteralValue(nlLabel), null));
 		if (aatCode != null)
-			alignment.add(new Triple(uri, SKOS.RELATED, new ResourceValue(aatCode), null));
+			alignment.add(new Triple(uri, SKOS.RELATED, new ResourceValue(
+					aatCode), null));
 
-		definitions.add(new Triple(uri, RDF.TYPE, new ResourceValue(RDF.PROPERTY.getUri()), null));
+		definitions.add(new Triple(uri, RDF.TYPE, new ResourceValue(
+				RDF.PROPERTY.getUri()), null));
 	}
 
-	public String getUri()
-	{
+	public String getUri() {
 		return uri;
 	}
 
-	public String getComment()
-	{
+	public String getComment() {
 		return comment;
 	}
 
-	public String getEnLabel()
-	{
+	public String getEnLabel() {
 		return enLabel;
 	}
 
-	public String getNlLabel()
-	{
+	public String getNlLabel() {
 		return nlLabel;
 	}
 
-	public String getAatCode()
-	{
+	public String getAatCode() {
 		return aatCode;
 	}
 
-	public Property getParent()
-	{
+	public Property getParent() {
 		return parent;
 	}
 
-	public String getTag()
-	{
+	public String getTag() {
 		return tag;
 	}
 

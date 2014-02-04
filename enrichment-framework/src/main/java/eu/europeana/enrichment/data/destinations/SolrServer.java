@@ -41,197 +41,206 @@ import eu.europeana.enrichment.triple.Value;
  * Commits data into a running SOLR server.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
-public class SolrServer extends AbstractFileWritingGraph
-{
+public class SolrServer extends AbstractFileWritingGraph {
 
-    private String solrUrl;
+	private String solrUrl;
 
-    HttpSolrServer server;
+	HttpSolrServer server;
 
-    Stack<SolrInputDocument> documents = new Stack<SolrInputDocument>();
+	Stack<SolrInputDocument> documents = new Stack<SolrInputDocument>();
 
-    String lastWrittenUri;
+	String lastWrittenUri;
 
-    private static class FieldDefinition {
-        boolean isMultiValued = false;
-        String dataType = null;
-        String name = null;
+	private static class FieldDefinition {
+		boolean isMultiValued = false;
+		String dataType = null;
+		String name = null;
 
-        public FieldDefinition(String line) {
-            for(String token : StringUtils.trim(line).split(" ")) {
-                if (token.startsWith("name=\"")) {
-                    name = StringUtils.substringBetween(token, "\"", "\"");
-                }
-                if (token.startsWith("type=\"")) {
-                    dataType = StringUtils.substringBetween(token, "\"", "\"");
-                }
-                if (token.startsWith("multiValued=\"")) {
-                    isMultiValued = Boolean.parseBoolean(StringUtils.substringBetween(token, "\"", "\""));
-                }
-            }
+		public FieldDefinition(String line) {
+			for (String token : StringUtils.trim(line).split(" ")) {
+				if (token.startsWith("name=\"")) {
+					name = StringUtils.substringBetween(token, "\"", "\"");
+				}
+				if (token.startsWith("type=\"")) {
+					dataType = StringUtils.substringBetween(token, "\"", "\"");
+				}
+				if (token.startsWith("multiValued=\"")) {
+					isMultiValued = Boolean.parseBoolean(StringUtils
+							.substringBetween(token, "\"", "\""));
+				}
+			}
 
-            if (name == null) {
-                throw new RuntimeException("Name is missing in schema.xml line " + line);
-            }
-            if (dataType == null ) {
-                throw new RuntimeException("Data type is missing in schema.xml line " + line);
-            }
-            System.out.println("Loaded field " + name + " of " + dataType + " multi: " + isMultiValued);
-        }
+			if (name == null) {
+				throw new RuntimeException(
+						"Name is missing in schema.xml line " + line);
+			}
+			if (dataType == null) {
+				throw new RuntimeException(
+						"Data type is missing in schema.xml line " + line);
+			}
+			System.out.println("Loaded field " + name + " of " + dataType
+					+ " multi: " + isMultiValued);
+		}
 
-        public boolean isMultiValued() {
-            return isMultiValued;
-        }
+		public boolean isMultiValued() {
+			return isMultiValued;
+		}
 
-        public String getDataType() {
-            return dataType;
-        }
+		public String getDataType() {
+			return dataType;
+		}
 
-        public String getName() {
-            return name;
-        }
+		public String getName() {
+			return name;
+		}
 
-    }
+	}
 
-    Map<String, FieldDefinition> fieldDefinitions = new HashMap<String, FieldDefinition>();
+	Map<String, FieldDefinition> fieldDefinitions = new HashMap<String, FieldDefinition>();
 
-    public SolrServer(
-            String datasetId,
-            Environment environment,
-            String datasetModifier,
-            String objectType,
-            String propertyType,
-            String... comment)
-    {
-        super(datasetId, environment, datasetModifier, objectType, propertyType, "txt", comment);
-        solrUrl = comment[0];
-        try {
-            String location = comment[1];
-            InputStream is = location.startsWith("http://") ? new URL(location).openStream() : new FileInputStream(location);
-            for (String line : IOUtils.readLines(is, "UTF-8")) {
-                String trimmedLine = StringUtils.trim(line);
-                if (trimmedLine.startsWith("<field name=") || trimmedLine.startsWith("<dynamicField name=")) {
-                    final FieldDefinition fieldDefinition = new FieldDefinition(line);
-                    fieldDefinitions.put(fieldDefinition.getName(), fieldDefinition);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+	public SolrServer(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, "txt", comment);
+		solrUrl = comment[0];
+		try {
+			String location = comment[1];
+			InputStream is = location.startsWith("http://") ? new URL(location)
+					.openStream() : new FileInputStream(location);
+			for (String line : IOUtils.readLines(is, "UTF-8")) {
+				String trimmedLine = StringUtils.trim(line);
+				if (trimmedLine.startsWith("<field name=")
+						|| trimmedLine.startsWith("<dynamicField name=")) {
+					final FieldDefinition fieldDefinition = new FieldDefinition(
+							line);
+					fieldDefinitions.put(fieldDefinition.getName(),
+							fieldDefinition);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
+	@Override
+	public void startRdf() throws Exception {
+		server = new HttpSolrServer(solrUrl);
+		server.setRequestWriter(new BinaryRequestWriter());
+	}
 
-    @Override
-    public void startRdf() throws Exception {
-        server = new HttpSolrServer(solrUrl);
-        server.setRequestWriter(new BinaryRequestWriter());
-    }
+	@Override
+	public void endRdf() throws Exception {
+		flush();
+		lastWrittenUri = null;
+	}
 
-    @Override
-    public void endRdf() throws Exception {
-        flush();
-        lastWrittenUri = null;
-    }
+	private void flush() throws Exception {
 
-    private void flush() throws Exception {
-        
-        int docs = documents.size();
-        System.out.println("Start with " + docs);
-        while (!documents.isEmpty()) {
-            final SolrInputDocument document = documents.pop();
-            if (document == null || document.getFieldNames().isEmpty()) {
-                docs --;
-            } else {
-                log.info("Document to server: " + document.toString());
-                try {
-                server.add(document);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        server.commit();
-        log.info("Committed " + docs + " documents");
-    }
+		int docs = documents.size();
+		System.out.println("Start with " + docs);
+		while (!documents.isEmpty()) {
+			final SolrInputDocument document = documents.pop();
+			if (document == null || document.getFieldNames().isEmpty()) {
+				docs--;
+			} else {
+				log.info("Document to server: " + document.toString());
+				try {
+					server.add(document);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		server.commit();
+		log.info("Committed " + docs + " documents");
+	}
 
-    boolean isPreamptiveFlushNeeded() {
-        return documents.size() > 1000;
-    }
+	boolean isPreamptiveFlushNeeded() {
+		return documents.size() > 1000;
+	}
 
-    @Override
-    public void writeTriple(Triple triple) throws Exception {
+	@Override
+	public void writeTriple(Triple triple) throws Exception {
 
-        if (subjectChanged(triple)) {
-            lastWrittenUri = triple.getSubject();
-            if (isPreamptiveFlushNeeded()) {
-                flush();
-            }
-            log.info("Starting document " + lastWrittenUri);
-            documents.add(new SolrInputDocument());
-        }
+		if (subjectChanged(triple)) {
+			lastWrittenUri = triple.getSubject();
+			if (isPreamptiveFlushNeeded()) {
+				flush();
+			}
+			log.info("Starting document " + lastWrittenUri);
+			documents.add(new SolrInputDocument());
+		}
 
-        String property = extractSolrProperty(triple);
-        //        if (Concepts.ANNOCULTOR.PERIOD_BEGIN.getUri().equals(property)) {
-        //            property = "enrichment_time_begin";
-        //        }
-        //        if (Concepts.ANNOCULTOR.PERIOD_END.getUri().equals(property)) {
-        //            property = "enrichment_time_end";
-        //        }
-        //        
-        FieldDefinition fieldDefinition = fieldDefinitions.get(property);
-        if (fieldDefinition == null) {
-            System.out.println("Field " + property + " does not have exact match. Trying wildcards assuming that they have form blabla.*");
-            String wildcarded = StringUtils.substringBeforeLast(property, ".")  + ".*";
-            fieldDefinition = fieldDefinitions.get(wildcarded);
-        }
-        if (fieldDefinition == null) {
-            System.out.println("Skipped " + property + " because it is not defined");
-            //            throw new Exception("Field " + triple.getProperty() + " is not defined in schema.xml");
-        } else {
-//            if (fieldDefinition.dataType)
-            System.out.println("Add " + property + "-" +  triple.getValue().getValue() + " of type " + fieldDefinition.dataType);
-            Object value = triple.getValue().getValue();
-            if (fieldDefinition.dataType.equals("tdate")) {
-                System.out.println("Recognized type tdate");
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                format.setTimeZone(TimeZone.getTimeZone("UTC"));
-                value = format.parse(triple.getValue().getValue());
-            }
-            if (fieldDefinition.isMultiValued()) {
-                documents.peek().addField(property, value);
-            } else {
-                documents.peek().setField(property, value); 
-            }
-        }
-    }
+		String property = extractSolrProperty(triple);
+		// if (Concepts.ANNOCULTOR.PERIOD_BEGIN.getUri().equals(property)) {
+		// property = "enrichment_time_begin";
+		// }
+		// if (Concepts.ANNOCULTOR.PERIOD_END.getUri().equals(property)) {
+		// property = "enrichment_time_end";
+		// }
+		//
+		FieldDefinition fieldDefinition = fieldDefinitions.get(property);
+		if (fieldDefinition == null) {
+			System.out
+					.println("Field "
+							+ property
+							+ " does not have exact match. Trying wildcards assuming that they have form blabla.*");
+			String wildcarded = StringUtils.substringBeforeLast(property, ".")
+					+ ".*";
+			fieldDefinition = fieldDefinitions.get(wildcarded);
+		}
+		if (fieldDefinition == null) {
+			System.out.println("Skipped " + property
+					+ " because it is not defined");
+			// throw new Exception("Field " + triple.getProperty() +
+			// " is not defined in schema.xml");
+		} else {
+			// if (fieldDefinition.dataType)
+			System.out.println("Add " + property + "-"
+					+ triple.getValue().getValue() + " of type "
+					+ fieldDefinition.dataType);
+			Object value = triple.getValue().getValue();
+			if (fieldDefinition.dataType.equals("tdate")) {
+				System.out.println("Recognized type tdate");
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+				format.setTimeZone(TimeZone.getTimeZone("UTC"));
+				value = format.parse(triple.getValue().getValue());
+			}
+			if (fieldDefinition.isMultiValued()) {
+				documents.peek().addField(property, value);
+			} else {
+				documents.peek().setField(property, value);
+			}
+		}
+	}
 
+	private String extractSolrProperty(Triple triple) {
+		String property = triple.getProperty().getUri();
+		Value value = triple.getValue();
+		if (value != null && value instanceof LiteralValue) {
+			String lang = ((LiteralValue) value).getLang();
+			if (StringUtils.length(lang) == 2) {
+				property += "." + lang;
+			}
+		}
+		return property;
+	}
 
-    private String extractSolrProperty(Triple triple) {
-        String property = triple.getProperty().getUri();
-        Value value = triple.getValue();
-        if (value != null && value instanceof LiteralValue) {
-            String lang = ((LiteralValue)value).getLang();
-            if (StringUtils.length(lang) == 2) {
-                property += "." + lang;
-            }
-        }
-        return property;
-    }
+	private boolean subjectChanged(Triple triple) {
+		return !triple.getSubject().equals(lastWrittenUri);
+	}
 
-    private boolean subjectChanged(Triple triple) {
-        return !triple.getSubject().equals(lastWrittenUri);
-    }
+	@Override
+	void cleanAllFileVolumes() {
+		// intentionally do nothing
+	}
 
-    @Override
-    void cleanAllFileVolumes() {
-        // intentionally do nothing
-    }
-
-    @Override
-    public File getFinalFile(int volume) throws IOException {
-        return new File("Files are unapplicable to SolServer");
-    }
+	@Override
+	public File getFinalFile(int volume) throws IOException {
+		return new File("Files are unapplicable to SolServer");
+	}
 
 }

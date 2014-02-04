@@ -23,15 +23,13 @@ import eu.europeana.enrichment.triple.Value;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
-
 /**
  * Used to invoke a writer depending on the result of a regular expression.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class BranchOnPatternRule extends AbstractBranchRule
-{
+public class BranchOnPatternRule extends AbstractBranchRule {
 	private String patternString;
 
 	private Pattern pattern;
@@ -47,27 +45,27 @@ public class BranchOnPatternRule extends AbstractBranchRule
 	 * 
 	 * @param pattern
 	 * @param propertyName
-	 *          property which value should be evaluated. Use <code>null</code> if
-	 *          you want to use the current triple instead of naming it to avoid
-	 *          errors with multiple occurrences of this property in the same
-	 *          record.
+	 *            property which value should be evaluated. Use
+	 *            <code>null</code> if you want to use the current triple
+	 *            instead of naming it to avoid errors with multiple occurrences
+	 *            of this property in the same record.
 	 * @param success
 	 * @param failure
 	 */
-//	@AnnoCultor.XConverter( include = true, affix = "default" )
-//	public BranchOnPatternRule(
-//			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-//			String pattern, 
-//			Path srcPropertyName, 
-//			PropertyRule success, 
-//			PropertyRule failure)
-//	{
-//		super(success, failure);
-//		this.fullLinePattern = pattern.startsWith("^") && pattern.endsWith("$");
-//		this.pattern = Pattern.compile(pattern);
-//		this.propertyName = srcPropertyName;
-//		this.patternString = pattern;
-//	}
+	// @AnnoCultor.XConverter( include = true, affix = "default" )
+	// public BranchOnPatternRule(
+	// @AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+	// String pattern,
+	// Path srcPropertyName,
+	// PropertyRule success,
+	// PropertyRule failure)
+	// {
+	// super(success, failure);
+	// this.fullLinePattern = pattern.startsWith("^") && pattern.endsWith("$");
+	// this.pattern = Pattern.compile(pattern);
+	// this.propertyName = srcPropertyName;
+	// this.patternString = pattern;
+	// }
 
 	/**
 	 * If RE matches on the value of <code>propertyName</code> of this object.
@@ -76,15 +74,15 @@ public class BranchOnPatternRule extends AbstractBranchRule
 	 * 
 	 * @param pattern
 	 * @param propertyName
-	 *          property which value should be evaluated. Use <code>null</code> if
-	 *          you want to use the current triple instead of naming it to avoid
-	 *          errors with multiple occurrences of this property in the same
-	 *          record.
+	 *            property which value should be evaluated. Use
+	 *            <code>null</code> if you want to use the current triple
+	 *            instead of naming it to avoid errors with multiple occurrences
+	 *            of this property in the same record.
 	 * @param success
 	 * @param failure
 	 */
-	public BranchOnPatternRule(String pattern, Path propertyName, PropertyRule success, PropertyRule failure)
-	{
+	public BranchOnPatternRule(String pattern, Path propertyName,
+			PropertyRule success, PropertyRule failure) {
 		super(success, failure);
 		this.fullLinePattern = pattern.startsWith("^") && pattern.endsWith("$");
 		this.pattern = Pattern.compile(pattern);
@@ -93,16 +91,13 @@ public class BranchOnPatternRule extends AbstractBranchRule
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
-		
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
+
 		Value value = null;
-		if (!fullLinePattern)
-		{
+		if (!fullLinePattern) {
 			throw new Exception(BranchOnPatternRule.class.getName()
-				+ " receives pattern ("
-				+ patternString
-				+ ") that is not wrapped up with ^ and $");
+					+ " receives pattern (" + patternString
+					+ ") that is not wrapped up with ^ and $");
 			// used to be a warning
 			// warned, don't care
 			// fullLinePattern = true;
@@ -114,18 +109,13 @@ public class BranchOnPatternRule extends AbstractBranchRule
 		else
 			value = dataObject.getFirstValue(propertyName);
 
-		if (value != null && pattern.matcher(value.getValue()).find())
-		{
-			if (success != null)
-			{
+		if (value != null && pattern.matcher(value.getValue()).find()) {
+			if (success != null) {
 				success.fire(triple, dataObject);
 				return;
 			}
-		}
-		else
-		{
-			if (failure != null)
-			{
+		} else {
+			if (failure != null) {
 				failure.fire(triple, dataObject);
 				return;
 			}

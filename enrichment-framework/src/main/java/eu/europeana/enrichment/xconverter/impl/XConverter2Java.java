@@ -50,12 +50,11 @@ import org.xml.sax.SAXException;
 import eu.europeana.enrichment.common.Utils;
 import eu.europeana.enrichment.context.Namespaces;
 
-
 public class XConverter2Java {
 
 	private final class ProfileEntityResolver implements EntityResolver {
 		private File profileDir;
-		
+
 		public ProfileEntityResolver(File profileDir) {
 			super();
 			this.profileDir = profileDir;
@@ -63,21 +62,17 @@ public class XConverter2Java {
 
 		@Override
 		public InputSource resolveEntity(String publicId, String systemId)
-		throws SAXException, IOException 
-		{
-			if (systemId != null && systemId.endsWith(".xml"))
-			{
+				throws SAXException, IOException {
+			if (systemId != null && systemId.endsWith(".xml")) {
 				/*
-				 * Feature: resolve against profile directory.
-				 * Else VM tries to resolve it itself, making
-				 * a nice mess of current dir, profile dir, etc.
+				 * Feature: resolve against profile directory. Else VM tries to
+				 * resolve it itself, making a nice mess of current dir, profile
+				 * dir, etc.
 				 */
-				systemId = profileDir.getCanonicalPath() + systemId.substring(systemId.indexOf(":") + 1);
-				//+ systemId.substring(systemId.lastIndexOf("/"));
-				//System.out.println("Entity resolver: " + new URL(systemId));
-				return new InputSource(
-						new StringReader(
-								Utils.loadFileToString(systemId, "\n")));
+				systemId = profileDir.getCanonicalPath()
+						+ systemId.substring(systemId.indexOf(":") + 1);
+				return new InputSource(new StringReader(Utils.loadFileToString(
+						systemId, "\n")));
 			}
 			return null;
 		}
@@ -85,43 +80,21 @@ public class XConverter2Java {
 
 	public static final String GENERATED_CONVERTER_CLASS_NAME = "GeneratedConverter";
 
-	/*	public static Document parseXmlFile(String filename, boolean validating) {
-    try {
-        // Create a builder factory
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setValidating(validating);
-
-        // Create the builder and parse the file
-        Document doc = factory.newDocumentBuilder().parse(new File(filename));
-        return doc;
-    } catch (SAXException e) {
-        // A parsing error occurred; the xml input is not valid
-    } catch (ParserConfigurationException e) {
-    } catch (IOException e) {
-    }
-    return null;
-}
-	 */
-	public VelocityContext run(
-			File profileDir,
-			InputStream sourceXml, 
-			String templateFileNameOnClasspath, 
-			OutputStream targetJava,
-			File workDir)
-	throws Exception
-	{
-		if (sourceXml == null)
-		{
+	public VelocityContext run(File profileDir, InputStream sourceXml,
+			String templateFileNameOnClasspath, OutputStream targetJava,
+			File workDir) throws Exception {
+		if (sourceXml == null) {
 			throw new NullPointerException("Null source stream");
 		}
-		if (templateFileNameOnClasspath == null)
-		{
+		if (templateFileNameOnClasspath == null) {
 			throw new NullPointerException("Null template file");
 		}
 		Properties props = new Properties();
 		props.setProperty("resource.loader", "class");
-		props.setProperty("class.resource.loader.class","org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		props.setProperty("runtime.log", new File(workDir, "velocity.log").getCanonicalPath());
+		props.setProperty("class.resource.loader.class",
+				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		props.setProperty("runtime.log",
+				new File(workDir, "velocity.log").getCanonicalPath());
 
 		Velocity.init(props);
 
@@ -130,8 +103,8 @@ public class XConverter2Java {
 		p.parse(new InputSource(sourceXml));
 		Document document = p.getDocument();
 
-
-		// TODO: very ugly : rely on transformer to resolve entities ipv XmlElementForVelocity
+		// TODO: very ugly : rely on transformer to resolve entities ipv
+		// XmlElementForVelocity
 		// where we should treat entity_reference separately and return children
 		StringWriter sw = new StringWriter();
 		Source source = new DOMSource(document);
@@ -153,39 +126,38 @@ public class XConverter2Java {
 		 * Validating
 		 */
 		// create a SchemaFactory capable of understanding WXS schemas
-		SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		String schemaFileName = document.getDocumentElement().getAttribute("xsi:schemaLocation");
-		schemaFileName = schemaFileName.substring(schemaFileName.indexOf(" ") + 1);
-		//System.out.println("XSI " + new File(".").getCanonicalPath()  );
+		SchemaFactory factory = SchemaFactory
+				.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		String schemaFileName = document.getDocumentElement().getAttribute(
+				"xsi:schemaLocation");
+		schemaFileName = schemaFileName
+				.substring(schemaFileName.indexOf(" ") + 1);
 
 		// load a WXS schema, represented by a Schema instance
 		Source schemaFile = new StreamSource(new File(schemaFileName));
-		/*  Schema schema = factory.newSchema(schemaFile);
-
-
-    Validator validator = schema.newValidator();
-    validator.validate(new DOMSource(document));
-		 */
 		/*
-		 *  getting namespace declarations
+		 * getting namespace declarations
 		 */
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("ac", Namespaces.ANNOCULTOR_CONVERTER.getUri());
 
-		for (int i = 0; i < document.getDocumentElement().getAttributes().getLength(); i++)
-		{
+		for (int i = 0; i < document.getDocumentElement().getAttributes()
+				.getLength(); i++) {
 			Node att = document.getDocumentElement().getAttributes().item(i);
-			if ("xmlns".equals(att.getPrefix()))
-			{
+			if ("xmlns".equals(att.getPrefix())) {
 				String existing = namespaces.get(att.getLocalName());
 				if (existing != null && !existing.equals(att.getNodeValue()))
-					throw new Exception("Attempt to redefine namespace " + att.getLocalName() + " = " + existing + ", with new uri " + att.getNodeValue());
+					throw new Exception("Attempt to redefine namespace "
+							+ att.getLocalName() + " = " + existing
+							+ ", with new uri " + att.getNodeValue());
 				namespaces.put(att.getLocalName(), att.getNodeValue());
 			}
 		}
 
 		VelocityContext context = new VelocityContext();
-		context.put("xml", new XmlElementForVelocity(document.getDocumentElement(), namespaces).getFirstChild("ac:Profile"));
+		context.put("xml",
+				new XmlElementForVelocity(document.getDocumentElement(),
+						namespaces).getFirstChild("ac:Profile"));
 		context.put("namespaces", namespaces);
 
 		Template template = Velocity.getTemplate(templateFileNameOnClasspath);
@@ -199,16 +171,11 @@ public class XConverter2Java {
 		return context;
 	}
 
-	public static void main(String args[]) 
-	throws Exception
-	{
+	public static void main(String args[]) throws Exception {
 		XConverter2Java converter = new XConverter2Java();
-		converter.run(
-				new File("."),
-				XConverter2Java.class.getResourceAsStream("/xconverter/europeana.xml"), 
-				"xconverter/XConverterGenerator.vm", 
-				System.out,
-				new File("."));
+		converter.run(new File("."), XConverter2Java.class
+				.getResourceAsStream("/xconverter/europeana.xml"),
+				"xconverter/XConverterGenerator.vm", System.out, new File("."));
 
 	}
 }

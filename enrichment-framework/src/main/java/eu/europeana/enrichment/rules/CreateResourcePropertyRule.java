@@ -27,42 +27,38 @@ import eu.europeana.enrichment.xconverter.api.Graph;
 import eu.europeana.enrichment.xconverter.api.Resource;
 
 /**
- * Creates a triple with a constant property-value pair. 
- * Used to attach statements about resources that do not depend on input data.
- * Typically used to assign 
+ * Creates a triple with a constant property-value pair. Used to attach
+ * statements about resources that do not depend on input data. Typically used
+ * to assign
  * <ul>
- *   <li>types for generated objects, e.g. <code>rdf:type=ns:Document</code></li>
- *   <li>repository names, e.g. <code>skos:inScheme=ns:InstitutionX</code></li>
- * 	 <li>etc.</li>
- * </ul>   
+ * <li>types for generated objects, e.g. <code>rdf:type=ns:Document</code></li>
+ * <li>repository names, e.g. <code>skos:inScheme=ns:InstitutionX</code></li>
+ * <li>etc.</li>
+ * </ul>
  * 
  * @author Borys Omelayenko
  * 
  */
-public class CreateResourcePropertyRule extends RenameResourcePropertyRule
-{
+public class CreateResourcePropertyRule extends RenameResourcePropertyRule {
 	private ResourceValue value;
 	private String lastSubject;
 
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public CreateResourcePropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			Resource dstResource, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Resource dstResource, Graph dstGraph) {
 		this(dstProperty, dstResource.toString(), dstGraph);
 		this.setSourcePath(srcPath);
 	}
-	
-	public CreateResourcePropertyRule(Property targetPropertyName, String value, Graph target)
-	{
+
+	public CreateResourcePropertyRule(Property targetPropertyName,
+			String value, Graph target) {
 		super(targetPropertyName, Namespaces.EMPTY_NS, target);
 		this.value = new ResourceValue(value);
 	}
 
-	public CreateResourcePropertyRule(Property targetPropertyName, Concept value, Graph targetImpl)
-	{
+	public CreateResourcePropertyRule(Property targetPropertyName,
+			Concept value, Graph targetImpl) {
 		super(targetPropertyName, Namespaces.EMPTY_NS, targetImpl);
 		this.value = new ResourceValue(value.getUri());
 	}
@@ -71,12 +67,10 @@ public class CreateResourcePropertyRule extends RenameResourcePropertyRule
 	 * @inheritDoc
 	 */
 	@Override
-	public void fire(Triple triple, DataObject converter) throws Exception
-	{
-		if (!triple.getSubject().equals(lastSubject))
-		{
+	public void fire(Triple triple, DataObject converter) throws Exception {
+		if (!triple.getSubject().equals(lastSubject)) {
 			super.fire(triple.changeValue(value), converter);
 			lastSubject = triple.getSubject();
-		}		
+		}
 	}
 }

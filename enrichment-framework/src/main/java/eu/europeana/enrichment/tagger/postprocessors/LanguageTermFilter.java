@@ -20,7 +20,6 @@ import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
-
 /**
  * Selects terms that match language profile.
  * 
@@ -30,10 +29,13 @@ import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 public class LanguageTermFilter extends TermFilter {
 
 	@Override
-	public TermList disambiguate(TermList allTerms, DisambiguationContext disambiguationContext) throws Exception {
+	public TermList disambiguate(TermList allTerms,
+			DisambiguationContext disambiguationContext) throws Exception {
 
-		Lang langToFind = disambiguationContext == null ? null : disambiguationContext.getLang();
-		Lang defaultLang = disambiguationContext == null ? null : disambiguationContext.getDefaultLang();
+		Lang langToFind = disambiguationContext == null ? null
+				: disambiguationContext.getLang();
+		Lang defaultLang = disambiguationContext == null ? null
+				: disambiguationContext.getDefaultLang();
 
 		// disambiguation not needed
 		if (allTerms.size() < 2)
@@ -43,7 +45,8 @@ public class LanguageTermFilter extends TermFilter {
 
 		// disambiguation: select those with the label in the right language
 		for (Term term : allTerms) {
-			if (langToFind == null || term.getLang() == langToFind || term.getLang() == defaultLang) {
+			if (langToFind == null || term.getLang() == langToFind
+					|| term.getLang() == defaultLang) {
 				selectedTerms.add(term);
 			}
 		}
@@ -52,13 +55,13 @@ public class LanguageTermFilter extends TermFilter {
 		if (selectedTerms.isEmpty()) {
 			return selectedTerms;
 		}
-		
+
 		// check if they are all the same
 		if (selectedTerms.isSameLabels() && selectedTerms.isSameCodes()) {
 			TermList singleTerm = new TermList();
 			singleTerm.add(selectedTerms.getFirst());
 			return singleTerm;
-		} 
+		}
 
 		// no disambiguation was possible
 		return allTerms;

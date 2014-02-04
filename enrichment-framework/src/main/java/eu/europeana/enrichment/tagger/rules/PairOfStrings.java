@@ -21,21 +21,24 @@ package eu.europeana.enrichment.tagger.rules;
 public class PairOfStrings {
 	private String first;
 	private String last;
+
 	public String getFirst() {
 		return first;
 	}
+
 	public String getLast() {
 		return last;
 	}
+
 	public PairOfStrings(String first, String last) {
 		super();
 		this.first = first;
 		this.last = last;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) 
+		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
@@ -54,5 +57,5 @@ public class PairOfStrings {
 			return false;
 		return true;
 	}
-	
+
 }

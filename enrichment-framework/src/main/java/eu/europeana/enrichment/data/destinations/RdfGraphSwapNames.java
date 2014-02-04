@@ -19,28 +19,24 @@ import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.enrichment.context.Environment;
 
-public class RdfGraphSwapNames extends RdfGraph
-{
+public class RdfGraphSwapNames extends RdfGraph {
 
 	public RdfGraphSwapNames(String datasetId, Environment environment,
 			String datasetModifier, String objectType, String propertyType,
 			String... comment) {
 
-		super(generateIdPrefix(datasetId, datasetModifier), 
-				environment, 
-				generateIdAffix(datasetId), 
-				objectType, 
-				propertyType,
-				comment);
+		super(generateIdPrefix(datasetId, datasetModifier), environment,
+				generateIdAffix(datasetId), objectType, propertyType, comment);
 	}
 
-	private static String generateIdPrefix(String datasetId, String datasetModifier) {
-		return StringUtils.substringBefore(datasetId, "_") + "_" + datasetModifier;
+	private static String generateIdPrefix(String datasetId,
+			String datasetModifier) {
+		return StringUtils.substringBefore(datasetId, "_") + "_"
+				+ datasetModifier;
 	}
 
 	private static String generateIdAffix(String datasetId) {
 		return StringUtils.substringAfter(datasetId, "_");
 	}
-
 
 }

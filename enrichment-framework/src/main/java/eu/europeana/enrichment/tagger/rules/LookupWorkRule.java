@@ -30,15 +30,13 @@ import eu.europeana.enrichment.triple.Property;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * Looks (same as) works up.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class LookupWorkRule extends AbstractLookupRule
-{
+public class LookupWorkRule extends AbstractLookupRule {
 	protected static List<VocabularyOfWorks> vocabularies = new ArrayList<VocabularyOfWorks>();
 
 	/**
@@ -47,14 +45,12 @@ public class LookupWorkRule extends AbstractLookupRule
 	 * 
 	 * @param v
 	 */
-	public static void addVocabulary(VocabularyOfWorks v)
-	{
+	public static void addVocabulary(VocabularyOfWorks v) {
 		vocabularies.add(v);
 	}
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "AllWorks";
 	}
 
@@ -62,70 +58,49 @@ public class LookupWorkRule extends AbstractLookupRule
 	 * Looks triple values up in an external vocabulary.
 	 * 
 	 * @param linkRecordToTerm
-	 *          to create if mappings found
+	 *            to create if mappings found
 	 * @param linkRecordToLiteral
-	 *          to create if no mapping is found
+	 *            to create if no mapping is found
 	 * @param passedReportCategory
-	 *          report category
+	 *            report category
 	 * @param mappedReportCategory
-	 *          report category
+	 *            report category
 	 * @param splitPattern
-	 *          to split a triple <code>value</code> into terms to be mapped
-	 *          separately. <code>null</code> sets the no-separation logic.
+	 *            to split a triple <code>value</code> into terms to be mapped
+	 *            separately. <code>null</code> sets the no-separation logic.
 	 * @param target
 	 */
-	public LookupWorkRule(
-			Property linkRecordToTerm,
-			Property linkRecordToLiteral,
-			Property labelOfLinkTermToVocabulary,
-			Lang langLabelTermToVocabulary,
-			Namespace termsNamespace,
-			Path titlePath,
-			Path creatorNamePath,
-			Path datePath,
-			String reportCategory,
-			String splitPattern,
-			Graph dstGraphLiterals,
-			Graph dstGraphLinks,
-			TermCreatorInt termCreator)
-	{
-		super(
-				linkRecordToTerm,
-				linkRecordToLiteral,
-				labelOfLinkTermToVocabulary,
-				langLabelTermToVocabulary,
-				reportCategory,
-				splitPattern,
-				dstGraphLiterals,
-				dstGraphLinks,
-				termCreator, 
-				new ProxyTermDefinition(termsNamespace, dstGraphLiterals, null));
+	public LookupWorkRule(Property linkRecordToTerm,
+			Property linkRecordToLiteral, Property labelOfLinkTermToVocabulary,
+			Lang langLabelTermToVocabulary, Namespace termsNamespace,
+			Path titlePath, Path creatorNamePath, Path datePath,
+			String reportCategory, String splitPattern, Graph dstGraphLiterals,
+			Graph dstGraphLinks, TermCreatorInt termCreator) {
+		super(linkRecordToTerm, linkRecordToLiteral,
+				labelOfLinkTermToVocabulary, langLabelTermToVocabulary,
+				reportCategory, splitPattern, dstGraphLiterals, dstGraphLinks,
+				termCreator, new ProxyTermDefinition(termsNamespace,
+						dstGraphLiterals, null));
 	}
 
 	@Override
-	protected TermList getDisambiguatedTerms(DataObject converter, String label, Lang lang) throws Exception
-	{
+	protected TermList getDisambiguatedTerms(DataObject converter,
+			String label, Lang lang) throws Exception {
 		TermList result = new TermList();
-		for (VocabularyOfWorks vocabulary : vocabularies)
-		{
-			try
-			{
-				TermList terms = vocabulary.lookupWork(label, lang, null, null, null);
+		for (VocabularyOfWorks vocabulary : vocabularies) {
+			try {
+				TermList terms = vocabulary.lookupWork(label, lang, null, null,
+						null);
 				result.add(terms);
-			}
-			catch (Exception e)
-			{
-				throw new Exception("Vocabulary lookup error on term '"
-					+ label
-					+ "', vocabulary "
-					+ vocabulary.getVocabularyName()
-					+ ": "
-					+ e.getMessage());
+			} catch (Exception e) {
+				throw new Exception("Vocabulary lookup error on term '" + label
+						+ "', vocabulary " + vocabulary.getVocabularyName()
+						+ ": " + e.getMessage());
 			}
 		}
 		return result;
 	}
-	
+
 	@Override
 	public TermList getTermsByUri(CodeURI uri) throws Exception {
 		TermList terms = new TermList();

@@ -27,20 +27,17 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Anna Tordai
  * 
  */
-public class AffixValueRule extends SequenceRule
-{
+public class AffixValueRule extends SequenceRule {
 	private String prefix;
 
 	private String suffix;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Value";
 	}
 
-	public AffixValueRule(String prefix, String suffix, PropertyRule... rule)
-	{
+	public AffixValueRule(String prefix, String suffix, PropertyRule... rule) {
 		super(rule);
 		this.prefix = prefix;
 		this.suffix = suffix;
@@ -51,9 +48,10 @@ public class AffixValueRule extends SequenceRule
 	 * 
 	 */
 	@Override
-	public void fire(Triple triple, DataObject converter) throws Exception
-	{
-		super.fire(triple.changeValue(new XmlValue(prefix + triple.getValue() + suffix)), converter);
+	public void fire(Triple triple, DataObject converter) throws Exception {
+		super.fire(
+				triple.changeValue(new XmlValue(prefix + triple.getValue()
+						+ suffix)), converter);
 	}
 
 }

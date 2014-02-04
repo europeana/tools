@@ -24,67 +24,61 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
 /**
- * Applies a sequence of rules to the subject from some other path.
- * It is typically used to create new RDF objects made of some paths.
+ * Applies a sequence of rules to the subject from some other path. It is
+ * typically used to create new RDF objects made of some paths.
  * 
  * For example, consider a record with two paths:
  * <ul>
- *  <li> <code>name</code> with person names.</li>
- * </ul> 
+ * <li> <code>name</code> with person names.</li>
+ * </ul>
  * 
- * We want to convert public names only. Then, a branching rule may be placed on path <code>public</code>.
- * This rule invokes another rule that should rename <code>name</code> if <code>public=true</code>.
- * However, the current value is <code>true</code> or <code>false</code>, and not the name. 
- * This rule is need to get hold on the <code>name</code>, being invoked from <code>public</code>.
+ * We want to convert public names only. Then, a branching rule may be placed on
+ * path <code>public</code>. This rule invokes another rule that should rename
+ * <code>name</code> if <code>public=true</code>. However, the current value is
+ * <code>true</code> or <code>false</code>, and not the name. This rule is need
+ * to get hold on the <code>name</code>, being invoked from <code>public</code>.
  * 
  * 
  * @author Borys Omelayenko
  * 
  */
 
-public class UseOtherSubjectRule extends SequenceRule
-{
+public class UseOtherSubjectRule extends SequenceRule {
 	Path propertyName;
 	Namespace namespace;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Value";
 	}
 
 	/**
 	 * 
-	 * @param srcSubjectPath path which value would be taken and fed to the rules
-	 * @param rule rules that would be applied to this value
+	 * @param srcSubjectPath
+	 *            path which value would be taken and fed to the rules
+	 * @param rule
+	 *            rules that would be applied to this value
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public UseOtherSubjectRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Path srcSubjectPath,
-			PropertyRule... rule)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Path srcSubjectPath, PropertyRule... rule) {
 		super(rule);
 		this.propertyName = srcSubjectPath;
 	}
 
-	@AnnoCultor.XConverter( include = true, affix = "prefix" )
+	@AnnoCultor.XConverter(include = true, affix = "prefix")
 	public UseOtherSubjectRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Path srcSubjectPath,
-			Namespace dstNamespace, 
-			PropertyRule... rule)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Path srcSubjectPath, Namespace dstNamespace, PropertyRule... rule) {
 		super(rule);
 		this.propertyName = srcSubjectPath;
 		this.namespace = dstNamespace;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
-		for (Value value : dataObject.getValues(propertyName))
-		{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
+		for (Value value : dataObject.getValues(propertyName)) {
 			String subject = value.getValue();
 			if (namespace != null) {
 				subject = namespace.getUri() + subject;

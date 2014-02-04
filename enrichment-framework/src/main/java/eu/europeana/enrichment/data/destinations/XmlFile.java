@@ -24,55 +24,48 @@ import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-public class XmlFile extends AbstractFileWritingGraph
-{
+public class XmlFile extends AbstractFileWritingGraph {
 	private PrintWriter persistenceWriter;
 
 	/**
 	 * Target that corresponds to an output ESE file.
 	 * 
-	 * @param datasetId 
-	 *          signature of a dataset (conversion task). null indicates that this graph is not a result of a conversion task.
+	 * @param datasetId
+	 *            signature of a dataset (conversion task). null indicates that
+	 *            this graph is not a result of a conversion task.
 	 * @param objectType
-	 *          signature, typically the type (class) of objects stored in this
-	 *          RDF.
+	 *            signature, typically the type (class) of objects stored in
+	 *            this RDF.
 	 * @param propertyType
-	 *          signature, typically the type of properties stored in this RDF.
+	 *            signature, typically the type of properties stored in this
+	 *            RDF.
 	 * @param comment
-	 *          Descriptive text put into the RDF file header
+	 *            Descriptive text put into the RDF file header
 	 */
-	public XmlFile(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		super(datasetId, environment, datasetModifier, objectType, propertyType, "xml", comment);
+	public XmlFile(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, "xml", comment);
 	}
 
 	@Override
-	public void startRdf() throws Exception
-	{
+	public void startRdf() throws Exception {
 		super.startRdf();
 
-		persistenceWriter = new PrintWriter(
-				new BufferedWriter(
-						new OutputStreamWriter(
-								new FileOutputStream(getFinalFile(getVolume())), "UTF8")));
+		persistenceWriter = new PrintWriter(new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(
+						getFinalFile(getVolume())), "UTF8")));
 
 		persistenceWriter.println("<?xml version='1.0' encoding='UTF-8'?>");
 		persistenceWriter.println("<metadata ");
 		for (String uri : getEnvironment().getNamespaces().listAllUris()) {
-			persistenceWriter.println("xmlns:" 
-					+ getEnvironment().getNamespaces().getNick(uri)
-					+"=\"" + uri + "\"");
+			persistenceWriter.println("xmlns:"
+					+ getEnvironment().getNamespaces().getNick(uri) + "=\""
+					+ uri + "\"");
 		}
 		persistenceWriter.println(">");
 	}
-
-	
 
 	@Override
 	public void finishObject() throws Exception {
@@ -82,12 +75,12 @@ public class XmlFile extends AbstractFileWritingGraph
 	@Override
 	public void startObject(String subject) throws Exception {
 		persistenceWriter.println("  <record>");
-		persistenceWriter.println("	   <europeana:uri>" + subject + "</europeana:uri>");
+		persistenceWriter.println("	   <europeana:uri>" + subject
+				+ "</europeana:uri>");
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (!(obj instanceof Graph))
 			return false;
 		Graph tObj = (Graph) obj;
@@ -97,15 +90,12 @@ public class XmlFile extends AbstractFileWritingGraph
 	@Override
 	public void writeTriple(Triple triple) throws Exception {
 		String tag = triple.getProperty().getUri();
-		persistenceWriter.println(
-				"    <" + tag + ">" 
-				+ triple.getValue().getValue() +
-				"</" + tag + ">");
+		persistenceWriter.println("    <" + tag + ">"
+				+ triple.getValue().getValue() + "</" + tag + ">");
 	}
 
 	@Override
-	public void endRdf() throws Exception
-	{
+	public void endRdf() throws Exception {
 		if (writingHappened()) {
 			finishObject();
 			persistenceWriter.println("</metadata>");

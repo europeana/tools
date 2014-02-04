@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import eu.europeana.enrichment.api.Rule;
 import eu.europeana.enrichment.tagger.terms.CodeURI;
 
-
 /**
  * Triple with a subject, property, and value that corresponds to an RDF triple.
  * In addition, to the two RDF types (Resource and Literal), it has type
@@ -36,8 +35,7 @@ import eu.europeana.enrichment.tagger.terms.CodeURI;
  * @author Borys Omelayenko
  * 
  */
-public class Triple
-{
+public class Triple {
 	private String subject;
 
 	private Property property;
@@ -47,25 +45,23 @@ public class Triple
 	private Rule rule;
 
 	private String comment;
-	
+
 	/**
 	 * Creates a triple.
 	 * 
 	 * @param subject
-	 *          subject uri
+	 *            subject uri
 	 * @param property
-	 *          property uri
+	 *            property uri
 	 * @param value
-	 *          either uri or a literal
+	 *            either uri or a literal
 	 * @param rule
-	 *          the rule that created this triple
+	 *            the rule that created this triple
 	 * @param comment
-	 *          text human-oriented comment, optional
+	 *            text human-oriented comment, optional
 	 */
-	public Triple(String subject, Property property, Value value, Rule rule, String... comment)
-	throws URISyntaxException,
-	MalformedURLException
-	{
+	public Triple(String subject, Property property, Value value, Rule rule,
+			String... comment) throws URISyntaxException, MalformedURLException {
 		this.subject = new CodeURI(subject).toString();
 		this.property = property;
 		this.value = value;
@@ -73,95 +69,75 @@ public class Triple
 		this.comment = StringUtils.join(comment, ";");
 	}
 
-	public Rule getRule()
-	{
+	public Rule getRule() {
 		return rule;
 	}
 
-	public Triple copy()
-	throws Exception
-	{
+	public Triple copy() throws Exception {
 		return new Triple(subject, property, value, rule);
 	}
 
-	public Triple changeProperty(Property newPropertyName)
-	throws Exception
-	{
+	public Triple changeProperty(Property newPropertyName) throws Exception {
 		Triple triple = this.copy();
 		triple.setProperty(newPropertyName);
 		return triple;
 	}
 
-	public Triple changeSubject(String newSubject)
-	throws Exception
-	{
+	public Triple changeSubject(String newSubject) throws Exception {
 		Triple triple = this.copy();
 		triple.setSubject(newSubject);
 		return triple;
 	}
 
-	public Triple changeValue(Value newValue)
-	throws Exception
-	{
+	public Triple changeValue(Value newValue) throws Exception {
 		Triple triple = this.copy();
 		triple.setValue(newValue);
 		return triple;
 	}
 
-	public Triple changePropertyAndValue(Property newPropertyName, Value newValue)
-	throws Exception
-	{
+	public Triple changePropertyAndValue(Property newPropertyName,
+			Value newValue) throws Exception {
 		Triple triple = this.copy();
 		triple.setProperty(newPropertyName);
 		triple.setValue(newValue);
 		return triple;
 	}
 
-	public Triple changeRule(Rule rule)
-	throws Exception
-	{
+	public Triple changeRule(Rule rule) throws Exception {
 		Triple triple = this.copy();
 		triple.setRule(rule);
 		return triple;
 	}
 
-	private void setRule(Rule rule)
-	{
+	private void setRule(Rule rule) {
 		this.rule = rule;
 	}
 
-	public boolean isValueEmpty()
-	{
+	public boolean isValueEmpty() {
 		return (value == null) || (value.getValue().length() == 0);
 	}
 
-	public Property getProperty()
-	{
+	public Property getProperty() {
 		return property;
 	}
 
-	private void setProperty(Property property)
-	{
+	private void setProperty(Property property) {
 		this.property = property;
 	}
 
-	public String getSubject()
-	{
+	public String getSubject() {
 		return subject;
 	}
 
-	private void setSubject(String subject)
-	{
+	private void setSubject(String subject) {
 		this.subject = subject;
 	}
 
-	public Value getValue()
-	{
+	public Value getValue() {
 		return value;
 	}
 
-	private void setValue(Value value)
-	{
+	private void setValue(Value value) {
 		this.value = value;
 	}
 
@@ -170,14 +146,14 @@ public class Triple
 	}
 
 	@Override
-	public String toString()
-	{
-		return "<" + subject + "," + property + (ValueHelper.isLiteral(value) ? "" : ".") + ValueHelper.lang(value, "@", "") + "," + value + ">";
+	public String toString() {
+		return "<" + subject + "," + property
+				+ (ValueHelper.isLiteral(value) ? "" : ".")
+				+ ValueHelper.lang(value, "@", "") + "," + value + ">";
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return toString().hashCode();
 	}
 

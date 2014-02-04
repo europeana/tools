@@ -21,7 +21,6 @@ import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.converter.ConverterHandlerDataObjects;
 import eu.europeana.enrichment.path.Path;
 
-
 /**
  * Source dataset consisting of an SQL query ResultSet, aggregates all records
  * that belong to a single object into one.
@@ -30,15 +29,17 @@ import eu.europeana.enrichment.path.Path;
  * 
  */
 public class AggregatingSqlDataSource extends SqlDataSource {
-	
-	public AggregatingSqlDataSource(Environment environment, String jdbcDriver, String jdbcUrl, String... sqlQuery) 
-	throws ClassNotFoundException {
+
+	public AggregatingSqlDataSource(Environment environment, String jdbcDriver,
+			String jdbcUrl, String... sqlQuery) throws ClassNotFoundException {
 		super(environment, jdbcDriver, jdbcUrl, sqlQuery);
 	}
 
 	@Override
-	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler, Path recordSeparatingPath) {
-		ConverterHandlerDataObjects handlerDataObjects = new ConverterHandlerDataObjects(handler, recordSeparatingPath);
+	protected ConverterHandlerDataObjects makeHandler(DefaultHandler handler,
+			Path recordSeparatingPath) {
+		ConverterHandlerDataObjects handlerDataObjects = new ConverterHandlerDataObjects(
+				handler, recordSeparatingPath);
 		handlerDataObjects.setAggregate(true);
 		return handlerDataObjects;
 	}

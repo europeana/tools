@@ -20,7 +20,6 @@ import java.util.List;
 import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.terms.TermList;
 
-
 /**
  * Is not a real vocabulary but a collection of works that are looked up to find
  * sameAs, with its specific disambiguation context.
@@ -28,14 +27,9 @@ import eu.europeana.enrichment.tagger.terms.TermList;
  * @author Borys Omelayenko
  * 
  */
-public interface VocabularyOfWorks extends Vocabulary
-{
+public interface VocabularyOfWorks extends Vocabulary {
 
-	public TermList lookupWork(
-			String title,
-			Lang lang,
-			String creationDate,
-			List<String> creatorsNames,
-			String description) throws Exception;
+	public TermList lookupWork(String title, Lang lang, String creationDate,
+			List<String> creatorsNames, String description) throws Exception;
 
 }

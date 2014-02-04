@@ -15,8 +15,6 @@
  */
 package eu.europeana.enrichment.tagger.rules;
 
-
-
 /**
  * Vocabulary match results.
  * 
@@ -25,11 +23,11 @@ package eu.europeana.enrichment.tagger.rules;
  * 
  */
 public enum VocabularyMatchResult {
-	
-	matched("matched", "A match is found and considered valid and unambigous"),
-	ambigous("ambigous", "Multiple ambigous matches found, disambiguation failed"),
-	missed("missed", "No match found"),
-	error("error", "Error occurred");
+
+	matched("matched", "A match is found and considered valid and unambigous"), ambigous(
+			"ambigous",
+			"Multiple ambigous matches found, disambiguation failed"), missed(
+			"missed", "No match found"), error("error", "Error occurred");
 
 	private String name;
 	private String description;
@@ -38,9 +36,11 @@ public enum VocabularyMatchResult {
 		this.name = name;
 		this.description = description;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public String getDescription() {
 		return description;
 	}

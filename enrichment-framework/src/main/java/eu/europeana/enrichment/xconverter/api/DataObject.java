@@ -25,7 +25,6 @@ import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.triple.Value;
 import eu.europeana.enrichment.triple.XmlValue;
 
-
 /**
  * A set of pairs (property name, value), used to represent a part of XML
  * document that corresponds to a domain object.
@@ -33,25 +32,17 @@ import eu.europeana.enrichment.triple.XmlValue;
  * @author Borys Omelayenko
  * 
  */
-public interface DataObject extends Iterable<Path>
-{
-	public static class ListOfValues extends ArrayList<XmlValue>
-	{
+public interface DataObject extends Iterable<Path> {
+	public static class ListOfValues extends ArrayList<XmlValue> {
 		private static final long serialVersionUID = 1L;
 
-		public boolean isSingleValued()
-		{
+		public boolean isSingleValued() {
 			Value value = null;
-			for (Iterator<XmlValue> it = iterator(); it.hasNext();)
-			{
-				if (value == null)
-				{
+			for (Iterator<XmlValue> it = iterator(); it.hasNext();) {
+				if (value == null) {
 					value = it.next();
-				}
-				else
-				{
-					if (!value.equals(it.next()))
-					{
+				} else {
+					if (!value.equals(it.next())) {
 						return false;
 					}
 				}
@@ -59,13 +50,11 @@ public interface DataObject extends Iterable<Path>
 			return true;
 		}
 
-		public ListOfValues(Collection<? extends XmlValue> c)
-		{
+		public ListOfValues(Collection<? extends XmlValue> c) {
 			super(c);
 		}
 
-		public ListOfValues()
-		{
+		public ListOfValues() {
 			super();
 		}
 	}
@@ -121,5 +110,5 @@ public interface DataObject extends Iterable<Path>
 	public long size();
 
 	public Path getSeparatingPath();
-	
+
 }

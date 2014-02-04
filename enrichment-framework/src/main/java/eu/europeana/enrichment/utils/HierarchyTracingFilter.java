@@ -45,123 +45,133 @@ import eu.europeana.enrichment.context.Namespaces;
  * and save it to a file.
  * 
  * @author Borys Omelayenko
- *
+ * 
  */
 public class HierarchyTracingFilter {
 
-    /**
-     * Starts with top X concepts and selects narrower
-     * @throws Exception 
-     */
-    public static void main(String[] args) throws Exception {
+	/**
+	 * Starts with top X concepts and selects narrower
+	 * 
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
 
-        String fileWithTopConcepts = args[0];
-        String fileWithRdf = args[1];
-        String fileWithSelection = args[2];
+		String fileWithTopConcepts = args[0];
+		String fileWithRdf = args[1];
+		String fileWithSelection = args[2];
 
-        HierarchyTracingFilter filter = new HierarchyTracingFilter();
-        filter.doTracing(fileWithTopConcepts, fileWithSelection, fileWithRdf);
-    }
+		HierarchyTracingFilter filter = new HierarchyTracingFilter();
+		filter.doTracing(fileWithTopConcepts, fileWithSelection, fileWithRdf);
+	}
 
-    public void visitTerm(RepositoryConnection connection, ValueFactory factory, StringInStack url, StringInStack previous) 
-    throws Exception {
+	public void visitTerm(RepositoryConnection connection,
+			ValueFactory factory, StringInStack url, StringInStack previous)
+			throws Exception {
 
-    }
+	}
 
-    public void doTracing(String fileWithTopConcepts, String fileWithSelection,  String... fileWithRdf)
-    throws Exception {
-        Repository rdf = Helper.createLocalRepository();
-        File[] filesToLoad = new File[fileWithRdf.length];
-        for (int i = 0; i < fileWithRdf.length; i++) {
-            filesToLoad[i] = new File(fileWithRdf[i]);
-        }
-        Helper.importRDFXMLFile(rdf, Namespaces.ANNOCULTOR_CONVERTER.getUri(), filesToLoad);
-        RepositoryConnection connection = rdf.getConnection();
-        ValueFactory factory = rdf.getValueFactory();
+	public void doTracing(String fileWithTopConcepts, String fileWithSelection,
+			String... fileWithRdf) throws Exception {
+		Repository rdf = Helper.createLocalRepository();
+		File[] filesToLoad = new File[fileWithRdf.length];
+		for (int i = 0; i < fileWithRdf.length; i++) {
+			filesToLoad[i] = new File(fileWithRdf[i]);
+		}
+		Helper.importRDFXMLFile(rdf, Namespaces.ANNOCULTOR_CONVERTER.getUri(),
+				filesToLoad);
+		RepositoryConnection connection = rdf.getConnection();
+		ValueFactory factory = rdf.getValueFactory();
 
-        System.out.println("Loaded " + connection.size() + " statements");
-        List topConceptsStr = FileUtils.readLines(new File(fileWithTopConcepts), "UTF-8");
-        List<StringInStack> top = new ArrayList<StringInStack>();
-        for (Object object : topConceptsStr) {
-            top.add(new StringInStack(object.toString(), 0));
-        }
-        
-        Set<String> passedUrls = traceBroaderDepthFirst(connection, factory, top);
+		System.out.println("Loaded " + connection.size() + " statements");
+		List topConceptsStr = FileUtils.readLines(
+				new File(fileWithTopConcepts), "UTF-8");
+		List<StringInStack> top = new ArrayList<StringInStack>();
+		for (Object object : topConceptsStr) {
+			top.add(new StringInStack(object.toString(), 0));
+		}
 
-        // save
-        List<String> passedSorted = new LinkedList<String>();
-        passedSorted.addAll(passedUrls);
-        Collections.sort(passedSorted);
-        System.out.println("Saving " + passedSorted.size() + " terms");
-        saveListOfUrls(fileWithSelection, passedUrls, passedSorted);
-    }
+		Set<String> passedUrls = traceBroaderDepthFirst(connection, factory,
+				top);
 
-    public void saveListOfUrls(String fileWithSelection,  Collection<String> passedUnSorted, List<String> passedSorted) throws IOException {
-        if (fileWithSelection != null) {
-            FileUtils.writeLines(new File(fileWithSelection), passedSorted, "\n");
-        }
-    }
+		// save
+		List<String> passedSorted = new LinkedList<String>();
+		passedSorted.addAll(passedUrls);
+		Collections.sort(passedSorted);
+		System.out.println("Saving " + passedSorted.size() + " terms");
+		saveListOfUrls(fileWithSelection, passedUrls, passedSorted);
+	}
 
-    public static class StringInStack implements Comparable<StringInStack> {
-        String string;
-        int level;
-        
-        public StringInStack(String string, int level) {
-            super();
-            this.string = string;
-            this.level = level;
-        }
+	public void saveListOfUrls(String fileWithSelection,
+			Collection<String> passedUnSorted, List<String> passedSorted)
+			throws IOException {
+		if (fileWithSelection != null) {
+			FileUtils.writeLines(new File(fileWithSelection), passedSorted,
+					"\n");
+		}
+	}
 
-        public String getString() {
-            return string;
-        }
+	public static class StringInStack implements Comparable<StringInStack> {
+		String string;
+		int level;
 
-        public int getLevel() {
-            return level;
-        }
+		public StringInStack(String string, int level) {
+			super();
+			this.string = string;
+			this.level = level;
+		}
 
-        @Override
-        public int compareTo(StringInStack o) {
-             return string.compareTo(o.string);
-        }
-            
-    }
+		public String getString() {
+			return string;
+		}
 
-    private Set<String> traceBroaderDepthFirst(RepositoryConnection connection, ValueFactory factory, List<StringInStack> topConcepts)
-    throws Exception {
-        // trace skos:broader tree top-down
-        Stack<StringInStack> urlsToCheck = new Stack<StringInStack>();
-        urlsToCheck.addAll(topConcepts);
-        Set<String> passedUrls = new HashSet<String>();
+		public int getLevel() {
+			return level;
+		}
 
-        while (!urlsToCheck.isEmpty()) {
+		@Override
+		public int compareTo(StringInStack o) {
+			return string.compareTo(o.string);
+		}
 
-            StringInStack url = urlsToCheck.pop();
-            if (!StringUtils.isEmpty(url.getString()) && passedUrls.add(url.getString())) {
-                List<StringInStack> children = fetchNarrower(connection, factory, url, urlsToCheck.isEmpty() ? null : urlsToCheck.peek());
-                Collections.sort(children);
-                urlsToCheck.addAll(children);
-            }
-        }
-        return passedUrls;
-    }
+	}
 
-    public List<StringInStack> fetchNarrower(RepositoryConnection connection, ValueFactory factory, StringInStack url, StringInStack previous) 
-    throws Exception {
-        visitTerm(connection, factory, url, previous);
-        final URI broader = factory.createURI(Concepts.SKOS.BROADER.getUri());
-        RepositoryResult<Statement> children = connection.getStatements(
-                null, 
-                broader,
-                factory.createURI(url.getString()),
-                false
-        );
+	private Set<String> traceBroaderDepthFirst(RepositoryConnection connection,
+			ValueFactory factory, List<StringInStack> topConcepts)
+			throws Exception {
+		// trace skos:broader tree top-down
+		Stack<StringInStack> urlsToCheck = new Stack<StringInStack>();
+		urlsToCheck.addAll(topConcepts);
+		Set<String> passedUrls = new HashSet<String>();
 
-        List<StringInStack> result = new ArrayList<StringInStack>();
-        while (children.hasNext()) {
-            result.add(new StringInStack(children.next().getSubject().stringValue(), url.getLevel() + 1));
-        }
-        children.close();
-        return result;
-    }
+		while (!urlsToCheck.isEmpty()) {
+
+			StringInStack url = urlsToCheck.pop();
+			if (!StringUtils.isEmpty(url.getString())
+					&& passedUrls.add(url.getString())) {
+				List<StringInStack> children = fetchNarrower(connection,
+						factory, url, urlsToCheck.isEmpty() ? null
+								: urlsToCheck.peek());
+				Collections.sort(children);
+				urlsToCheck.addAll(children);
+			}
+		}
+		return passedUrls;
+	}
+
+	public List<StringInStack> fetchNarrower(RepositoryConnection connection,
+			ValueFactory factory, StringInStack url, StringInStack previous)
+			throws Exception {
+		visitTerm(connection, factory, url, previous);
+		final URI broader = factory.createURI(Concepts.SKOS.BROADER.getUri());
+		RepositoryResult<Statement> children = connection.getStatements(null,
+				broader, factory.createURI(url.getString()), false);
+
+		List<StringInStack> result = new ArrayList<StringInStack>();
+		while (children.hasNext()) {
+			result.add(new StringInStack(children.next().getSubject()
+					.stringValue(), url.getLevel() + 1));
+		}
+		children.close();
+		return result;
+	}
 }

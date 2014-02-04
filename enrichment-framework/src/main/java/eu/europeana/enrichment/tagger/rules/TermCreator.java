@@ -45,31 +45,26 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class TermCreator implements TermCreatorInt
-{
+public class TermCreator implements TermCreatorInt {
 
 	private String scheme;
 
-	public Property getPrefLabelProperty()
-	{
+	public Property getPrefLabelProperty() {
 		return SKOS.LABEL_PREFERRED;
 	}
 
-	public Property getAltLabelProperty()
-	{
+	public Property getAltLabelProperty() {
 		return SKOS.LABEL_ALT;
 	}
 
-	public String getTermType()
-	{
+	public String getTermType() {
 		return SKOS.CONCEPT;
 	}
 
 	protected Path labelAltPath;
 	protected LabelCaseOption labelCaseOption;
 
-	public LabelCaseOption getLabelCaseOption()
-	{
+	public LabelCaseOption getLabelCaseOption() {
 		return labelCaseOption;
 	}
 
@@ -81,215 +76,161 @@ public class TermCreator implements TermCreatorInt
 	 * 
 	 * 
 	 * @param targetRecord
-	 *          target to put references to the term
+	 *            target to put references to the term
 	 * @param targetTerm
-	 *          target to put terms
+	 *            target to put terms
 	 * 
 	 */
-	public TermCreator(
-			String scheme,
-			Namespace termUriPrefix,
-			Graph targetRecord,
-			Graph targetTerm,
-			Path labelAltPath,
-			LabelCaseOption makeLowCaseLabels)
-	{
+	public TermCreator(String scheme, Namespace termUriPrefix,
+			Graph targetRecord, Graph targetTerm, Path labelAltPath,
+			LabelCaseOption makeLowCaseLabels) {
 		// late binding on ObjectRule.addXXXRule
 		this.task = null;
 		this.scheme = scheme;
-		if (this.scheme != null)
-		{
-			while (this.scheme.endsWith("/") || this.scheme.endsWith("#"))
-			{
-				this.scheme = this.scheme.substring(0, this.scheme.length() - 1);
+		if (this.scheme != null) {
+			while (this.scheme.endsWith("/") || this.scheme.endsWith("#")) {
+				this.scheme = this.scheme
+						.substring(0, this.scheme.length() - 1);
 			}
 		}
-		//		this.termUriPrefix = termUriPrefix;
-		//		this.targetTerm = targetTerm;
-		//		this.targetRecord = targetRecord;
+		// this.termUriPrefix = termUriPrefix;
+		// this.targetTerm = targetTerm;
+		// this.targetRecord = targetRecord;
 		this.labelAltPath = labelAltPath;
 		this.labelCaseOption = makeLowCaseLabels;
 		init();
 	}
 
-	protected TermCreator(String scheme, TermCreatorInt tc)
-	{
+	protected TermCreator(String scheme, TermCreatorInt tc) {
 		this(scheme, tc.getLabelCaseOption());
 	}
 
-	public TermCreator(String scheme, LabelCaseOption makeLowCaseLabels)
-	{
+	public TermCreator(String scheme, LabelCaseOption makeLowCaseLabels) {
 		this(scheme, Namespaces.EMPTY_NS, null, null, null, makeLowCaseLabels);
 	}
 
-	protected void init()
-	{
+	protected void init() {
 
 	}
 
-	public String getLabelPrefValue(String valueUsedInUri, DataObject dataObject)
-	{
+	public String getLabelPrefValue(String valueUsedInUri, DataObject dataObject) {
 		return valueUsedInUri;
 	}
 
-	public Property getRelationTermToVocabulary()
-	{
+	public Property getRelationTermToVocabulary() {
 		return SKOS.EXACT_MATCH;
 	}
 
-	public void writeLinkRecordToTerm(
-			String recordUri,
-			String termUri,
-			TermList terms,
-			Property relationRecordToTerm,
-			Graph graphRecords,
-			Rule rule) 
-	throws Exception
-	{
-		graphRecords.add(
-				new Triple(
-						recordUri, 
-						relationRecordToTerm, 
-						new ResourceValue(termUri), 
-						rule, 
-						terms.getFirst().getLabel()));
+	public void writeLinkRecordToTerm(String recordUri, String termUri,
+			TermList terms, Property relationRecordToTerm, Graph graphRecords,
+			Rule rule) throws Exception {
+		graphRecords.add(new Triple(recordUri, relationRecordToTerm,
+				new ResourceValue(termUri), rule, terms.getFirst().getLabel()));
 	}
 
-	public void writeTermDefinition(
-			String termUri,
-			String broaderUri,
-			DataObject dataObject,
-			Graph graphTerms,
-			Rule rule,
-			Label prefLabel,
-			Label... altLabel) 
-	throws Exception
-	{
-		graphTerms.add(new Triple(termUri, RDF.TYPE, new ResourceValue(getTermType()), rule));
+	public void writeTermDefinition(String termUri, String broaderUri,
+			DataObject dataObject, Graph graphTerms, Rule rule,
+			Label prefLabel, Label... altLabel) throws Exception {
+		graphTerms.add(new Triple(termUri, RDF.TYPE, new ResourceValue(
+				getTermType()), rule));
 
-		if (scheme != null)
-		{
-			graphTerms.add(new Triple(termUri, SKOS.IN_SCHEME, new ResourceValue(scheme), rule));
+		if (scheme != null) {
+			graphTerms.add(new Triple(termUri, SKOS.IN_SCHEME,
+					new ResourceValue(scheme), rule));
 		}
 		// write pref label
-		graphTerms.add(
-				new Triple(
-						termUri, 
-						getPrefLabelProperty(), 
-						new LiteralValue( (labelCaseOption == LabelCaseOption.TO_LOW_CASE) ? prefLabel.getLabel().toLowerCase()	: prefLabel.getLabel(), prefLabel.getLang()), 
-						rule));
+		graphTerms
+				.add(new Triple(
+						termUri,
+						getPrefLabelProperty(),
+						new LiteralValue(
+								(labelCaseOption == LabelCaseOption.TO_LOW_CASE) ? prefLabel
+										.getLabel().toLowerCase() : prefLabel
+										.getLabel(), prefLabel.getLang()), rule));
 
 		// write alternative labels
-		for (Label label : altLabel)
-		{
-			graphTerms.add(new Triple(
-					termUri,
-					getAltLabelProperty(),
-					new LiteralValue((labelCaseOption == LabelCaseOption.TO_LOW_CASE) ? label.getLabel().toLowerCase() : label.getLabel(), label.getLang()),
-					rule));
+		for (Label label : altLabel) {
+			graphTerms
+					.add(new Triple(
+							termUri,
+							getAltLabelProperty(),
+							new LiteralValue(
+									(labelCaseOption == LabelCaseOption.TO_LOW_CASE) ? label
+											.getLabel().toLowerCase() : label
+											.getLabel(), label.getLang()), rule));
 		}
 
 		// write broader
-		if (broaderUri != null)
-		{
-			graphTerms.add(new Triple(termUri, SKOS.BROADER, new ResourceValue(broaderUri), rule));
+		if (broaderUri != null) {
+			graphTerms.add(new Triple(termUri, SKOS.BROADER, new ResourceValue(
+					broaderUri), rule));
 		}
 
 	}
 
-	public void writeLinkTermToVocabulary(
-			String localTermUri,
-			Term externalVocabularyTerm,
-			Property labelOfLinkTermToVocabulary,
-			Lang langOfLinkTermToVocabulary,
-			String mappingCategorySignature,
-			Environment env,
-			DataObject dataObject,
-			Rule rule) throws Exception
-			{
+	public void writeLinkTermToVocabulary(String localTermUri,
+			Term externalVocabularyTerm, Property labelOfLinkTermToVocabulary,
+			Lang langOfLinkTermToVocabulary, String mappingCategorySignature,
+			Environment env, DataObject dataObject, Rule rule) throws Exception {
 		// make target
-		if (externalVocabularyTerm == null)
-		{
+		if (externalVocabularyTerm == null) {
 			throw new NullPointerException("External vocabulary term");
 		}
-		if (task == null)
-		{
+		if (task == null) {
 			throw new NullPointerException("Task");
 		}
-		String newTargetId =
-			Common.makeNewNamedGraphId(task.getDatasetId(),
-					"map",
-					mappingCategorySignature,
-					externalVocabularyTerm.getVocabularyName());
+		String newTargetId = Common.makeNewNamedGraphId(task.getDatasetId(),
+				"map", mappingCategorySignature,
+				externalVocabularyTerm.getVocabularyName());
 		Graph newTarget = null;
 
-		for (Graph trg : task.getGraphs())
-		{
-			if (trg.getId().equals(newTargetId))
-			{
+		for (Graph trg : task.getGraphs()) {
+			if (trg.getId().equals(newTargetId)) {
 				newTarget = trg;
 				break;
 			}
 		}
-		if (newTarget == null)
-		{
-			newTarget = makeGraphLinkTermToVocabulary(externalVocabularyTerm, mappingCategorySignature, env, task);
+		if (newTarget == null) {
+			newTarget = makeGraphLinkTermToVocabulary(externalVocabularyTerm,
+					mappingCategorySignature, env, task);
 			task.addGraph(newTarget);
 		}
 
 		// link term to vocabulary
-		newTarget.add(
-				new Triple(
-						localTermUri,
-						getRelationTermToVocabulary(),
-						new ResourceValue(externalVocabularyTerm.getCode()),
-						rule));
+		newTarget.add(new Triple(localTermUri, getRelationTermToVocabulary(),
+				new ResourceValue(externalVocabularyTerm.getCode()), rule));
 
 		// eventual label for debugging
-		if (!localTermUri.equals(externalVocabularyTerm.getCode()) && labelOfLinkTermToVocabulary != null)
-		{
+		if (!localTermUri.equals(externalVocabularyTerm.getCode())
+				&& labelOfLinkTermToVocabulary != null) {
 			String label = externalVocabularyTerm.getLabel();
 			if (externalVocabularyTerm.getDisambiguatingComment() != null)
-				label += " [" + externalVocabularyTerm.getDisambiguatingComment() + "]";
+				label += " ["
+						+ externalVocabularyTerm.getDisambiguatingComment()
+						+ "]";
 			if (externalVocabularyTerm.getConfidenceComment() != null)
-				label += " [WARNING! LOW CONFIDENCE IN THIS MATCH:" + externalVocabularyTerm.getConfidenceComment() + "]";
-			newTarget.add(
-					new Triple(
-							localTermUri, 
-							labelOfLinkTermToVocabulary, 
-							new LiteralValue(label, langOfLinkTermToVocabulary), 
-							rule));
+				label += " [WARNING! LOW CONFIDENCE IN THIS MATCH:"
+						+ externalVocabularyTerm.getConfidenceComment() + "]";
+			newTarget.add(new Triple(localTermUri, labelOfLinkTermToVocabulary,
+					new LiteralValue(label, langOfLinkTermToVocabulary), rule));
 		}
-			}
-
-	public Graph makeGraphLinkTermToVocabulary(
-			Term externalVocabularyTerm,
-			String mappingCategorySignature,
-			Environment env,
-			Task task)
-	{
-
-		return CoreFactory.makeNamedGraph(
-				task.getDatasetId(), 
-				env, 
-				"map", 
-				mappingCategorySignature, 
-				externalVocabularyTerm.getVocabularyName(), 
-				"Mapping of "
-				+ task.getDatasetId()
-				+ ", "
-				+ mappingCategorySignature
-				+ " to "
-				+ externalVocabularyTerm.getVocabularyName());
 	}
 
-	public void setTask(Task task)
-	{
+	public Graph makeGraphLinkTermToVocabulary(Term externalVocabularyTerm,
+			String mappingCategorySignature, Environment env, Task task) {
+
+		return CoreFactory.makeNamedGraph(task.getDatasetId(), env, "map",
+				mappingCategorySignature,
+				externalVocabularyTerm.getVocabularyName(), "Mapping of "
+						+ task.getDatasetId() + ", " + mappingCategorySignature
+						+ " to " + externalVocabularyTerm.getVocabularyName());
+	}
+
+	public void setTask(Task task) {
 		this.task = task;
 	}
 
-	public String getScheme()
-	{
+	public String getScheme() {
 		return scheme;
 	}
 

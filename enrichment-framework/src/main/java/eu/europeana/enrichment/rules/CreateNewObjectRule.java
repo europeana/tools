@@ -27,7 +27,6 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
-
 /**
  * Generates a new object with its ID either derived from the value of the
  * current property or generated. Then one writer creates a connection to the
@@ -38,14 +37,10 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Borys Omelayenko
  * 
  */
-public class CreateNewObjectRule extends SequenceRule
-{
+public class CreateNewObjectRule extends SequenceRule {
 
-	public enum NewObjectId
-	{
-		useTripleValue,
-		useGeneratedPartId,
-		useGeneratedNameBased
+	public enum NewObjectId {
+		useTripleValue, useGeneratedPartId, useGeneratedNameBased
 	}
 
 	private static Set<String> generatedPartIds = new HashSet<String>();
@@ -59,8 +54,7 @@ public class CreateNewObjectRule extends SequenceRule
 	private NewObjectId objectIdType;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "NewObject";
 	}
 
@@ -68,19 +62,15 @@ public class CreateNewObjectRule extends SequenceRule
 	 * 
 	 * @param connectorToMainObject
 	 * @param namespace
-	 *          the namespace where the IDs of the new objects should belong to.
-	 *          it is assumed that no one else is creating IDs in this namespace,
-	 *          otherwise they may conflict with these new IDs.
+	 *            the namespace where the IDs of the new objects should belong
+	 *            to. it is assumed that no one else is creating IDs in this
+	 *            namespace, otherwise they may conflict with these new IDs.
 	 * @param objectIdType
 	 * @param rules
 	 */
-	public CreateNewObjectRule(
-			Property connectorToMainObject,
-			Graph connectorTarget,
-			Namespace namespace,
-			NewObjectId objectIdType,
-			PropertyRule... rules)
-	{
+	public CreateNewObjectRule(Property connectorToMainObject,
+			Graph connectorTarget, Namespace namespace,
+			NewObjectId objectIdType, PropertyRule... rules) {
 		super(rules);
 		this.connectorToMainObject = connectorToMainObject;
 		this.namespace = namespace;
@@ -88,40 +78,34 @@ public class CreateNewObjectRule extends SequenceRule
 		this.graph = connectorTarget;
 	}
 
-	public static String generatePartId(Namespace namespace, String parentIdLocalPart, String separator)
-			throws Exception
-	{
+	public static String generatePartId(Namespace namespace,
+			String parentIdLocalPart, String separator) throws Exception {
 		if (!parentIdLocalPart.contains(separator))
-			throw new Exception("Generated id needs the local part of id (after '"
-				+ separator
-				+ "'), "
-				+ "but cannot find '"
-				+ separator
-				+ "' in resource "
-				+ parentIdLocalPart);
-		parentIdLocalPart = parentIdLocalPart.substring(parentIdLocalPart.indexOf(separator) + 1);
+			throw new Exception(
+					"Generated id needs the local part of id (after '"
+							+ separator + "'), " + "but cannot find '"
+							+ separator + "' in resource " + parentIdLocalPart);
+		parentIdLocalPart = parentIdLocalPart.substring(parentIdLocalPart
+				.indexOf(separator) + 1);
 
 		int iteration = 0;
 		String result = null;
-		do
-		{
+		do {
 			result = namespace + parentIdLocalPart + "_xPART_" + iteration;
 			iteration++;
-		}
-		while (generatedPartIds.contains(result));
+		} while (generatedPartIds.contains(result));
 		generatedPartIds.add(result);
 		return result;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		// new sub object id
 		String newObjectId = null;
-		switch (objectIdType)
-		{
+		switch (objectIdType) {
 		case useTripleValue:
-			newObjectId = namespace + triple.getValue().getValue().replaceAll("[^\\w]", "_");
+			newObjectId = namespace
+					+ triple.getValue().getValue().replaceAll("[^\\w]", "_");
 			break;
 
 		case useGeneratedPartId:
@@ -130,7 +114,8 @@ public class CreateNewObjectRule extends SequenceRule
 			break;
 
 		case useGeneratedNameBased:
-			newObjectId = Common.generateNameBasedUri(namespace, triple.getValue().getValue());
+			newObjectId = Common.generateNameBasedUri(namespace, triple
+					.getValue().getValue());
 			break;
 		default:
 			throw new Exception("Coding error");
@@ -138,9 +123,8 @@ public class CreateNewObjectRule extends SequenceRule
 
 		// connection to the main object
 		if (connectorToMainObject != null)
-			graph.add(triple
-					.changeProperty(connectorToMainObject)
-					.changeValue(new ResourceValue(newObjectId)));
+			graph.add(triple.changeProperty(connectorToMainObject).changeValue(
+					new ResourceValue(newObjectId)));
 
 		// properties of the new object
 		super.fire(triple.changeSubject(newObjectId), dataObject);

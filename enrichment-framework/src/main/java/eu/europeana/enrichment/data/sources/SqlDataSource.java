@@ -27,7 +27,6 @@ import eu.europeana.enrichment.converter.ConverterHandlerDataObjects;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.triple.LiteralValue;
 
-
 /**
  * Source dataset consisting of an SQL query ResultSet.
  * 
@@ -38,37 +37,41 @@ public class SqlDataSource extends AbstractQueryDataSource {
 
 	private Connection connection;
 
-	public SqlDataSource(Environment environment, String jdbcDriver, String jdbcUrl, String... sqlQuery) 
-	throws ClassNotFoundException {
+	public SqlDataSource(Environment environment, String jdbcDriver,
+			String jdbcUrl, String... sqlQuery) throws ClassNotFoundException {
 		Class.forName(jdbcDriver);
 		setConnectionUrl(jdbcUrl);
 		for (String query : sqlQuery) {
-			addQuery(query);			
+			addQuery(query);
 		}
 	}
 
 	@Override
-	protected boolean parseQueries(DefaultHandler handler, Path recordSeparatingPath, Path recordIdentifyingPath) 
-	throws Exception {
+	protected boolean parseQueries(DefaultHandler handler,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception {
 
-	    try {
-	        connection = DriverManager.getConnection(getConnectionUrl());
-	    } catch (Exception e) {
-	        log.warn("Cannot connect to " + getConnectionUrl(), e);
-	        return false;
-        }
 		try {
-			return super.parseQueries(handler, recordSeparatingPath, recordIdentifyingPath);
+			connection = DriverManager.getConnection(getConnectionUrl());
+		} catch (Exception e) {
+			log.warn("Cannot connect to " + getConnectionUrl(), e);
+			return false;
+		}
+		try {
+			return super.parseQueries(handler, recordSeparatingPath,
+					recordIdentifyingPath);
 		} finally {
 			connection.close();
 		}
 	}
 
 	@Override
-	protected boolean parseQuery(DefaultHandler handler, String query, Path recordSeparatingPath, Path recordIdentifyingPath) 
-	throws Exception {
+	protected boolean parseQuery(DefaultHandler handler, String query,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception {
 
-		ConverterHandlerDataObjects flatHandler = makeHandler(handler, recordSeparatingPath);
+		ConverterHandlerDataObjects flatHandler = makeHandler(handler,
+				recordSeparatingPath);
 
 		boolean passedARecord = false;
 		ResultSet resultSet = connection.createStatement().executeQuery(query);
@@ -83,7 +86,8 @@ public class SqlDataSource extends AbstractQueryDataSource {
 
 				passedARecord = true;
 
-				flatHandler.attemptDataObjectChange(resultSet.getString(recordIdentifyingPath.getPath()));
+				flatHandler.attemptDataObjectChange(resultSet
+						.getString(recordIdentifyingPath.getPath()));
 
 				// iterate result set fields
 				for (int i = 1; i < numColumns + 1; i++) {
@@ -101,9 +105,11 @@ public class SqlDataSource extends AbstractQueryDataSource {
 					// populate literal value
 					if (columnValue != null) {
 						columnValue = columnValue.trim();
-						String preprocessedValue = preprocessValue(columnName, columnValue);
+						String preprocessedValue = preprocessValue(columnName,
+								columnValue);
 						if (preprocessedValue != null) {
-							flatHandler.addField(columnName, new LiteralValue(preprocessedValue));
+							flatHandler.addField(columnName, new LiteralValue(
+									preprocessedValue));
 						}
 					}
 

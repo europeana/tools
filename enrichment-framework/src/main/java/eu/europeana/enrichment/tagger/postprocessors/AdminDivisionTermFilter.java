@@ -20,8 +20,8 @@ import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
 /**
- * Hierarchical disambiguation by administrative division; 
- * many places are named the same and nested into each other: cities into regions, etc.
+ * Hierarchical disambiguation by administrative division; many places are named
+ * the same and nested into each other: cities into regions, etc.
  * 
  * @author Borys Omelayenko
  * 
@@ -32,7 +32,8 @@ public class AdminDivisionTermFilter extends TermFilter {
 	private static final String VOCAB_ATTR_COUNTRY = "country";
 
 	@Override
-	public TermList disambiguate(TermList allTerms, DisambiguationContext disambiguationContext) throws Exception {
+	public TermList disambiguate(TermList allTerms,
+			DisambiguationContext disambiguationContext) throws Exception {
 
 		// disambiguation not needed
 		if (allTerms.size() < 2)
@@ -53,7 +54,8 @@ public class AdminDivisionTermFilter extends TermFilter {
 
 				String adminDivision = term.getProperty(VOCAB_ATTR_DIVISION);
 				String countryTerm = term.getProperty(VOCAB_ATTR_COUNTRY);
-				String countryLargest = largestPlace.getProperty(VOCAB_ATTR_COUNTRY);
+				String countryLargest = largestPlace
+						.getProperty(VOCAB_ATTR_COUNTRY);
 				if (countryTerm == null) {
 					return allTerms;
 				}
@@ -66,12 +68,14 @@ public class AdminDivisionTermFilter extends TermFilter {
 						return allTerms;
 					}
 
-					if (largestAdminDivision == null || adminDivision.compareToIgnoreCase(largestAdminDivision) > 0) {
+					if (largestAdminDivision == null
+							|| adminDivision
+									.compareToIgnoreCase(largestAdminDivision) > 0) {
 						largestAdminDivision = adminDivision;
 						largestPlace = term;
 					}
 				}
-			}			
+			}
 
 			// choose the place with the largest population
 			if (largestAdminDivision != null && largestPlace != null) {

@@ -20,37 +20,31 @@ import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-public abstract class AbstractRenamePropertyRule extends AbstractNoBranchRule
-{
+public abstract class AbstractRenamePropertyRule extends AbstractNoBranchRule {
 	private Property targetPropertyName = null;
 
 	private Graph graph;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "RenameProperty";
 	}
 
-	public AbstractRenamePropertyRule(Property targetPropertyName, Graph target)
-	{
+	public AbstractRenamePropertyRule(Property targetPropertyName, Graph target) {
 		this.targetPropertyName = targetPropertyName;
 		this.graph = target;
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		Triple t = triple.changeRule(this);
 
 		if (t.getValue().getValue().length() > 0)
 			graph.add(t);
 
-	
 	}
 
-	public void setTargetPropertyName(Property targetPropertyName)
-	{
+	public void setTargetPropertyName(Property targetPropertyName) {
 		this.targetPropertyName = targetPropertyName;
 	}
 

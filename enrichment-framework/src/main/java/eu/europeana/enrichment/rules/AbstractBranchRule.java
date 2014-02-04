@@ -25,20 +25,17 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Borys Omelayenko
  * 
  */
-public abstract class AbstractBranchRule extends PropertyRule
-{
+public abstract class AbstractBranchRule extends PropertyRule {
 
 	protected Rule success;
 	protected Rule failure;
 
 	@Override
-	public String getAnalyticalRuleClass()
-	{
+	public String getAnalyticalRuleClass() {
 		return "Branch";
 	}
 
-	public AbstractBranchRule(PropertyRule success, PropertyRule failure)
-	{
+	public AbstractBranchRule(PropertyRule success, PropertyRule failure) {
 		super(success, failure);
 		this.success = success;
 		this.failure = failure;

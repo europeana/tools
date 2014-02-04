@@ -24,23 +24,18 @@ package eu.europeana.enrichment.api;
  * @author Borys Omelayenko
  * 
  */
-public abstract class CustomConverter
-{
+public abstract class CustomConverter {
 
 	/**
-	 * Initializes the converter. Here all static property maps should be created.
-	 * No heavy processing or huge memory allocation here, put them to #run().
-	 * Once initialized, as converter should be able to run multiple times. A
-	 * separate light-weight constructor is also used for code analysis as it
-	 * allows listing the (property) writers used in various converters.
+	 * Initializes the converter. Here all static property maps should be
+	 * created. No heavy processing or huge memory allocation here, put them to
+	 * #run(). Once initialized, as converter should be able to run multiple
+	 * times. A separate light-weight constructor is also used for code analysis
+	 * as it allows listing the (property) writers used in various converters.
 	 * 
 	 * @throws Exception
 	 */
-	public CustomConverter() throws Exception
-	{
-		// TODO: check for default constructor 
-		//		if (this.getClass().getConstructor() == null)
-		//			throw new Exception("No default constructor defined for converter.");
+	public CustomConverter() {
 	}
 
 	/**
@@ -49,45 +44,37 @@ public abstract class CustomConverter
 	 * 
 	 * @throws Exception
 	 */
-	public int run(Task task, ConverterTester tester) throws Exception
-	{
+	public int run(Task task, ConverterTester tester) throws Exception {
 		return run(task, tester, -1);
 	}
 
-	public int run(Task task, ConverterTester tester, int maxRecords) throws Exception
-	{
+	public int run(Task task, ConverterTester tester, int maxRecords)
+			throws Exception {
 		ConverterKernel converter;
-		try
-		{
+		try {
 			task.getEnvironment().initializeVocabularies();
 			converter = Factory.makeConverter(task, null);
 			converter.setMaximalRecordsToPass(maxRecords);
 			converter.setTester(tester);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new Exception("Exception preparing a converter", e);
 		}
-		try
-		{
-			return converter.convert();			
-		}
-		catch (Exception e) {
+		try {
+			return converter.convert();
+		} catch (Exception e) {
 			throw new Exception("Exception running a converter", e);
 		}
 	}
 
-	public int run() throws Exception
-	{
+	public int run() throws Exception {
 		return -1;
 	}
 
-	public void setTask(Task task)
-	{
+	public void setTask(Task task) {
 		this.task = task;
 	}
 
-	public Task getTask()
-	{
+	public Task getTask() {
 		return task;
 	}
 

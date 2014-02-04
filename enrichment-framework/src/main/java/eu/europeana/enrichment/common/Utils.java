@@ -44,70 +44,73 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+
 /**
  * Various utilities.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class Utils
-{
+public class Utils {
 
-	public static String getLocalOrGlobalEnvironmentVariable(String parameter) throws RuntimeException
-	{
-		return (System.getProperty(parameter) == null) ? System.getenv(parameter) : System.getProperty(parameter);
+	public static String getLocalOrGlobalEnvironmentVariable(String parameter)
+			throws RuntimeException {
+		return (System.getProperty(parameter) == null) ? System
+				.getenv(parameter) : System.getProperty(parameter);
 	}
 
 	/**
-	 * Passing parameters via env variable, versus command line,
-	 * works around the fact that maven exec plugin launches a shell
-	 * that enforces its own interpretation of wildcards.
+	 * Passing parameters via env variable, versus command line, works around
+	 * the fact that maven exec plugin launches a shell that enforces its own
+	 * interpretation of wildcards.
 	 * 
-	 * E.g. on Win a parameter input_files/*.xml gets replaced
-	 * with input_files/first-file-name.xml where first-file-name is the
-	 * name of the first file in input_files.
+	 * E.g. on Win a parameter input_files/*.xml gets replaced with
+	 * input_files/first-file-name.xml where first-file-name is the name of the
+	 * first file in input_files.
 	 * 
 	 */
-	public static String[] getCommandLineFromANNOCULTOR_ARGS(String... args)
-	{
+	public static String[] getCommandLineFromANNOCULTOR_ARGS(String... args) {
 		List<String> resArgs = new ArrayList<String>();
 		resArgs.addAll(Arrays.asList(args));
 		String envArgs = System.getenv("ANNOCULTOR_ARGS");
 		if (envArgs != null)
 			resArgs.addAll(Arrays.asList(envArgs.split(" ")));
-		return resArgs.toArray(new String[]{});
+		return resArgs.toArray(new String[] {});
 	}
 
 	public static List<File> expandFileTemplateFrom(File dir, String... pattern)
-	throws IOException
-	{
+			throws IOException {
 		List<File> files = new ArrayList<File>();
 
-		for (String p : pattern)
-		{
-			
-			
-			
-			File fdir = new File(new File(dir, FilenameUtils.getFullPathNoEndSeparator(p)).getCanonicalPath());
+		for (String p : pattern) {
+
+			File fdir = new File(
+					new File(dir, FilenameUtils.getFullPathNoEndSeparator(p))
+							.getCanonicalPath());
 			if (!fdir.isDirectory())
-				throw new IOException("Error: " + fdir.getCanonicalPath() + ", expanded from directory " + dir.getCanonicalPath() + " and pattern " + p + " does not denote a directory");
+				throw new IOException("Error: " + fdir.getCanonicalPath()
+						+ ", expanded from directory " + dir.getCanonicalPath()
+						+ " and pattern " + p + " does not denote a directory");
 			if (!fdir.canRead())
-				throw new IOException("Error: " + fdir.getCanonicalPath() + " is not readable");
-			FileFilter fileFilter = new WildcardFileFilter(FilenameUtils.getName(p));
+				throw new IOException("Error: " + fdir.getCanonicalPath()
+						+ " is not readable");
+			FileFilter fileFilter = new WildcardFileFilter(
+					FilenameUtils.getName(p));
 			File[] list = fdir.listFiles(fileFilter);
 			if (list == null)
-				throw new IOException("Error: " + fdir.getCanonicalPath() + " does not denote a directory or something else is wrong");
+				throw new IOException(
+						"Error: "
+								+ fdir.getCanonicalPath()
+								+ " does not denote a directory or something else is wrong");
 			if (list.length == 0)
-				throw new IOException("Error: no files found, template " + p + " from dir " + dir.getCanonicalPath()
-						+ " where we recognised " + fdir.getCanonicalPath() + " as path and " + fileFilter + " as file mask");
-			for (File file : list) 
-			{
-				if (!file.exists())
-				{
-					throw new FileNotFoundException("File not found: "
-							+ file
-							+ " resolved to "
-							+ file.getCanonicalPath());
+				throw new IOException("Error: no files found, template " + p
+						+ " from dir " + dir.getCanonicalPath()
+						+ " where we recognised " + fdir.getCanonicalPath()
+						+ " as path and " + fileFilter + " as file mask");
+			for (File file : list) {
+				if (!file.exists()) {
+					throw new FileNotFoundException("File not found: " + file
+							+ " resolved to " + file.getCanonicalPath());
 				}
 			}
 			files.addAll(Arrays.asList(list));
@@ -116,11 +119,9 @@ public class Utils
 		return files;
 	}
 
-	public static String show(Collection list, String separator)
-	{
+	public static String show(Collection list, String separator) {
 		String result = "";
-		for (Object object : list)
-		{
+		for (Object object : list) {
 			if (result.length() > 0)
 				result += separator;
 			result += object.toString();
@@ -132,11 +133,9 @@ public class Utils
 	 * Returned by compareFiles.
 	 * 
 	 */
-	public static class DiffInFiles
-	{
+	public static class DiffInFiles {
 		@Override
-		public String toString()
-		{
+		public String toString() {
 			return "Line" + line + ", " + strOne + " * " + strTwo;
 		}
 
@@ -144,8 +143,7 @@ public class Utils
 		public String strOne;
 		public String strTwo;
 
-		public DiffInFiles(int line, String strOne, String strTwo)
-		{
+		public DiffInFiles(int line, String strOne, String strTwo) {
 			super();
 			this.line = line;
 			this.strOne = strOne;
@@ -161,15 +159,14 @@ public class Utils
 	 * @param file2
 	 * @return lines where they differ
 	 */
-	public static List<DiffInFiles> compareFiles(File file1, File file2, int maxDiffLinesToReport)
-	throws IOException
-	{
+	public static List<DiffInFiles> compareFiles(File file1, File file2,
+			int maxDiffLinesToReport) throws IOException {
 		List<DiffInFiles> result = new ArrayList<DiffInFiles>();
 		BufferedReader b1 = new BufferedReader(new FileReader(file1), 64000);
 		BufferedReader b2 = new BufferedReader(new FileReader(file2), 64000);
 		int lineNumber = 0;
-		while (maxDiffLinesToReport == -1 || result.size() < maxDiffLinesToReport)
-		{
+		while (maxDiffLinesToReport == -1
+				|| result.size() < maxDiffLinesToReport) {
 			String s1 = b1.readLine();
 			String s2 = b2.readLine();
 			// end of both files
@@ -177,18 +174,12 @@ public class Utils
 				break;
 
 			// one is shorter
-			if (s1 == null)
-			{
+			if (s1 == null) {
 				result.add(new DiffInFiles(lineNumber, s1, s2));
-			}
-			else
-			{
-				if (s2 == null)
-				{
+			} else {
+				if (s2 == null) {
 					result.add(new DiffInFiles(lineNumber, s1, s2));
-				}
-				else
-				{
+				} else {
 					if (!s1.equals(s2))
 						result.add(new DiffInFiles(lineNumber, s1, s2));
 				}
@@ -204,22 +195,19 @@ public class Utils
 	 * Loads a file into a string.
 	 * 
 	 * @param fileName
-	 *          file name
+	 *            file name
 	 * @param EOL
-	 *          End-of-line string to put into the resulting string
+	 *            End-of-line string to put into the resulting string
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
 	public static String loadFileToString(String fileName, String EOL)
-	throws FileNotFoundException,
-	IOException
-	{
+			throws FileNotFoundException, IOException {
 		BufferedReader in = new BufferedReader(new FileReader(fileName));
 		String result = "";
 		String str;
-		while ((str = in.readLine()) != null)
-		{
+		while ((str = in.readLine()) != null) {
 			result += str + EOL;
 		}
 		in.close();
@@ -227,9 +215,7 @@ public class Utils
 	}
 
 	public static void saveStringToFile(String string, String fileName)
-	throws FileNotFoundException,
-	IOException
-	{
+			throws FileNotFoundException, IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(fileName));
 		out.append(string);
 		out.close();
@@ -239,66 +225,64 @@ public class Utils
 	 * Loads a web page from an URL to a string.
 	 * 
 	 * @param url
-	 *          address of the page
+	 *            address of the page
 	 * @param EOL
-	 *          End-of-line string to put into the resulting string
+	 *            End-of-line string to put into the resulting string
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public static String loadURLToString(String url, String EOL) throws FileNotFoundException, IOException
-	{
-		BufferedReader in = new BufferedReader(new InputStreamReader((new URL(url)).openStream()));
+	public static String loadURLToString(String url, String EOL)
+			throws FileNotFoundException, IOException {
+		BufferedReader in = new BufferedReader(new InputStreamReader((new URL(
+				url)).openStream()));
 		String result = "";
 		String str;
-		while ((str = in.readLine()) != null)
-		{
+		while ((str = in.readLine()) != null) {
 			result += str + EOL;
 		}
 		in.close();
 		return result;
 	}
 
-//	public static String[] filesToString(List<File> files) throws Exception
-//	{
-//		String[] result = new String[files.size()];
-//		int i = 0;
-//		for (File file : files)
-//		{
-//			result[i++] = file.getCanonicalPath();
-//		}
-//		return result;
-//	}
-//
-//	public static long hashCode(String[] list)
-//	{
-//		return merge(list, ";").hashCode();
-//	}
-//
-//	public static String merge(String[] list, String separator)
-//	{
-//		String merged = "";
-//		for (int i = 0; i < list.length; i++)
-//		{
-//			merged += ((i == 0) ? "" : separator) + list[i];
-//		}
-//		return merged;
-//	}
+	// public static String[] filesToString(List<File> files) throws Exception
+	// {
+	// String[] result = new String[files.size()];
+	// int i = 0;
+	// for (File file : files)
+	// {
+	// result[i++] = file.getCanonicalPath();
+	// }
+	// return result;
+	// }
+	//
+	// public static long hashCode(String[] list)
+	// {
+	// return merge(list, ";").hashCode();
+	// }
+	//
+	// public static String merge(String[] list, String separator)
+	// {
+	// String merged = "";
+	// for (int i = 0; i < list.length; i++)
+	// {
+	// merged += ((i == 0) ? "" : separator) + list[i];
+	// }
+	// return merged;
+	// }
 
 	/*
 	 * From
 	 * http://www.java-tips.org/java-se-tips/java.io/reading-a-file-into-a-byte
 	 * -array.html and adapted
 	 */
-	private static byte[] getBytesFromFile(File file) throws IOException
-	{
+	private static byte[] getBytesFromFile(File file) throws IOException {
 		InputStream is = new FileInputStream(file);
 
 		// Get the size of the file
 		long length = file.length();
 
-		if (length > Integer.MAX_VALUE)
-		{
+		if (length > Integer.MAX_VALUE) {
 			// File is too large
 			throw new IOException("File is too large");
 		}
@@ -309,15 +293,15 @@ public class Utils
 		// Read in the bytes
 		int offset = 0;
 		int numRead = 0;
-		while (offset < bytes.length && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0)
-		{
+		while (offset < bytes.length
+				&& (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
 			offset += numRead;
 		}
 
 		// Ensure all the bytes have been read in
-		if (offset < bytes.length)
-		{
-			throw new IOException("Could not completely read file " + file.getName());
+		if (offset < bytes.length) {
+			throw new IOException("Could not completely read file "
+					+ file.getName());
 		}
 
 		// Close the input stream and return bytes
@@ -325,33 +309,30 @@ public class Utils
 		return bytes;
 	}
 
-	static public byte[] readResourceFile(File src) throws IOException
-	{
+	static public byte[] readResourceFile(File src) throws IOException {
 		if (src == null)
 			throw new NullPointerException("Null src");
-		String srcPath ;
-		try 
-		{
+		String srcPath;
+		try {
 			srcPath = src.getCanonicalPath();
-		}
-		catch (Exception e) 
-		{
+		} catch (Exception e) {
 			throw new IOException(e.getMessage() + " on " + src.getName());
 		}
-		if (srcPath.contains("!"))
-		{
+		if (srcPath.contains("!")) {
 			// JARs
 			// remove dire prefix
 			if (srcPath.indexOf("file:") != srcPath.lastIndexOf("file:"))
-				throw new IOException("Source " + srcPath + " should contain only one substring 'file:'");
+				throw new IOException("Source " + srcPath
+						+ " should contain only one substring 'file:'");
 
-			srcPath = srcPath.substring(srcPath.indexOf("file:") + "file:".length());
+			srcPath = srcPath.substring(srcPath.indexOf("file:")
+					+ "file:".length());
 			String[] srcPaths = srcPath.split("!");
 			if (srcPaths.length != 2)
 				throw new IOException(
 						"Source "
-						+ srcPath
-						+ " should contain no '!' for plain files or just '!' for jar files.");
+								+ srcPath
+								+ " should contain no '!' for plain files or just '!' for jar files.");
 
 			if (srcPaths[1].startsWith("/") || srcPaths[1].startsWith("\\"))
 				srcPaths[1] = srcPaths[1].substring(1);
@@ -360,71 +341,64 @@ public class Utils
 			byte[] buf = jr.getResource(srcPaths[1]);
 
 			if (buf == null)
-				throw new NullPointerException("Null resource: " + srcPaths[1] + " from " + srcPaths[0]);
+				throw new NullPointerException("Null resource: " + srcPaths[1]
+						+ " from " + srcPaths[0]);
 			return buf;
-		}
-		else
-		{
+		} else {
 			// plain files
 			return getBytesFromFile(src);
 		}
 	}
 
-	static public String readResourceFileAsString(String resource) throws IOException
-	{
-		BufferedReader br =
-			new BufferedReader(new InputStreamReader(new ByteArrayInputStream(readResourceFile(new File(resource)))));
+	static public String readResourceFileAsString(String resource)
+			throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				new ByteArrayInputStream(readResourceFile(new File(resource)))));
 
 		String line;
 		String result = "";
-		while ((line = br.readLine()) != null)
-		{
+		while ((line = br.readLine()) != null) {
 			result += line + "\n";
 		}
 		br.close();
 		return result;
 	}
 
-	private static InputStream readResourceFromPackage(Class theClass, String resource) throws IOException
-	{
+	private static InputStream readResourceFromPackage(Class theClass,
+			String resource) throws IOException {
 		if (theClass.getResource(resource) == null)
 			throw new NullPointerException("Failed to find resource for class "
-					+ theClass.getName()
-					+ " resource "
-					+ resource);
+					+ theClass.getName() + " resource " + resource);
 
 		String fileName = theClass.getResource(resource).getFile();
 		if (fileName == null)
-			throw new NullPointerException("Failed to generate file for resource for class "
-					+ theClass.getName()
-					+ " resource "
-					+ resource);
+			throw new NullPointerException(
+					"Failed to generate file for resource for class "
+							+ theClass.getName() + " resource " + resource);
 		byte[] file = readResourceFile(new File(fileName));
 		return new ByteArrayInputStream(file);
 	}
 
-	static public String readResourceFileFromSamePackageAsString(Class theClass, String resource)
-	throws IOException
-	{
-		BufferedReader br = new BufferedReader(new InputStreamReader(readResourceFromPackage(theClass, resource)));
+	static public String readResourceFileFromSamePackageAsString(
+			Class theClass, String resource) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				readResourceFromPackage(theClass, resource)));
 		String line;
 		String result = "";
-		while ((line = br.readLine()) != null)
-		{
+		while ((line = br.readLine()) != null) {
 			result += line + "\n";
 		}
 		br.close();
 		return result;
 	}
 
-	static public List<String> readResourceFileFromSamePackageAsList(Class theClass, String resource)
-	throws IOException
-	{
-		BufferedReader br = new BufferedReader(new InputStreamReader(readResourceFromPackage(theClass, resource)));
+	static public List<String> readResourceFileFromSamePackageAsList(
+			Class theClass, String resource) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				readResourceFromPackage(theClass, resource)));
 		String line;
 		List<String> result = new ArrayList<String>();
-		while ((line = br.readLine()) != null)
-		{
+		while ((line = br.readLine()) != null) {
 			result.add(line);
 		}
 		br.close();
@@ -434,8 +408,7 @@ public class Utils
 	/**
 	 * A dirty Dutch plural -> singular converter.
 	 */
-	public static String getSingular(String plural)
-	{
+	public static String getSingular(String plural) {
 		if (plural == null)
 			return null;
 		String singular = plural;
@@ -443,17 +416,18 @@ public class Utils
 		if (plural.endsWith("en"))
 			singular = plural.substring(0, plural.length() - 2);
 		else
-			// if word ends with 's : cut off 's
-			if (plural.endsWith("'s"))
-				singular = plural.substring(0, plural.length() - 2);
-			else
-				// if word ends with -s : cut off -s
-				if (plural.endsWith("s"))
-					singular = plural.substring(0, plural.length() - 1);
+		// if word ends with 's : cut off 's
+		if (plural.endsWith("'s"))
+			singular = plural.substring(0, plural.length() - 2);
+		else
+		// if word ends with -s : cut off -s
+		if (plural.endsWith("s"))
+			singular = plural.substring(0, plural.length() - 1);
 
 		// then
 		// if word ends with two similar consonant : remove one
-		if (singular.matches("(.*)(ss|tt|qq|ww|rr|pp|dd|ff|gg|kk|ll|zz|xx|cc|vv|bb|nn|mm)$"))
+		if (singular
+				.matches("(.*)(ss|tt|qq|ww|rr|pp|dd|ff|gg|kk|ll|zz|xx|cc|vv|bb|nn|mm)$"))
 			singular = singular.substring(0, singular.length() - 1);
 		// if word ends with -v : remove -v and add -f
 		if (singular.endsWith("v"))
@@ -465,100 +439,92 @@ public class Utils
 	}
 
 	/**
-	 * Attempts to list all the classes in the specified package as determined by
-	 * the context class loader
+	 * Attempts to list all the classes in the specified package as determined
+	 * by the context class loader
 	 * 
 	 * @param pckgname
-	 *          the package name to search
+	 *            the package name to search
 	 * @return a list of classes that exist within that package
 	 * @throws ClassNotFoundException
-	 *           if something went wrong
+	 *             if something went wrong
 	 */
-	public static List<Class> getClassesForPackage(String pckgname) throws ClassNotFoundException, IOException
-	{
+	public static List<Class> getClassesForPackage(String pckgname)
+			throws ClassNotFoundException, IOException {
 		// Set<String> list = getClassNamesPackage(pckgname);
 
 		Set<String> list = new FindClasspath().getClassesForPackage(pckgname);
 
 		List<Class> classes = new ArrayList<Class>();
-		for (String fileName : list)
-		{
-			classes.add(Class.forName(pckgname.length() == 0 ? fileName : (pckgname + '.' + fileName)));
+		for (String fileName : list) {
+			classes.add(Class.forName(pckgname.length() == 0 ? fileName
+					: (pckgname + '.' + fileName)));
 		}
 		return classes;
 	}
 
-	private static Set<String> getClassNamesPackage(String pckgname) throws ClassNotFoundException, IOException
-	{
-		// This will hold a list of directories matching the pckgname. There may be
+	private static Set<String> getClassNamesPackage(String pckgname)
+			throws ClassNotFoundException, IOException {
+		// This will hold a list of directories matching the pckgname. There may
+		// be
 		// more than one if a package is split over multiple jars/paths
 		Queue<File> directories = new LinkedList<File>();
-		try
-		{
+		try {
 			ClassLoader cld = Thread.currentThread().getContextClassLoader();
-			if (cld == null)
-			{
+			if (cld == null) {
 				throw new ClassNotFoundException("Can't get class loader.");
 			}
 			String path = pckgname.replace('.', '/');
 			// Ask for all resources for the path
 			Enumeration<URL> resources = cld.getResources(path);
-			while (resources.hasMoreElements())
-			{
-				directories.add(new File(URLDecoder.decode(resources.nextElement().getPath(), "UTF-8")));
+			while (resources.hasMoreElements()) {
+				directories.add(new File(URLDecoder.decode(resources
+						.nextElement().getPath(), "UTF-8")));
 			}
-		}
-		catch (NullPointerException x)
-		{
-			throw new ClassNotFoundException(pckgname
-					+ " does not appear to be a valid package (Null pointer exception)");
-		}
-		catch (UnsupportedEncodingException encex)
-		{
-			throw new ClassNotFoundException(pckgname
-					+ " does not appear to be a valid package (Unsupported encoding)");
-		}
-		catch (IOException ioex)
-		{
-			throw new ClassNotFoundException("IOException was thrown when trying to get all resources for "
-					+ pckgname);
+		} catch (NullPointerException x) {
+			throw new ClassNotFoundException(
+					pckgname
+							+ " does not appear to be a valid package (Null pointer exception)");
+		} catch (UnsupportedEncodingException encex) {
+			throw new ClassNotFoundException(
+					pckgname
+							+ " does not appear to be a valid package (Unsupported encoding)");
+		} catch (IOException ioex) {
+			throw new ClassNotFoundException(
+					"IOException was thrown when trying to get all resources for "
+							+ pckgname);
 		}
 
 		Set<String> classes = new HashSet<String>();
 		// For every directory identified capture all the .class files
-		while (!directories.isEmpty())
-		{
+		while (!directories.isEmpty()) {
 			File directory = directories.poll();
-			if (directory.exists())
-			{
+			if (directory.exists()) {
 				// Get the list of the files contained in the package
 				File[] files = directory.listFiles();
-				for (File file : files)
-				{
+				for (File file : files) {
 					// we are only interested in .class files
-					if (file.getCanonicalPath().endsWith(".class"))
-					{
-						String fileName = file.getPath().substring(directory.getPath().length() + 1);
-						pckgname =
-							file.getPath().substring(file.getPath().indexOf(File.separator + "nl" + File.separator) + 1);
-						pckgname =
-							pckgname.substring(0, pckgname.lastIndexOf(File.separator)).replaceAll("\\" + File.separator,
-							".");
+					if (file.getCanonicalPath().endsWith(".class")) {
+						String fileName = file.getPath().substring(
+								directory.getPath().length() + 1);
+						pckgname = file.getPath()
+								.substring(
+										file.getPath().indexOf(
+												File.separator + "nl"
+														+ File.separator) + 1);
+						pckgname = pckgname.substring(0,
+								pckgname.lastIndexOf(File.separator))
+								.replaceAll("\\" + File.separator, ".");
 						// if (!fileName.matches("(.+)\\$\\d\\.class"))
 						// removes the .class extension
 						classes.add(fileName.substring(0, fileName.length() - 6));
 					}
 					// Add subdirs
-					if (file.isDirectory())
-					{
+					if (file.isDirectory()) {
 						directories.add(file);
 					}
 				}
-			}
-			else
-			{
-				throw new ClassNotFoundException(pckgname
-						+ " ("
+			} else {
+				throw new ClassNotFoundException(pckgname + " ("
 						+ directory.getPath()
 						+ ") does not appear to be a valid package");
 			}
@@ -566,8 +532,7 @@ public class Utils
 		return classes;
 	}
 
-	public static void copy(InputStream src, File dst) throws IOException
-	{
+	public static void copy(InputStream src, File dst) throws IOException {
 		if (src == null)
 			throw new NullPointerException("Source should not be NULL.");
 
@@ -575,8 +540,7 @@ public class Utils
 			throw new NullPointerException("Dest should not be NULL.");
 
 		OutputStream out = new FileOutputStream(dst);
-		while (src.available() != 0) 
-		{
+		while (src.available() != 0) {
 			out.write(src.read());
 		}
 		out.close();

@@ -27,30 +27,26 @@ import org.openrdf.rio.rdfxml.RDFXMLWriter;
  * An {@link RDFWriterFactory} for sorted RDF/XML writer.
  * 
  */
-public class SortedRDFXMLWriterFactory implements RDFWriterFactory
-{
+public class SortedRDFXMLWriterFactory implements RDFWriterFactory {
 
 	/**
 	 * Returns {@link RDFFormat#RDFXML}.
 	 */
-	public RDFFormat getRDFFormat()
-	{
+	public RDFFormat getRDFFormat() {
 		return RDFFormat.RDFXML;
 	}
 
 	/**
 	 * Returns a new instance of {@link RDFXMLWriter}.
 	 */
-	public RDFWriter getWriter(OutputStream out)
-	{
+	public RDFWriter getWriter(OutputStream out) {
 		return new SortedRDFXMLWriter(out);
 	}
 
 	/**
 	 * Returns a new instance of {@link RDFXMLWriter}.
 	 */
-	public RDFWriter getWriter(Writer writer)
-	{
+	public RDFWriter getWriter(Writer writer) {
 		return new SortedRDFXMLWriter(writer);
 	}
 }

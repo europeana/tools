@@ -17,15 +17,13 @@ package eu.europeana.enrichment.path;
 
 import eu.europeana.enrichment.context.Namespaces;
 
-
 /**
  * 
  * XPath scanner.
  * 
  * @author Borys Omelayenko
  */
-class XPScanner 
-{
+class XPScanner {
 
 	String string;
 	int pos = 0;
@@ -36,14 +34,14 @@ class XPScanner
 	}
 
 	private boolean isIdentifier(char c) {
-		return Character.isJavaIdentifierPart(c) || c == '-' || c == '.' ;
+		return Character.isJavaIdentifierPart(c) || c == '-' || c == '.';
 	}
 
 	public String nextIdentifier() {
 		int offset = 0;
-		while ( (pos + offset < string.length())  
-				&& (isIdentifier(string.charAt(pos + offset))) ) {
-			offset ++;
+		while ((pos + offset < string.length())
+				&& (isIdentifier(string.charAt(pos + offset)))) {
+			offset++;
 		}
 
 		String result = string.substring(pos, pos + offset);
@@ -53,19 +51,17 @@ class XPScanner
 
 	public boolean hasNextIdenitifer() {
 		char c = string.charAt(pos);
-		return  Character.isJavaIdentifierStart(c) && c!='@';
+		return Character.isJavaIdentifierStart(c) && c != '@';
 	}
-
 
 	public String nextLiteral() {
 		char quote = string.charAt(pos);
-		if (quote != '\'' && quote !=  '\"')
-		{
+		if (quote != '\'' && quote != '\"') {
 			return null;
 		}
 		int offset = 1;
-		while ( ! (string.charAt(pos + offset) == quote) ) {
-			offset ++;
+		while (!(string.charAt(pos + offset) == quote)) {
+			offset++;
 		}
 
 		String result = string.substring(pos + 1, pos + offset);
@@ -94,30 +90,31 @@ class XPScanner
 		return string;
 	}
 
-	public NamespacedName expandNamespaceForTag(Namespaces namespaces) 
-	throws Exception {
+	public NamespacedName expandNamespaceForTag(Namespaces namespaces)
+			throws Exception {
 		if (this.hasNextIdenitifer()) {
 			String nick = this.nextIdentifier();
-			if (this.skipString(":"))  {
-				//  it was a namespace nick, go for the element
+			if (this.skipString(":")) {
+				// it was a namespace nick, go for the element
 				String uri = namespaces.getUri(nick);
 				if (uri == null) {
-					throw new Exception("Namespace nick " + nick + " not found in "  + this);					
+					throw new Exception("Namespace nick " + nick
+							+ " not found in " + this);
 				}
 				String name = this.nextIdentifier();
 				if (name.isEmpty()) {
-					throw new Exception("Empty qualified name in "  + this);					
+					throw new Exception("Empty qualified name in " + this);
 				}
 				return new NamespacedName(name, uri);
 			} else {
 				// unqualified element
 				if (nick.isEmpty()) {
-					throw new Exception("Empty unqualified name in "  + this);					
+					throw new Exception("Empty unqualified name in " + this);
 				}
-				return new NamespacedName(nick, "");				
+				return new NamespacedName(nick, "");
 			}
 		}
-		throw new Exception("Error with qualified names on " + this);					
+		throw new Exception("Error with qualified names on " + this);
 	}
 
 }

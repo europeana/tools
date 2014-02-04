@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A filter that reads patterns for files to include and exclude from files.
  * 
@@ -40,7 +39,8 @@ public class PatternBasedFilter implements RecordFilter {
 	private List<String> includePatterns = new ArrayList<String>();
 	private List<String> excludePatterns = new ArrayList<String>();
 
-	public PatternBasedFilter(File includeFile, File excludeFile) throws IOException {
+	public PatternBasedFilter(File includeFile, File excludeFile)
+			throws IOException {
 		load(includeFile, includePatterns);
 		load(excludeFile, excludePatterns);
 	}
@@ -55,10 +55,10 @@ public class PatternBasedFilter implements RecordFilter {
 		}
 		if (patterns.isEmpty()) {
 			log.warn("Did not loaded much filters from " + file);
-		}	
+		}
 	}
 
-	public boolean isIncluded(String url) { 
+	public boolean isIncluded(String url) {
 
 		if (StringUtils.isEmpty(url)) {
 			return false;
@@ -67,14 +67,14 @@ public class PatternBasedFilter implements RecordFilter {
 			return false;
 		}
 		return match(url, includePatterns);
-	}    
+	}
 
 	boolean match(String url, List<String> patterns) {
 		for (String pattern : patterns) {
 			if (url.matches(pattern)) {
 				return true;
 			}
-		}  	
+		}
 		return false;
 	}
 }

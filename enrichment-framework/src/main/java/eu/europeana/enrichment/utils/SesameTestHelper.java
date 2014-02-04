@@ -42,8 +42,7 @@ import eu.europeana.enrichment.triple.Property;
  * @author Borys Omelayenko
  * 
  */
-public class SesameTestHelper implements ConverterTester
-{
+public class SesameTestHelper implements ConverterTester {
 	private Repository rdf;
 	private RepositoryConnection connection;
 	private ValueFactory vf;
@@ -51,24 +50,19 @@ public class SesameTestHelper implements ConverterTester
 	File[] files;
 	File tmp;
 
-	public SesameTestHelper(File tmp, File... files) throws Exception
-	{
+	public SesameTestHelper(File tmp, File... files) throws Exception {
 	}
 
-	public String loadDataAndTest() throws Exception
-	{
+	public String loadDataAndTest() throws Exception {
 		rdf = Helper.createLocalRepository(tmp);
 		vf = rdf.getValueFactory();
 		connection = rdf.getConnection();
 		if (files != null)
 			Helper.importRDFXMLFile(rdf, Namespaces.NS.toString(), files);
 		String result = null;
-		try
-		{
+		try {
 			result = testConversion();
-		}
-		finally
-		{
+		} finally {
 			connection.close();
 		}
 		return result;
@@ -79,8 +73,7 @@ public class SesameTestHelper implements ConverterTester
 	 * 
 	 * @return <code>null</code> if all tests are passed, or an error message.
 	 */
-	public String testConversion() throws Exception
-	{
+	public String testConversion() throws Exception {
 
 		String result = "";
 		return result;
@@ -91,12 +84,9 @@ public class SesameTestHelper implements ConverterTester
 	 * 
 	 * @return count this pattern occurred
 	 */
-	private RepositoryResult<Statement> isTripleIn(
-			String subject,
-			String property,
-			String value,
-			boolean isLiteral) throws RepositoryException
-	{
+	private RepositoryResult<Statement> isTripleIn(String subject,
+			String property, String value, boolean isLiteral)
+			throws RepositoryException {
 		Resource subj = null;
 		URI pred = null;
 		Value val = null;
@@ -117,17 +107,16 @@ public class SesameTestHelper implements ConverterTester
 	 * Tests if the triple is present in the results.
 	 * 
 	 * @param subject
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param property
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param value
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param isLiteral
 	 * @return
 	 */
-	protected String assertPresence(String subject, String property, String value, boolean isLiteral)
-			throws RepositoryException
-	{
+	protected String assertPresence(String subject, String property,
+			String value, boolean isLiteral) throws RepositoryException {
 		return assertTriple(true, subject, property, value, isLiteral);
 	}
 
@@ -135,40 +124,34 @@ public class SesameTestHelper implements ConverterTester
 	 * Tests if the triple is absent in the results.
 	 * 
 	 * @param subject
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param property
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param value
-	 *          null means 'all'
+	 *            null means 'all'
 	 * @param isLiteral
 	 * @return
 	 */
-	protected String assertAbsence(String subject, String property, String value, boolean isLiteral)
-			throws RepositoryException
-	{
+	protected String assertAbsence(String subject, String property,
+			String value, boolean isLiteral) throws RepositoryException {
 		return assertTriple(false, subject, property, value, isLiteral);
 	}
 
-	protected RepositoryResult<Statement> selectTriples(
-			String subject,
-			String property,
-			String value,
-			boolean isLiteral) throws RepositoryException
-	{
+	protected RepositoryResult<Statement> selectTriples(String subject,
+			String property, String value, boolean isLiteral)
+			throws RepositoryException {
 		return isTripleIn(subject, property, value, isLiteral);
 	}
 
-	private String assertTriple(
-			boolean shouldBeIn,
-			String subject,
-			String property,
-			String value,
-			boolean isLiteral) throws RepositoryException
-	{
+	private String assertTriple(boolean shouldBeIn, String subject,
+			String property, String value, boolean isLiteral)
+			throws RepositoryException {
 		String triple = "<" + subject + "," + property + "," + value + ">";
-		if (shouldBeIn && isTripleIn(subject, property, value, isLiteral).hasNext())
+		if (shouldBeIn
+				&& isTripleIn(subject, property, value, isLiteral).hasNext())
 			return "";
-		if (!shouldBeIn && !isTripleIn(subject, property, value, isLiteral).hasNext())
+		if (!shouldBeIn
+				&& !isTripleIn(subject, property, value, isLiteral).hasNext())
 			return "";
 
 		if (shouldBeIn)
@@ -177,43 +160,33 @@ public class SesameTestHelper implements ConverterTester
 			return "Unexpected triple " + triple + " \n";
 	}
 
-	public String checkTraces(Property relationToCheck, Property relationToFind, String message)
-			throws Exception
-	{
-		String query =
-				"SELECT X FROM {X} <"
-					+ relationToCheck.getUri()
-					+ "> {Y} "
-					+ "MINUS "
-					+ "SELECT X FROM {X} <"
-					+ relationToCheck.getUri()
-					+ "> {} <"
-					+ relationToFind.getUri()
-					+ "> {Y} ";
+	public String checkTraces(Property relationToCheck,
+			Property relationToFind, String message) throws Exception {
+		String query = "SELECT X FROM {X} <" + relationToCheck.getUri()
+				+ "> {Y} " + "MINUS " + "SELECT X FROM {X} <"
+				+ relationToCheck.getUri() + "> {} <" + relationToFind.getUri()
+				+ "> {Y} ";
 
-		TupleQueryResult resulst = connection.prepareTupleQuery(QueryLanguage.SERQL, query).evaluate();
+		TupleQueryResult resulst = connection.prepareTupleQuery(
+				QueryLanguage.SERQL, query).evaluate();
 		List<String> bindingNames = resulst.getBindingNames();
 		String result = "";
-		// QueryResultsTable resultsTable =
-		// rdf.performTableQuery(QueryLanguage.SERQL, query);
-		try
-		{
-			while (resulst.hasNext())
-			{
+		try {
+			while (resulst.hasNext()) {
 				BindingSet bindingSet = resulst.next();
 				int rowCount = bindingNames.size();
-				for (int row = 0; row < rowCount; row++)
-				{
+				for (int row = 0; row < rowCount; row++) {
 					if (result.length() == 0)
-						result = "The following teachers (relation " + message + " are not mapped to anyone\n";
-					result += bindingSet.getValue(bindingNames.get(0)).stringValue() + "\n";
+						result = "The following teachers (relation " + message
+								+ " are not mapped to anyone\n";
+					result += bindingSet.getValue(bindingNames.get(0))
+							.stringValue() + "\n";
 				}
 			}
 			if (result.length() == 0)
-				result = "Suspiciously enough, it seems that the " + message + " links are all ok.";
-		}
-		finally
-		{
+				result = "Suspiciously enough, it seems that the " + message
+						+ " links are all ok.";
+		} finally {
 			resulst.close();
 		}
 		return result;

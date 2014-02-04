@@ -33,16 +33,15 @@ import eu.europeana.enrichment.path.PathMap;
 import eu.europeana.enrichment.path.PathMap.MatchResult;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * Conversion task: inputs, outputs, and mappings.
  * 
  * @author Borys Omelayenko
  * 
  */
-class TaskImpl implements Task
-{
-	private static final long serialVersionUID = Common.getCommonSerialVersionUID();
+class TaskImpl implements Task {
+	private static final long serialVersionUID = Common
+			.getCommonSerialVersionUID();
 
 	private String datasetId;
 
@@ -54,7 +53,6 @@ class TaskImpl implements Task
 
 	private Namespace targetNamespace;
 
-
 	private Environment environment;
 
 	/**
@@ -64,36 +62,31 @@ class TaskImpl implements Task
 	 * @param subsignature
 	 * @param description
 	 * @param targetNamespace
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	TaskImpl(
-			String datasetId,
-			String subsignature,
-			String description,
-			Namespace targetNamespace,
-			Environment environment) throws Exception {
+	TaskImpl(String datasetId, String subsignature, String description,
+			Namespace targetNamespace, Environment environment)
+			throws Exception {
 
 		this.datasetId = datasetId;
 		if (subsignature != null && subsignature.length() > 0)
 			this.datasetId += "_" + subsignature;
 		if (datasetId.contains("."))
-			throw new RuntimeException("Dot is not allowed in task signature " + datasetId);
+			throw new RuntimeException("Dot is not allowed in task signature "
+					+ datasetId);
 		this.datasetDescription = description;
 		this.targetNamespace = targetNamespace;
 		graphs = new HashSet<Graph>();
 		this.environment = environment;
-		
-		
 
 	}
 
-	public void addGraph(Graph graph)
-	{
+	public void addGraph(Graph graph) {
 		// some graphs are not a result of a conversion task
-		if (datasetId != null)
-		{
+		if (datasetId != null) {
 			if (graphs.contains(this))
-				throw new RuntimeException("Coding error: duplicating targets " + graph.getId());
+				throw new RuntimeException("Coding error: duplicating targets "
+						+ graph.getId());
 		}
 		graphs.add(graph);
 	}
@@ -101,8 +94,7 @@ class TaskImpl implements Task
 	DataSource dataSource;
 
 	@Override
-	public void setDataSource(DataSource dataSource)
-	throws IOException {
+	public void setDataSource(DataSource dataSource) throws IOException {
 		this.dataSource = dataSource;
 	}
 
@@ -110,62 +102,52 @@ class TaskImpl implements Task
 		return dataSource;
 	}
 
-	public void addPartListener(ObjectRule map)
-	{
+	public void addPartListener(ObjectRule map) {
 		mapPathToObjectRule.put(map.getRecordSeparatingPath(), map);
 	}
 
-	public List<ObjectRule> getObjectRules()
-	{
+	public List<ObjectRule> getObjectRules() {
 		List<ObjectRule> result = new ArrayList<ObjectRule>();
-		for (Path path : mapPathToObjectRule.keySet())
-		{
+		for (Path path : mapPathToObjectRule.keySet()) {
 			result.add(mapPathToObjectRule.get(path));
 		}
 		return result;
 	}
 
-	public List<ObjectRule> getRuleForSourcePath(Path data)
-	throws Exception {
+	public List<ObjectRule> getRuleForSourcePath(Path data) throws Exception {
 		List<ObjectRule> result = new ArrayList<ObjectRule>();
 		for (MatchResult<ObjectRule> match : mapPathToObjectRule.answer(data)) {
 			if (match.getAttributeValue() != null)
-				throw new RuntimeException("Unacceptable Path for storing rules: " + data);
+				throw new RuntimeException(
+						"Unacceptable Path for storing rules: " + data);
 			result.add(match.getStoredObject());
-		};
+		}
+		;
 
 		return result;
 	}
 
-	public Set<Graph> getGraphs()
-	{
+	public Set<Graph> getGraphs() {
 		return graphs;
 	}
 
-	public String getDatasetId()
-	{
+	public String getDatasetId() {
 		return datasetId;
 	}
 
-	public String getDatasetURI()
-	{
+	public String getDatasetURI() {
 		return targetNamespace + datasetId;
 	}
 
-	public Namespace getTargetNamespace()
-	{
+	public Namespace getTargetNamespace() {
 		return targetNamespace;
 	}
 
-	public String getDatasetDescription()
-	{
+	public String getDatasetDescription() {
 		return datasetDescription;
 	}
 
-	
-
-	public Environment getEnvironment()
-	{
+	public Environment getEnvironment() {
 		return environment;
 	}
 

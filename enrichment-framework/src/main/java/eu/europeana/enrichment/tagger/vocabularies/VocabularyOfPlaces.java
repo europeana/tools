@@ -25,85 +25,50 @@ import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.terms.TermList;
 
-
 /**
  * Vocabulary of geographical places with its specific disambiguation context.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class VocabularyOfPlaces extends AbstractVocabulary
-{
-	public static enum PLACE_TYPES
-	{
-		city(
-				"city"),
-		country(
-				"country");
+public class VocabularyOfPlaces extends AbstractVocabulary {
+	public static enum PLACE_TYPES {
+		city("city"), country("country");
 
 		String label;
 
-		PLACE_TYPES(String label)
-		{
+		PLACE_TYPES(String label) {
 			this.label = label;
 		}
 	}
 
 	VocabularyOfTerms placeTypes = new VocabularyOfTerms("placeTypes", Lang.en);
 
-	public TermList lookupPlace(String place, Collection<PLACE_TYPES> placeTypes, Collection<CodeURI> parent)
-			throws Exception
-	{
+	public TermList lookupPlace(String place,
+			Collection<PLACE_TYPES> placeTypes, Collection<CodeURI> parent)
+			throws Exception {
 		// get all terms this label
-		TermList termList = findByLabel(place, new DisambiguationContext(null, Lang.en, parent));
+		TermList termList = findByLabel(place, new DisambiguationContext(null,
+				Lang.en, parent));
 		return termList;
-		
-//		// TODO - create dismbiguator , use getUnambigous()
-//		if (termList.isEmpty())
-//			return null;
-//
-//		// find matching place types
-//		List<Term> result = new ArrayList<Term>();
-//		for (Term term : termList)
-//		{
-//			if (placeTypes != null)
-//			{
-//				// for (PLACE_TYPES placeType : placeTypes)
-//				// {
-//				//
-//				// }
-//			}
-//			else
-//			{
-//				result.add(term);
-//			}
-//		}
-//
-//		if (result.size() != 1)
-//		{
-//			return null;
-//		}
-//		return result.get(0);
 	}
 
 	@Override
-	public void loadTermPropertiesSPARQL(String propertyName, String query, File cacheDir, File dir, String... files)
-			throws Exception
-	{
+	public void loadTermPropertiesSPARQL(String propertyName, String query,
+			File cacheDir, File dir, String... files) throws Exception {
 		// load vocabulary of property values
-		VocabularyOfTerms attributeVocabulary = new VocabularyOfTerms(name + "_A_" + propertyName, null);
+		VocabularyOfTerms attributeVocabulary = new VocabularyOfTerms(name
+				+ "_A_" + propertyName, null);
 		attributeVocabulary.clearDisambiguators();
-		
+
 		attributeVocabulary.loadTermsSPARQL(query, cacheDir, dir, files);
 
 		// apply property values to loaded terms
-		for (TermList terms : listAllByCode())
-		{
-			for (Term term : terms)
-			{
-				TermList propertyTerms = attributeVocabulary.findByCode(new CodeURI(term.getCode()));
-				for (Term propertyTerm : propertyTerms)
-				{
+		for (TermList terms : listAllByCode()) {
+			for (Term term : terms) {
+				TermList propertyTerms = attributeVocabulary
+						.findByCode(new CodeURI(term.getCode()));
+				for (Term propertyTerm : propertyTerms) {
 					term.setProperty(propertyName, propertyTerm.getLabel());
 				}
 			}
@@ -111,8 +76,7 @@ public class VocabularyOfPlaces extends AbstractVocabulary
 
 	}
 
-	public VocabularyOfPlaces(String name, Lang lang)
-	{
+	public VocabularyOfPlaces(String name, Lang lang) {
 		super(name, lang);
 		addDisambiguator(new PopulationTermFilter());
 		addDisambiguator(new AdminDivisionTermFilter());

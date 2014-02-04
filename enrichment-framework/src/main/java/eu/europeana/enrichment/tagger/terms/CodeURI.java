@@ -26,8 +26,7 @@ import java.util.Collection;
  * @author Borys Omelayenko
  * 
  */
-public class CodeURI
-{
+public class CodeURI {
 	private String uri;
 
 	/**
@@ -35,14 +34,12 @@ public class CodeURI
 	 * 
 	 * @param uri
 	 */
-	public CodeURI(String uri) throws MalformedURLException
-	{
+	public CodeURI(String uri) throws MalformedURLException {
 		this.uri = new URL(uri).toString();
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return uri;
 	}
 
@@ -51,20 +48,17 @@ public class CodeURI
 	 * 
 	 * @return
 	 */
-	public String getUri()
-	{
+	public String getUri() {
 		return uri;
 	}
 
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return uri.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -72,21 +66,18 @@ public class CodeURI
 		if (getClass() != obj.getClass())
 			return false;
 		final CodeURI other = (CodeURI) obj;
-		if (uri == null)
-		{
+		if (uri == null) {
 			if (other.uri != null)
 				return false;
-		}
-		else if (!uri.equals(other.uri))
+		} else if (!uri.equals(other.uri))
 			return false;
 		return true;
 	}
 
-	public static Collection<CodeURI> stringToCodeURI(String[] parents) throws MalformedURLException
-	{
+	public static Collection<CodeURI> stringToCodeURI(String[] parents)
+			throws MalformedURLException {
 		Collection<CodeURI> result = new ArrayList<CodeURI>();
-		for (String uri : parents)
-		{
+		for (String uri : parents) {
 			result.add(new CodeURI(uri));
 		}
 		return result;

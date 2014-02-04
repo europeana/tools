@@ -26,31 +26,29 @@ import eu.europeana.enrichment.xconverter.api.Graph;
 
 /**
  * Stores the value of an XML element or attribute as a resource RDF triple.
- *  
+ * 
  * @author Borys Omelayenko
  * 
  */
-public class RenameResourcePropertyRule extends AbstractRenamePropertyRule
-{
+public class RenameResourcePropertyRule extends AbstractRenamePropertyRule {
 	private Namespace namespaceForValues = null;
 
 	/**
-	 * Prefixes the value with a namespace. Should be used when
-	 * the values identify RDF resources with local identifiers, 
-	 * that need to be prefixed with a namespace to
-	 * form legal URIs.
+	 * Prefixes the value with a namespace. Should be used when the values
+	 * identify RDF resources with local identifiers, that need to be prefixed
+	 * with a namespace to form legal URIs.
 	 * 
-	 * @param dstProperty destination property
-	 * @param dstNamespace namespace to prefix value URIs
-	 * @param dstGraph destination graph
+	 * @param dstProperty
+	 *            destination property
+	 * @param dstNamespace
+	 *            namespace to prefix value URIs
+	 * @param dstGraph
+	 *            destination graph
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "prefix" )
+	@AnnoCultor.XConverter(include = true, affix = "prefix")
 	public RenameResourcePropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			Namespace dstNamespace, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Namespace dstNamespace, Graph dstGraph) {
 		super(dstProperty, dstGraph);
 		this.setSourcePath(srcPath);
 		this.namespaceForValues = dstNamespace;
@@ -59,19 +57,20 @@ public class RenameResourcePropertyRule extends AbstractRenamePropertyRule
 	}
 
 	/**
-	 * Keeps the original value in the destination RDF triple.
-	 * Should be used when the values store full URI of the objects.
+	 * Keeps the original value in the destination RDF triple. Should be used
+	 * when the values store full URI of the objects.
 	 * 
-	 * @param dstProperty destination property
-	 * @param dstNamespace namespace to prefix value URIs
-	 * @param dstGraph destination graph
+	 * @param dstProperty
+	 *            destination property
+	 * @param dstNamespace
+	 *            namespace to prefix value URIs
+	 * @param dstGraph
+	 *            destination graph
 	 */
-	@AnnoCultor.XConverter( include = true, affix = "verbatim" )
+	@AnnoCultor.XConverter(include = true, affix = "verbatim")
 	public RenameResourcePropertyRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			Property dstProperty, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			Property dstProperty, Graph dstGraph) {
 		super(dstProperty, dstGraph);
 		this.setSourcePath(srcPath);
 		this.namespaceForValues = null;
@@ -79,11 +78,8 @@ public class RenameResourcePropertyRule extends AbstractRenamePropertyRule
 			throw new RuntimeException("NULL propertyName");
 	}
 
-	public RenameResourcePropertyRule(
-			Property dstProperty, 
-			Namespace dstNamespace, 
-			Graph dstGraph)
-	{
+	public RenameResourcePropertyRule(Property dstProperty,
+			Namespace dstNamespace, Graph dstGraph) {
 		super(dstProperty, dstGraph);
 		this.namespaceForValues = dstNamespace;
 		if (dstProperty == null)
@@ -91,16 +87,11 @@ public class RenameResourcePropertyRule extends AbstractRenamePropertyRule
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject converter) throws Exception
-	{
-		Triple t =
-			triple.changePropertyAndValue(
-					getTargetPropertyName(), 
-					new ResourceValue(
-							namespaceForValues == null ? "" : namespaceForValues.getUri(),
-									triple.getValue().getValue()
-					)
-			);
+	public void fire(Triple triple, DataObject converter) throws Exception {
+		Triple t = triple.changePropertyAndValue(getTargetPropertyName(),
+				new ResourceValue(namespaceForValues == null ? ""
+						: namespaceForValues.getUri(), triple.getValue()
+						.getValue()));
 
 		super.fire(t, converter);
 	}

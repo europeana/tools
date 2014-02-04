@@ -46,27 +46,27 @@ import eu.europeana.enrichment.triple.Triple;
  * @author Borys Omelayenko
  * 
  */
-public class SesameWriter extends RDFXMLWriter
-{
+public class SesameWriter extends RDFXMLWriter {
 
-	public static void checkPredicateUri(String predString) throws Exception
-	{
+	public static void checkPredicateUri(String predString) throws Exception {
 		int predSplitIdx = XMLUtil.findURISplitIndex(predString);
-		if (predSplitIdx == -1)
-		{
-			throw new RDFHandlerException("Unable to create XML namespace-qualified name for predicate: " + predString);
+		if (predSplitIdx == -1) {
+			throw new RDFHandlerException(
+					"Unable to create XML namespace-qualified name for predicate: "
+							+ predString);
 		}
 	}
 
-	public static SesameWriter createRDFXMLWriter(File fn, Namespaces namespaces, String id, String description, int bufferInKB, int bufferInTriples, String... comment)
-	throws Exception
-	{
+	public static SesameWriter createRDFXMLWriter(File fn,
+			Namespaces namespaces, String id, String description,
+			int bufferInKB, int bufferInTriples, String... comment)
+			throws Exception {
 		fn.delete();
 		OutputStream out;
 		try {
-			out = new BufferedOutputStream(new FileOutputStream(fn, true), 1024 * bufferInKB);
-		} 
-		catch (Exception e) {
+			out = new BufferedOutputStream(new FileOutputStream(fn, true),
+					1024 * bufferInKB);
+		} catch (Exception e) {
 			throw new Exception("file " + fn.getCanonicalPath(), e);
 		}
 
@@ -75,13 +75,11 @@ public class SesameWriter extends RDFXMLWriter
 		// sort ns
 		List<String> sortedNs = new LinkedList<String>();
 
-		for (String uri : namespaces.listAllUris())
-		{
+		for (String uri : namespaces.listAllUris()) {
 			sortedNs.add(namespaces.getNick(uri) + "=" + uri);
 		}
 		Collections.sort(sortedNs);
-		for (String ns : sortedNs)
-		{
+		for (String ns : sortedNs) {
 			String[] nss = ns.split("=");
 			writer.handleNamespace(nss[0], nss[1]);
 		}
@@ -98,8 +96,7 @@ public class SesameWriter extends RDFXMLWriter
 		comments.addAll(Arrays.asList(comment));
 
 		String wholeComment = "";
-		for (String c : comments)
-		{
+		for (String c : comments) {
 			wholeComment += c + "\n";
 		}
 		writer.handleComment(wholeComment);
@@ -107,6 +104,7 @@ public class SesameWriter extends RDFXMLWriter
 	}
 
 	int bufferInTriples;
+
 	public SesameWriter(OutputStream out, int bufferInTriples) {
 		super(out);
 		this.bufferInTriples = bufferInTriples;
@@ -116,48 +114,44 @@ public class SesameWriter extends RDFXMLWriter
 	int resources = 0;
 
 	@Override
-	public void handleComment(String arg0) throws RDFHandlerException
-	{
+	public void handleComment(String arg0) throws RDFHandlerException {
 		flushStatements();
 		super.handleComment(arg0);
 	}
 
 	public void handleTriple(Triple triple) throws RDFHandlerException {
-		if (pendingStatements.isEmpty())
-		{
+		if (pendingStatements.isEmpty()) {
 			pendingStatements.add(triple);
-		}
-		else
-		{
-			if (!pendingStatements.get(0).getSubject().equals(triple.getSubject()))
+		} else {
+			if (!pendingStatements.get(0).getSubject()
+					.equals(triple.getSubject()))
 				resources++;
 
 			if (pendingStatements.size() > bufferInTriples
-					|| !pendingStatements.get(0).getSubject().equals(triple.getSubject()))
-			{
+					|| !pendingStatements.get(0).getSubject()
+							.equals(triple.getSubject())) {
 				flushStatements();
 			}
 			pendingStatements.add(triple);
 		}
 	}
 
-	private void flushStatements() throws RDFHandlerException
-	{
+	private void flushStatements() throws RDFHandlerException {
 		// sort statements by subject-predicate-object
 		Collections.sort(pendingStatements, new Comparator<Triple>() {
 
-			public int compare(Triple left, Triple right)
-			{
+			public int compare(Triple left, Triple right) {
 				// sort by subject
 				int result = left.getSubject().compareTo(right.getSubject());
-				if (result == 0)
-				{
-					// sort by property within a subject, based on namespace nicks
-					result = left.getProperty().toString().compareTo(right.getProperty().toString());
-					if (result == 0)
-					{
+				if (result == 0) {
+					// sort by property within a subject, based on namespace
+					// nicks
+					result = left.getProperty().toString()
+							.compareTo(right.getProperty().toString());
+					if (result == 0) {
 						// sort by object within the same subject and property
-						result = left.getValue().getValue().compareTo(right.getValue().getValue());
+						result = left.getValue().getValue()
+								.compareTo(right.getValue().getValue());
 					}
 				}
 				return result;
@@ -165,26 +159,22 @@ public class SesameWriter extends RDFXMLWriter
 
 		});
 
-		for (Triple triple : pendingStatements)
-		{
+		for (Triple triple : pendingStatements) {
 			// determine triple type: literal or resource
 			Value value = null;
 			if (triple.getValue() instanceof LiteralValue) {
-				LiteralValue literalValue = (LiteralValue)triple.getValue();
-				value =  new LiteralImpl(literalValue.getValue(), literalValue.getLang());
+				LiteralValue literalValue = (LiteralValue) triple.getValue();
+				value = new LiteralImpl(literalValue.getValue(),
+						literalValue.getLang());
 			} else {
 				value = new URIImpl(triple.getValue().getValue());
 			}
 			// write triple
-			handleStatement(
-					new StatementImpl(
-							new URIImpl(triple.getSubject()),
-							new URIImpl(triple.getProperty().getUri()),
-							value)
-			);
+			handleStatement(new StatementImpl(new URIImpl(triple.getSubject()),
+					new URIImpl(triple.getProperty().getUri()), value));
 			// optionally write comment
 			if (triple.getComment() != null && !triple.getComment().isEmpty()) {
-				super.handleComment(triple.getComment());					
+				super.handleComment(triple.getComment());
 			}
 		}
 
@@ -193,23 +183,17 @@ public class SesameWriter extends RDFXMLWriter
 	}
 
 	@Override
-	public void endRDF() throws RDFHandlerException
-	{
+	public void endRDF() throws RDFHandlerException {
 		flushStatements();
-		this.handleComment(
-				"Resources: " + resources
+		this.handleComment("Resources: "
+				+ resources
 				+ " \n(if a resource is described in two XML elements rdf:Descriptions then it will be counted twice)");
 		super.endRDF();
-		try
-		{
+		try {
 			this.writer.close();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new RDFHandlerException(e);
 		}
 	}
-
-
 
 }

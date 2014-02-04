@@ -28,35 +28,36 @@ import eu.europeana.enrichment.utils.OntologySubtractor;
  * 
  */
 
-//TODO: analyze and pretty
+// TODO: analyze and pretty
 public class Cli {
-    
-    public static interface CliExecutable {
-        public abstract void mainMethod(String ... args) throws Exception;
-    }
 
-    public static Map<String, CliExecutable> commands = new HashMap<String, CliExecutable>();
+	public static interface CliExecutable {
+		public abstract void mainMethod(String... args) throws Exception;
+	}
 
-    static {
-        commands.put("subtract", new OntologySubtractor());
-    }
+	public static Map<String, CliExecutable> commands = new HashMap<String, CliExecutable>();
 
-    static void error(String command) {
-        System.err.println("Unknown command: '" + command + "', expected one of:");
-        for (String allowedCommand : commands.keySet()) {
-            System.err.println("  " + allowedCommand);
-        }
-    }
+	static {
+		commands.put("subtract", new OntologySubtractor());
+	}
 
-    static public void main(String... args) throws Exception {
+	static void error(String command) {
+		System.err.println("Unknown command: '" + command
+				+ "', expected one of:");
+		for (String allowedCommand : commands.keySet()) {
+			System.err.println("  " + allowedCommand);
+		}
+	}
 
-        String command = args[0];
+	static public void main(String... args) throws Exception {
 
-        if (commands.containsKey(command)) {
-            CliExecutable executable = commands.get(command);
-            executable.mainMethod(Arrays.copyOfRange(args, 1, args.length - 1));
-        } else {
-            error(command);
-        }
-    }
+		String command = args[0];
+
+		if (commands.containsKey(command)) {
+			CliExecutable executable = commands.get(command);
+			executable.mainMethod(Arrays.copyOfRange(args, 1, args.length - 1));
+		} else {
+			error(command);
+		}
+	}
 }

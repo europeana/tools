@@ -24,8 +24,7 @@ import java.util.HashMap;
  * 
  */
 @Deprecated
-public class Cache<KEY, VALUE>
-{
+public class Cache<KEY, VALUE> {
 
 	private final int SIZE_LIMIT = 1024;
 

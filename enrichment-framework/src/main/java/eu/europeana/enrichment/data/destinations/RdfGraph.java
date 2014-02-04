@@ -22,46 +22,44 @@ import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.utils.SesameWriter;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-public class RdfGraph extends AbstractFileWritingGraph
-{
+public class RdfGraph extends AbstractFileWritingGraph {
 	private SesameWriter persistenceWriter;
 
 	/**
 	 * Target that corresponds to an output RDF file.
 	 * 
-	 * @param datasetId 
-	 *          signature of a dataset (conversion task). null indicates that this graph is not a result of a conversion task.
+	 * @param datasetId
+	 *            signature of a dataset (conversion task). null indicates that
+	 *            this graph is not a result of a conversion task.
 	 * @param objectType
-	 *          signature, typically the type (class) of objects stored in this
-	 *          RDF.
+	 *            signature, typically the type (class) of objects stored in
+	 *            this RDF.
 	 * @param propertyType
-	 *          signature, typically the type of properties stored in this RDF.
+	 *            signature, typically the type of properties stored in this
+	 *            RDF.
 	 * @param comment
-	 *          Descriptive text put into the RDF file header
+	 *            Descriptive text put into the RDF file header
 	 */
-	public RdfGraph(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		super(datasetId, environment, datasetModifier, objectType, propertyType, "rdf", comment);
+	public RdfGraph(String datasetId, Environment environment,
+			String datasetModifier, String objectType, String propertyType,
+			String... comment) {
+		super(datasetId, environment, datasetModifier, objectType,
+				propertyType, "rdf", comment);
 	}
 
 	@Override
-	public void startRdf() throws Exception
-	{
+	public void startRdf() throws Exception {
 		super.startRdf();
 
-		persistenceWriter = SesameWriter.createRDFXMLWriter(getFinalFile(getVolume()), getEnvironment().getNamespaces(), getId(), StringUtils.join(getComments(), "\n"), 1024, 100 * 1024);
+		persistenceWriter = SesameWriter.createRDFXMLWriter(
+				getFinalFile(getVolume()), getEnvironment().getNamespaces(),
+				getId(), StringUtils.join(getComments(), "\n"), 1024,
+				100 * 1024);
 		persistenceWriter.startRDF();
 	}
 
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (!(obj instanceof Graph))
 			return false;
 		Graph tObj = (Graph) obj;
@@ -74,14 +72,16 @@ public class RdfGraph extends AbstractFileWritingGraph
 	}
 
 	@Override
-	public void endRdf() throws Exception
-	{
+	public void endRdf() throws Exception {
 		if (writingHappened()) {
-			persistenceWriter.handleComment("Triples all volumes (all triples if this is the last volume): " + size());
+			persistenceWriter
+					.handleComment("Triples all volumes (all triples if this is the last volume): "
+							+ size());
 			persistenceWriter.handleComment("Properties: "
 					+ getProperties().size()
 					+ "\n"
-					+ getProperties().toString().replaceAll(", http://", ",\n http://"));
+					+ getProperties().toString().replaceAll(", http://",
+							",\n http://"));
 			persistenceWriter.endRDF();
 		}
 	}

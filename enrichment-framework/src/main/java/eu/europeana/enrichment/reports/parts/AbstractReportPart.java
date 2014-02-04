@@ -24,15 +24,14 @@ import java.io.IOException;
  * @author Borys Omelayenko
  * 
  */
-public abstract class AbstractReportPart
-{
+public abstract class AbstractReportPart {
 
-	private File file ;
+	private File file;
 
 	public File getFile() {
 		return file;
 	}
-	
+
 	private int maxSize;
 
 	protected int getMaxSize() {
@@ -42,7 +41,7 @@ public abstract class AbstractReportPart
 	protected void empty() {
 		maxSize = 0;
 	}
-	
+
 	public AbstractReportPart(File file, int maxSize) {
 		super();
 		this.file = file;
@@ -50,7 +49,7 @@ public abstract class AbstractReportPart
 	}
 
 	public abstract void flush() throws IOException;
-	
+
 	public abstract void load() throws Exception;
 
 }

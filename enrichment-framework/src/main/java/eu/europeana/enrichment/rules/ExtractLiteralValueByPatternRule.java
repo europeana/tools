@@ -24,7 +24,6 @@ import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * Rule to create an RDF literal property with the value specified by a regular
  * expression.
@@ -32,25 +31,19 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class ExtractLiteralValueByPatternRule extends RenameLiteralPropertyRule
-{
+public class ExtractLiteralValueByPatternRule extends RenameLiteralPropertyRule {
 	private Pattern pattern;
 	private int group;
-	
+
 	/**
 	 * Uses a regular expression to pull a part of a value and to store it in a
 	 * separate property.
 	 * 
 	 * @param group
-	 *          group number in the pattern that is stored, e.g. 1, ...
+	 *            group number in the pattern that is stored, e.g. 1, ...
 	 */
-	public ExtractLiteralValueByPatternRule(
-			Property trgProperty,
-			String pattern,
-			String trgLang,
-			int group,
-			Graph trgGraph)
-	{
+	public ExtractLiteralValueByPatternRule(Property trgProperty,
+			String pattern, String trgLang, int group, Graph trgGraph) {
 		super(trgProperty, trgLang, trgGraph);
 		this.pattern = Pattern.compile(pattern);
 		this.group = group;
@@ -60,13 +53,13 @@ public class ExtractLiteralValueByPatternRule extends RenameLiteralPropertyRule
 	 * @inheritDoc
 	 */
 	@Override
-	public void fire(Triple triple, DataObject converter) throws Exception
-	{
+	public void fire(Triple triple, DataObject converter) throws Exception {
 		Matcher matcher = pattern.matcher(triple.getValue().getValue());
 
-		if (matcher.find())
-		{
-			super.fire(triple.changeValue(new LiteralValue(matcher.group(group))), converter);
+		if (matcher.find()) {
+			super.fire(
+					triple.changeValue(new LiteralValue(matcher.group(group))),
+					converter);
 		}
 	}
 }

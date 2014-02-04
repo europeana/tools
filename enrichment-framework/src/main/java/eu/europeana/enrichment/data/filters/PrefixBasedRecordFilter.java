@@ -18,7 +18,6 @@ package eu.europeana.enrichment.data.filters;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * @author Borys Omelayenko
  * 
@@ -26,7 +25,7 @@ import java.util.List;
 public class PrefixBasedRecordFilter extends IdBasedRecordFilter {
 
 	List<String> ids = new ArrayList<String>();
-	
+
 	@Override
 	boolean isIncludedRecordInternal(String id) {
 		for (String prefix : ids) {
@@ -42,6 +41,5 @@ public class PrefixBasedRecordFilter extends IdBasedRecordFilter {
 		super.load();
 		ids.addAll(includedRecords);
 	}
-	
-	
+
 }

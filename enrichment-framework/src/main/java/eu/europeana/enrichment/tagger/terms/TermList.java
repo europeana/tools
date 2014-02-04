@@ -18,30 +18,25 @@ package eu.europeana.enrichment.tagger.terms;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-
 /**
  * List of terms as stored in vocabularies.
  * 
  * @author Borys Omelayenko
  * 
  */
-public class TermList implements Iterable<Term>
-{
+public class TermList implements Iterable<Term> {
 
 	private TreeSet<Term> list = new TreeSet<Term>();
 
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return list.isEmpty();
 	}
 
-	public Iterator<Term> iterator()
-	{
+	public Iterator<Term> iterator() {
 		return list.iterator();
 	}
 
-	public TermList()
-	{
+	public TermList() {
 		super();
 	}
 
@@ -49,8 +44,7 @@ public class TermList implements Iterable<Term>
 	boolean sameLabels = true;
 	boolean sameCodes = true;
 
-	public boolean add(Term term)
-	{
+	public boolean add(Term term) {
 		if (term == null) {
 			return false;
 		}
@@ -77,21 +71,19 @@ public class TermList implements Iterable<Term>
 		return sameCodes;
 	}
 
-	public void add(TermList t)
-	{
+	public void add(TermList t) {
 		for (Term term : t) {
-			add(term);			
+			add(term);
 		}
 	}
 
-	public int size()
-	{
+	public int size() {
 		return list.size();
 	}
 
 	public Term getFirst() {
-	
-		return list.isEmpty()?null:list.first();
+
+		return list.isEmpty() ? null : list.first();
 	}
 
 	public Term getLast() {
@@ -99,11 +91,9 @@ public class TermList implements Iterable<Term>
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		String result = "TermList: ";
-		for (Term term : list)
-		{
+		for (Term term : list) {
 			result += term;
 		}
 		return result;

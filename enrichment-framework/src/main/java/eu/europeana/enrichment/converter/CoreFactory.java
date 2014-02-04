@@ -29,100 +29,70 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * @author Borys Omelayenko
  * 
  */
-public class CoreFactory
-{
+public class CoreFactory {
 
 	/**
 	 * Makes a new conversion task.
 	 * 
 	 * @param signature
-	 *          signature of the dataset, e.g. a museum name.
+	 *            signature of the dataset, e.g. a museum name.
 	 * @param subsignature
-	 *          subsignature of the dataset, e.g. <code>works</code>,
-	 *          <code>terms</code>, <code>artists</code>.
+	 *            subsignature of the dataset, e.g. <code>works</code>,
+	 *            <code>terms</code>, <code>artists</code>.
 	 * @param description
-	 *          description of the dataset that will appear in the output RDF
-	 *          files
+	 *            description of the dataset that will appear in the output RDF
+	 *            files
 	 * @param targetNamespace
-	 *          namespace of the dataset objects to appear in the output RDF files
-	 * @throws Exception 
+	 *            namespace of the dataset objects to appear in the output RDF
+	 *            files
+	 * @throws Exception
 	 */
 
-	public static Task makeTask(
-			String signature,
-			String subsignature,
-			String description,
-			Namespace targetNamespace,
-			Environment environment) 
-	throws Exception
-	{
+	public static Task makeTask(String signature, String subsignature,
+			String description, Namespace targetNamespace,
+			Environment environment) throws Exception {
 		if (!environment.checkSignatureForDuplicates(signature)) {
-			throw new Exception("Duplicated task " + signature);			
+			throw new Exception("Duplicated task " + signature);
 		}
 
-		return new TaskImpl(signature, subsignature, description, targetNamespace, environment);
+		return new TaskImpl(signature, subsignature, description,
+				targetNamespace, environment);
 	}
 
-	public static Converter makeConverter(Task task, ConverterTester tester)
-	{
+	public static Converter makeConverter(Task task, ConverterTester tester) {
 		return new Converter(task, null, tester);
 	}
 
-	public static Graph makeGraph(
-			Task task,
-			String objectType,
-			String propertyType,
-			boolean addThisGraphToTask,
-			boolean ignoreIt, 
-			String... comment)
-	{
+	public static Graph makeGraph(Task task, String objectType,
+			String propertyType, boolean addThisGraphToTask, boolean ignoreIt,
+			String... comment) {
 		// checking name of this graph
 		if (objectType.contains("."))
-			throw new RuntimeException("Dot is not allowed in target object type signature " + objectType);
+			throw new RuntimeException(
+					"Dot is not allowed in target object type signature "
+							+ objectType);
 
-		Graph newGraph = 
-			ignoreIt ? 
-					makeIgnoredGraph(
-							task.getDatasetId(),
-							task.getEnvironment(),
-							null,
-							objectType,
-							propertyType,
-							comment)
-							:	
-								makeNamedGraph(
-										task.getDatasetId(),
-										task.getEnvironment(),
-										null,
-										objectType,
-										propertyType,
-										comment);
-							if (addThisGraphToTask)
-								task.addGraph(newGraph);
-							return newGraph;
+		Graph newGraph = ignoreIt ? makeIgnoredGraph(task.getDatasetId(),
+				task.getEnvironment(), null, objectType, propertyType, comment)
+				: makeNamedGraph(task.getDatasetId(), task.getEnvironment(),
+						null, objectType, propertyType, comment);
+		if (addThisGraphToTask)
+			task.addGraph(newGraph);
+		return newGraph;
 	}
 
-	public static Graph makeNamedGraph(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		return new RdfGraph(datasetId, environment, datasetModifier, objectType, propertyType, comment);
+	public static Graph makeNamedGraph(String datasetId,
+			Environment environment, String datasetModifier, String objectType,
+			String propertyType, String... comment) {
+		return new RdfGraph(datasetId, environment, datasetModifier,
+				objectType, propertyType, comment);
 	}
 
-	private static Graph makeIgnoredGraph(
-			String datasetId,
-			Environment environment,
-			String datasetModifier,
-			String objectType,
-			String propertyType,
-			String... comment)
-	{
-		return new IgnoredRdfGraph(datasetId, environment, datasetModifier, objectType, propertyType, comment);
+	private static Graph makeIgnoredGraph(String datasetId,
+			Environment environment, String datasetModifier, String objectType,
+			String propertyType, String... comment) {
+		return new IgnoredRdfGraph(datasetId, environment, datasetModifier,
+				objectType, propertyType, comment);
 	}
-
 
 }

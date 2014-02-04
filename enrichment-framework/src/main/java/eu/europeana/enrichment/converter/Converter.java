@@ -39,10 +39,10 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * 
  * @author Borys Omelayenko
  */
-class Converter implements ConverterKernel
-{
+class Converter implements ConverterKernel {
 
-	private static final long serialVersionUID = Common.getCommonSerialVersionUID();
+	private static final long serialVersionUID = Common
+			.getCommonSerialVersionUID();
 
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
@@ -50,8 +50,7 @@ class Converter implements ConverterKernel
 
 	private ConverterTester tester;
 
-	public void setTester(ConverterTester tester)
-	{
+	public void setTester(ConverterTester tester) {
 		this.tester = tester;
 	}
 
@@ -61,8 +60,7 @@ class Converter implements ConverterKernel
 
 	private ConverterHandler handler;
 
-	public void setMaximalRecordsToPass(int maximalRecordsToPass)
-	{
+	public void setMaximalRecordsToPass(int maximalRecordsToPass) {
 		handler.setMaximalRecordsToPass(maximalRecordsToPass);
 	}
 
@@ -70,9 +68,9 @@ class Converter implements ConverterKernel
 	 * Creates a converter.
 	 * 
 	 * @param task
-	 *          conversion task
+	 *            conversion task
 	 * @param env
-	 *          conversion environment
+	 *            conversion environment
 	 */
 	Converter(Task task, ConverterHandler handler, ConverterTester tester) {
 		this.task = task;
@@ -83,22 +81,21 @@ class Converter implements ConverterKernel
 		this.tester = tester;
 	}
 
-
 	/*
 	 * Converter
 	 */
 	StopWatch timeElapsed = new StopWatch();
 
-	public int convert() throws Exception
-	{
+	public int convert() throws Exception {
 		int result = 0;
 		startConversion();
 		try {
 			handler.setConversionResult(ConversionResult.failure);
-			task.getDataSource().feedData(handler, 
+			task.getDataSource().feedData(handler,
 					task.getObjectRules().get(0).getRecordSeparatingPath(),
 					task.getObjectRules().get(0).getPrimaryRecordIdPath());
-			result = handler.getConversionResult() == ConversionResult.success ? 0 : -1;
+			result = handler.getConversionResult() == ConversionResult.success ? 0
+					: -1;
 		} catch (Exception e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
@@ -110,13 +107,12 @@ class Converter implements ConverterKernel
 		return result;
 	}
 
-	public BufferedInputStream makeInputStream(File src) throws FileNotFoundException
-	{
+	public BufferedInputStream makeInputStream(File src)
+			throws FileNotFoundException {
 		return new BufferedInputStream(new FileInputStream(src), 1024 * 1024);
 	}
 
-	protected void startConversion() throws Exception
-	{
+	protected void startConversion() throws Exception {
 		timeElapsed.start();
 		// creating a tmp location
 		File tmpDir = new File(env.getTmpDir() + "/");
@@ -124,33 +120,29 @@ class Converter implements ConverterKernel
 			tmpDir.mkdir();
 	}
 
-	protected void finishConversion(int result) throws Exception
-	{
-		for (Graph target : task.getGraphs())
-		{
+	protected void finishConversion(int result) throws Exception {
+		for (Graph target : task.getGraphs()) {
 			// ignore virtual graphs
 			if (target.getRealGraph() != target)
 				continue;
 
 			// finish writing this target
 			target.endRdf();
-			if (target.writingHappened())
-			{
+			if (target.writingHappened()) {
 				for (int i = 1; i <= target.getVolume(); i++) {
-					log.info("Saved " + target.getFinalFile(i).getCanonicalPath());						
+					log.info("Saved "
+							+ target.getFinalFile(i).getCanonicalPath());
 				}
-			}
-			else
-			{
-				log.warn("Writing never started for " + target.getFinalFile(1).getCanonicalPath());
+			} else {
+				log.warn("Writing never started for "
+						+ target.getFinalFile(1).getCanonicalPath());
 			}
 		}
 
-	
-
 		timeElapsed.stop();
 		log.info("Finished conversion in " + timeElapsed + " ms.");
-		log.info(result == 0 ? "\nSUCCESS." : "\nFAILURE. Please, examine the error messages above (they may have already scrolled up). Please refer to directory ./doc for a conversion report.");
+		log.info(result == 0 ? "\nSUCCESS."
+				: "\nFAILURE. Please, examine the error messages above (they may have already scrolled up). Please refer to directory ./doc for a conversion report.");
 	}
 
 }

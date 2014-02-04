@@ -17,8 +17,6 @@ package eu.europeana.enrichment.context;
 
 import java.io.File;
 
-
-
 /**
  * Provides deployment- and run-specific parameters for running a converter.
  * 
@@ -42,9 +40,9 @@ import java.io.File;
  * version of this named graph stored in the
  * {@link Environment#getPreviousDir()} then they are compared and a diff report
  * is produced and stored in {@link Environment#getDiffDir()}.</li>
- * <li>If directory {@link Environment#getOutputOntologyDir()} exists then schema concepts
- * (ontology) defined by {@link Environment#getConcepts()} are serialized in RDF
- * and stored there.</li>
+ * <li>If directory {@link Environment#getOutputOntologyDir()} exists then
+ * schema concepts (ontology) defined by {@link Environment#getConcepts()} are
+ * serialized in RDF and stored there.</li>
  * </ul>
  * 
  * On construction, file <code>annocultor.properties</code> is read from the
@@ -54,39 +52,21 @@ import java.io.File;
  * @author Borys Omelayenko
  * 
  */
-public interface Environment
-{
+public interface Environment {
 	public Namespaces getNamespaces();
-	
+
 	public String toString();
 
 	public static final String ANNOCULTOR = "ANNOCULTOR_";
 
-
 	/*
 	 * Environment properties. Their names are linked to their external names.
 	 */
-	public enum PARAMETERS
-	{
-		ANNOCULTOR_HOME,
-		ANNOCULTOR_HOME_SOURCE,
-		ANNOCULTOR_COLLECTION_DIR,
-		ANNOCULTOR_COLLECTION_DIR_SOURCE,
-		ANNOCULTOR_DOC_DIR,
-		ANNOCULTOR_PREVIOUS_DIR,
-		ANNOCULTOR_TMP_DIR,
-		ANNOCULTOR_LOCAL_PROFILE_FILE,
-		ANNOCULTOR_KEEP_PREVIOUS,
-		ANNOCULTOR_INPUT_DIR,
-		ANNOCULTOR_OUTPUT_DIR,
-		ANNOCULTOR_VOCABULARY_DIR,
+	public enum PARAMETERS {
+		ANNOCULTOR_HOME, ANNOCULTOR_HOME_SOURCE, ANNOCULTOR_COLLECTION_DIR, ANNOCULTOR_COLLECTION_DIR_SOURCE, ANNOCULTOR_DOC_DIR, ANNOCULTOR_PREVIOUS_DIR, ANNOCULTOR_TMP_DIR, ANNOCULTOR_LOCAL_PROFILE_FILE, ANNOCULTOR_KEEP_PREVIOUS, ANNOCULTOR_INPUT_DIR, ANNOCULTOR_OUTPUT_DIR, ANNOCULTOR_VOCABULARY_DIR,
 
-		// AnnoCultor model 
-		ANNOCULTOR_MODEL_PERSON,
-		ANNOCULTOR_MODEL_PERSON_NAME,
-		ANNOCULTOR_MODEL_PERSON_BIRTH_DATE,
-		ANNOCULTOR_MODEL_PERSON_DEATH_DATE
-		;
+		// AnnoCultor model
+		ANNOCULTOR_MODEL_PERSON, ANNOCULTOR_MODEL_PERSON_NAME, ANNOCULTOR_MODEL_PERSON_BIRTH_DATE, ANNOCULTOR_MODEL_PERSON_DEATH_DATE;
 	}
 
 	public void completeWithDefaults() throws Exception;
@@ -94,7 +74,7 @@ public interface Environment
 	public void completeParameter(PARAMETERS parameter, String value);
 
 	public void init();
-	
+
 	public void setParameter(PARAMETERS parameter, String value);
 
 	public String getParameter(PARAMETERS parameter);
@@ -109,7 +89,7 @@ public interface Environment
 	public File getDocDir();
 
 	public File getOutputDir();
-	
+
 	public File getPreviousDir();
 
 	public File getTmpDir();
@@ -125,9 +105,9 @@ public interface Environment
 	public Concepts getConcepts();
 
 	/**
-	 * Signatures of datasets and  tasks are checked for uniqueness.
+	 * Signatures of datasets and tasks are checked for uniqueness.
 	 */
 	public boolean checkSignatureForDuplicates(String signature);
-	
+
 	public String getBuildSignature();
 }

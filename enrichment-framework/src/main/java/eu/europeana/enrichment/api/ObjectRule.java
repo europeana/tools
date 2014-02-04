@@ -26,7 +26,6 @@ import eu.europeana.enrichment.triple.XmlValue;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
-
 /**
  * Special rule that can convert {@link DataObject}, by invoking other rules
  * that convert properties or translate their values.
@@ -34,8 +33,7 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * @author Borys Omelayenko
  * 
  */
-public abstract class ObjectRule extends Rule
-{
+public abstract class ObjectRule extends Rule {
 
 	/**
 	 * 
@@ -44,28 +42,28 @@ public abstract class ObjectRule extends Rule
 	 *         object identifier (subject).
 	 * @throws Exception
 	 */
-	public final Value checkConditionsAndGetSubject(DataObject dataObject) throws Exception
-	{
-		if (selectorPreCondition(dataObject))
-		{
+	public final Value checkConditionsAndGetSubject(DataObject dataObject)
+			throws Exception {
+		if (selectorPreCondition(dataObject)) {
 			// preprocess
 			preprocess(dataObject);
 			// postcondition: should this data object still be converted?
-			if (selectorPostCondition(dataObject))
-			{
-				XmlValue subjectName = dataObject.getFirstValue(getPrimaryRecordIdPath());
+			if (selectorPostCondition(dataObject)) {
+				XmlValue subjectName = dataObject
+						.getFirstValue(getPrimaryRecordIdPath());
 				if (subjectName == null)
-					throw new Exception("null identifier value, pulled from " + getPrimaryRecordIdPath());
+					throw new Exception("null identifier value, pulled from "
+							+ getPrimaryRecordIdPath());
 
 				// propagate parent id to children
-				for (DataObject child : dataObject.findAllChildren())
-				{
-				    child.addValue(new Path(child.getSeparatingPath(), Concepts.ANNOCULTOR.PART_TO_PARENT), subjectName);
-//                    child.addValue(Concepts.ANNOCULTOR.PART_TO_PARENT, subjectName);
+				for (DataObject child : dataObject.findAllChildren()) {
+					child.addValue(new Path(child.getSeparatingPath(),
+							Concepts.ANNOCULTOR.PART_TO_PARENT), subjectName);
 
 					// this is set to wrong value, as it is corrected later in
 					// ObjectMap
-					child.addValue(Concepts.ANNOCULTOR.PARENT_TO_PART, subjectName);
+					child.addValue(Concepts.ANNOCULTOR.PARENT_TO_PART,
+							subjectName);
 				}
 
 				return subjectName;
@@ -80,7 +78,8 @@ public abstract class ObjectRule extends Rule
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract boolean selectorPreCondition(DataObject dataObject) throws Exception;
+	public abstract boolean selectorPreCondition(DataObject dataObject)
+			throws Exception;
 
 	/**
 	 * @see DataObjectPreprocessor
@@ -88,7 +87,8 @@ public abstract class ObjectRule extends Rule
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract boolean selectorPostCondition(DataObject dataObject) throws Exception;
+	public abstract boolean selectorPostCondition(DataObject dataObject)
+			throws Exception;
 
 	/**
 	 * @see DataObjectPreprocessor
@@ -105,7 +105,8 @@ public abstract class ObjectRule extends Rule
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract String getDataObjectId(DataObject dataObject) throws Exception;
+	public abstract String getDataObjectId(DataObject dataObject)
+			throws Exception;
 
 	/**
 	 * Returns the secondary identifying path (used in error messages, etc).
@@ -125,12 +126,12 @@ public abstract class ObjectRule extends Rule
 	public abstract ObjectRule getParent();
 
 	@Override
-	public final void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public final void fire(Triple triple, DataObject dataObject)
+			throws Exception {
 		ObjectRule rule = dataObject.getDataObjectRule();
-		String subjectName = rule.checkConditionsAndGetSubject(dataObject).getValue();
-		if (subjectName != null)
-		{
+		String subjectName = rule.checkConditionsAndGetSubject(dataObject)
+				.getValue();
+		if (subjectName != null) {
 			processDataObject(triple.getSubject(), dataObject);
 		}
 	}
@@ -142,7 +143,8 @@ public abstract class ObjectRule extends Rule
 	 * @param dataObject
 	 * @throws Exception
 	 */
-	public abstract void processDataObject(String subject, DataObject dataObject) throws Exception;
+	public abstract void processDataObject(String subject, DataObject dataObject)
+			throws Exception;
 
 	public abstract boolean isQualifiedLocalRecordIdentifier();
 
@@ -156,8 +158,9 @@ public abstract class ObjectRule extends Rule
 	 * 
 	 */
 	@Deprecated
-	public abstract void addRelRule(Path relativePath, PropertyRule rule) throws Exception;
-	
+	public abstract void addRelRule(Path relativePath, PropertyRule rule)
+			throws Exception;
+
 	/**
 	 * Adds a property conversion rule to convert an XML path specified
 	 * absolutely, from the XML root. May be also used for the predefined tags
@@ -166,12 +169,13 @@ public abstract class ObjectRule extends Rule
 	 * 
 	 */
 	@Deprecated
-	public abstract void addAbsRule(Path absolutePath, PropertyRule rule) throws Exception;
+	public abstract void addAbsRule(Path absolutePath, PropertyRule rule)
+			throws Exception;
 
 	/**
 	 * Adds a property conversion rule to convert an XML path specified
-	 * absolutely or relatively  (from the record separating tag), 
-	 * as stated in {@link Rule.getSourcePath()}.
+	 * absolutely or relatively (from the record separating tag), as stated in
+	 * {@link Rule.getSourcePath()}.
 	 * 
 	 */
 	public abstract void addRule(PropertyRule rule) throws Exception;
@@ -180,7 +184,8 @@ public abstract class ObjectRule extends Rule
 	 * Get all rules that are applicable to a specific XML path.
 	 * 
 	 */
-	public abstract MatchResultIterable<Rule> getRule(Path data) throws Exception;
+	public abstract MatchResultIterable<Rule> getRule(Path data)
+			throws Exception;
 
 	public abstract void setSecondaryRecordIdTag(Path secondaryRecordIdTag);
 
@@ -197,8 +202,6 @@ public abstract class ObjectRule extends Rule
 	 * Do not prefix the identifier with the target namespace.
 	 */
 	public abstract void assumeQualifiedLocalRecordIdentifier();
-
-//	public abstract Path relativePath(String... localPartOfPath) throws Exception;
 
 	public abstract Map<Path, Integer> getMissedPaths();
 }

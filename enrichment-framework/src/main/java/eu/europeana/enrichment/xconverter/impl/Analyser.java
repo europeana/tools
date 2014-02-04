@@ -15,13 +15,9 @@
  */
 package eu.europeana.enrichment.xconverter.impl;
 
-
-
 public class Analyser {
 
-	public static void main(String... args) 
-	throws Exception
-	{
+	public static void main(String... args) throws Exception {
 		eu.europeana.enrichment.converter.Analyser.main(args);
 	}
 }

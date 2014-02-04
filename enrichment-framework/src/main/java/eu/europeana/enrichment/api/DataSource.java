@@ -15,11 +15,8 @@
  */
 package eu.europeana.enrichment.api;
 
-
-
 import eu.europeana.enrichment.converter.ConverterHandler;
 import eu.europeana.enrichment.path.Path;
-
 
 /**
  * Source dataset, encapsulates the source data to be converted.
@@ -27,16 +24,13 @@ import eu.europeana.enrichment.path.Path;
  * @author Borys Omelayenko
  * 
  */
-public interface DataSource
-{
+public interface DataSource {
 
 	/**
-	 * Feed data to a converter to convert the dataset. 
+	 * Feed data to a converter to convert the dataset.
 	 */
-	public abstract void feedData(
-			ConverterHandler converterHandler, 
-			Path recordSeparatingPath,
-			Path recordIdentifyingPath)
-	throws Exception;
+	public abstract void feedData(ConverterHandler converterHandler,
+			Path recordSeparatingPath, Path recordIdentifyingPath)
+			throws Exception;
 
 }

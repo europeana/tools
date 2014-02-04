@@ -35,21 +35,18 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * 
  * @author Borys Omelayenko
  */
-public class ExpandIntervalRule extends AbstractRenamePropertyRule
-{
+public class ExpandIntervalRule extends AbstractRenamePropertyRule {
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	protected Path srcPathBegin;
 	protected Path srcPathEnd;
 
-	@AnnoCultor.XConverter( include = true, affix = "default" )
+	@AnnoCultor.XConverter(include = true, affix = "default")
 	public ExpandIntervalRule(
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPath, 
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPathBegin, 
-			@AnnoCultor.XConverter.sourceXMLPath Path srcPathEnd, 
-			Property dstProperty, 
-			Graph dstGraph)
-	{
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPath,
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPathBegin,
+			@AnnoCultor.XConverter.sourceXMLPath Path srcPathEnd,
+			Property dstProperty, Graph dstGraph) {
 		super(dstProperty, dstGraph);
 		this.setSourcePath(srcPath);
 		this.srcPathBegin = srcPathBegin;
@@ -57,35 +54,38 @@ public class ExpandIntervalRule extends AbstractRenamePropertyRule
 	}
 
 	@Override
-	public void fire(Triple triple, DataObject dataObject) throws Exception
-	{
+	public void fire(Triple triple, DataObject dataObject) throws Exception {
 		try {
 			int yearBegin = getYear(srcPathBegin, dataObject);
 			int yearEnd = getYear(srcPathEnd, dataObject);
 			for (int year = yearBegin; year <= yearEnd; year++) {
-				super.fire(triple.changePropertyAndValue(getTargetPropertyName(), new LiteralValue("" + year)), dataObject);
+				super.fire(triple.changePropertyAndValue(
+						getTargetPropertyName(), new LiteralValue("" + year)),
+						dataObject);
 			}
 		} catch (Exception e) {
 			log.warn(e.getMessage() + " on " + dataObject);
 		}
 	}
-	
+
 	Pattern yearPattern = Pattern.compile("^(-?\\d+)(-(\\d\\d)-(\\d\\d))?$");
-	
+
 	public int getYear(Path path, DataObject dataObject) throws Exception {
 		Value value = dataObject.getFirstValue(path);
 		if (value == null) {
-			throw new Exception("NULL value of path " + path + ", dataobject " + dataObject);
+			throw new Exception("NULL value of path " + path + ", dataobject "
+					+ dataObject);
 		}
 		return getYear(value.getValue().trim());
 	}
-	
+
 	public int getYear(String value) throws Exception {
 		Matcher m = yearPattern.matcher(value);
 		if (m.matches()) {
 			return Integer.parseInt(m.group(1));
 		}
-		throw new Exception("Failed to interpret start/end date '" + value + "'");
+		throw new Exception("Failed to interpret start/end date '" + value
+				+ "'");
 	}
-	
+
 }

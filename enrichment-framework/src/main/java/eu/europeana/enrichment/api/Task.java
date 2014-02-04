@@ -24,35 +24,34 @@ import eu.europeana.enrichment.context.Namespace;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-
 /**
  * Conversion task.
  * 
  * @author Borys Omelayenko
  * 
  */
-public interface Task
-{
+public interface Task {
 
 	/**
-	 * Source files to process. 
+	 * Source files to process.
 	 */
 	public abstract void setDataSource(DataSource dataSource)
-	throws IOException;
+			throws IOException;
 
 	public abstract DataSource getDataSource();
 
 	/**
-	 * Should not be called by custom code. A part is an XML tag that is repeating
-	 * in a record and has subtags that need to be processed in the context of
-	 * this (repeating) tag. A typical example - multiple tags <code>title</code>
-	 * where each may contain two subtags: <code>title</code> with the actual
-	 * text, and <code>titleType</code> that indicates the kind of title.
+	 * Should not be called by custom code. A part is an XML tag that is
+	 * repeating in a record and has subtags that need to be processed in the
+	 * context of this (repeating) tag. A typical example - multiple tags
+	 * <code>title</code> where each may contain two subtags: <code>title</code>
+	 * with the actual text, and <code>titleType</code> that indicates the kind
+	 * of title.
 	 * 
 	 * The root element of an XML file may contain the parts, where each part
 	 * corresponds to a record (where record properties, in turn, are processed
-	 * within the context of the record). Thus, there is no way to escape creating
-	 * a part.
+	 * within the context of the record). Thus, there is no way to escape
+	 * creating a part.
 	 * 
 	 * 
 	 */
@@ -92,10 +91,10 @@ public interface Task
 	 * @param path
 	 * @return
 	 */
-	public List<ObjectRule> getRuleForSourcePath(Path data)	throws Exception;
+	public List<ObjectRule> getRuleForSourcePath(Path data) throws Exception;
 
 	public List<ObjectRule> getObjectRules();
 
 	public Environment getEnvironment();
-	
+
 }

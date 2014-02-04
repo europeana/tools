@@ -18,14 +18,13 @@ package eu.europeana.enrichment.tagger.preprocessors;
 import java.util.List;
 
 /**
- * Preprocesses and filters values before they are looked up in a vocabulary (followed by disambiguation).
- * Improves recall.
- *  
+ * Preprocesses and filters values before they are looked up in a vocabulary
+ * (followed by disambiguation). Improves recall.
+ * 
  * @author Borys Omelayenko
  * 
  */
-public abstract class LabelFilter 
-{
+public abstract class LabelFilter {
 
 	public abstract List<String> extract(List<String> labels) throws Exception;
 }

@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
 
-
 /**
  * Named counters, autoflush.
  * 
@@ -50,15 +49,16 @@ public class ReportCounter<T> extends AbstractReportPart {
 	private CounterMap<T> counters = new CounterMap<T>();
 
 	/**
-	 * Named counters, should be flushed at the end. In the meantime, when too many counters
-	 * are collected, they are saved to a file. This is a partially aggregated file, 
-	 * as the same counter may occur there many times..
+	 * Named counters, should be flushed at the end. In the meantime, when too
+	 * many counters are collected, they are saved to a file. This is a
+	 * partially aggregated file, as the same counter may occur there many
+	 * times..
 	 * 
 	 * @param dir
-	 *    file to save counters to
+	 *            file to save counters to
 	 * @param maxSize
-	 *    maximal number of counters to keep in memory
-	 * @throws Exception 
+	 *            maximal number of counters to keep in memory
+	 * @throws Exception
 	 */
 	public ReportCounter(File dir, String file, int maxSize) throws Exception {
 		super(new File(dir, file), maxSize);
@@ -79,7 +79,6 @@ public class ReportCounter<T> extends AbstractReportPart {
 		ObjectOutputStream out = xStream.createObjectOutputStream(fos);
 		try {
 			for (ObjectCountPair<T> pair : asSorted()) {
-//			    xStream.toXML(pair, out);
 				out.writeObject(pair);
 			}
 			empty();
@@ -97,18 +96,19 @@ public class ReportCounter<T> extends AbstractReportPart {
 	@Override
 	public void load() throws IOException {
 		XStream xStream = new XStream();
-		//BufferedReader reader = new BufferedReader(new FileReader(getFile())); 
-		CountingInputStream cis = new CountingInputStream(new FileInputStream(getFile()));
+		CountingInputStream cis = new CountingInputStream(new FileInputStream(
+				getFile()));
 		ObjectInputStream in = xStream.createObjectInputStream(cis);
 		try {
 			int mb = 1;
 			// how ugly but it should throw exception at the end
 			while (true) {
-				ObjectCountPair<T> ocp = (ObjectCountPair<T>) in.readObject() ;
+				ObjectCountPair<T> ocp = (ObjectCountPair<T>) in.readObject();
 				inc(ocp.getObject(), ocp.getCount());
 				if (cis.getByteCount() > FileUtils.ONE_MB * 100 * mb) {
-					log.info("Passed " + (cis.getByteCount() / FileUtils.ONE_MB) + " MB");
-					mb ++;
+					log.info("Passed "
+							+ (cis.getByteCount() / FileUtils.ONE_MB) + " MB");
+					mb++;
 				}
 			}
 		} catch (EOFException e) {
@@ -117,8 +117,8 @@ public class ReportCounter<T> extends AbstractReportPart {
 			throw new IOException(e);
 		} finally {
 			in.close();
-			cis.close(); 
-		} 
+			cis.close();
+		}
 	}
 
 	public List<ObjectCountPair<T>> asList() {
@@ -135,29 +135,35 @@ public class ReportCounter<T> extends AbstractReportPart {
 		return list;
 	}
 
-	public static class ObjectCountPair<T> implements Comparable<ObjectCountPair<T>> {
+	public static class ObjectCountPair<T> implements
+			Comparable<ObjectCountPair<T>> {
 		private T object;
 		private Integer count;
+
 		public ObjectCountPair(T object, Integer count) {
 			super();
 			this.object = object;
 			this.count = count;
 		}
+
 		public T getObject() {
 			return object;
 		}
+
 		public Integer getCount() {
 			return count;
 		}
+
 		@Override
 		public int compareTo(ObjectCountPair<T> o) {
 			return o.getCount().compareTo(getCount());
 		}
+
 		@Override
 		public String toString() {
 			return "" + object + "=" + count;
-		}	
-		
+		}
+
 	}
 
 }

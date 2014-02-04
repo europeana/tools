@@ -26,54 +26,37 @@ import eu.europeana.enrichment.triple.Property;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.Graph;
 
-public interface TermCreatorInt
-{
-	public enum LabelCaseOption
-	{
-		KEEP_ORIGINAL_CASE,
-		TO_LOW_CASE
+public interface TermCreatorInt {
+	public enum LabelCaseOption {
+		KEEP_ORIGINAL_CASE, TO_LOW_CASE
 	};
 
 	/**
 	 * Generate term definition.
 	 * 
 	 */
-	public abstract void writeTermDefinition(
-			String termUri,
-			String broaderUri,
-			DataObject dataObject,
-			Graph graphTerms,
-			Rule rule,
-			Label prefLabel,
-			Label... altLabel) throws Exception;
+	public abstract void writeTermDefinition(String termUri, String broaderUri,
+			DataObject dataObject, Graph graphTerms, Rule rule,
+			Label prefLabel, Label... altLabel) throws Exception;
 
 	/**
-	 * Generate link record to (local) term, typically, with a specific property,
-	 * such as <code>creator</code> or <code>material</code>.
+	 * Generate link record to (local) term, typically, with a specific
+	 * property, such as <code>creator</code> or <code>material</code>.
 	 * 
 	 */
-	public abstract void writeLinkRecordToTerm(
-			String recordUri,
-			String termUri,
-			TermList terms,
-			Property relationRecordToTerm,
-			Graph graphRecords,
-			Rule rule) throws Exception;
+	public abstract void writeLinkRecordToTerm(String recordUri,
+			String termUri, TermList terms, Property relationRecordToTerm,
+			Graph graphRecords, Rule rule) throws Exception;
 
 	/**
 	 * Generate link between (local) term and matching (external) vocabulary
 	 * terms.
 	 */
 
-	public abstract void writeLinkTermToVocabulary(
-			String localTermUri,
-			Term externalVocabularyTerm,
-			Property labelOfLinkTermToVocabulary,
-			Lang langOfLinkTermToVocabulary,
-			String mappingCategorySignature,
-			Environment env,
-			DataObject dataObject,
-			Rule rule) throws Exception;
+	public abstract void writeLinkTermToVocabulary(String localTermUri,
+			Term externalVocabularyTerm, Property labelOfLinkTermToVocabulary,
+			Lang langOfLinkTermToVocabulary, String mappingCategorySignature,
+			Environment env, DataObject dataObject, Rule rule) throws Exception;
 
 	public abstract Property getRelationTermToVocabulary();
 

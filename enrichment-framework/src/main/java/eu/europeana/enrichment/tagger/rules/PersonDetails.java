@@ -18,7 +18,6 @@ package eu.europeana.enrichment.tagger.rules;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
  * Person details parsed from a name. Built from the Europeana experiences.
  * 
@@ -26,23 +25,24 @@ import java.util.regex.Pattern;
  * 
  */
 public class PersonDetails {
-	
+
 	private String firstName;
 	private String lastName;
 	private String birthDate;
 	private String deathDate;
 	private String birthPlace;
 	private String deathPlace;
-	
+
 	final String COMMA = ",";
-	
-	Pattern datePattern = Pattern.compile("(.+)\\((\\d\\d\\d\\d)-(\\d\\d\\d\\d)\\)");
-	
+
+	Pattern datePattern = Pattern
+			.compile("(.+)\\((\\d\\d\\d\\d)-(\\d\\d\\d\\d)\\)");
+
 	public PersonDetails(String name) {
 
 		// default - last name
 		lastName = name;
-		
+
 		// remove dates
 		Matcher dateMatch = datePattern.matcher(lastName);
 		if (dateMatch.matches()) {
@@ -56,8 +56,8 @@ public class PersonDetails {
 			firstName = lastName.substring(index + COMMA.length()).trim();
 			lastName = lastName.substring(0, index).trim();
 		}
-		
-		// 
+
+		//
 	}
 
 	public String getFullName() {
@@ -93,5 +93,5 @@ public class PersonDetails {
 	public String getDeathPlace() {
 		return deathPlace;
 	}
- 	
+
 }
