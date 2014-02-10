@@ -225,15 +225,6 @@ public class LookupPersonRule extends AbstractLookupRule {
 
 			super.fire(triple.changeValue(name), dataObject);
 
-			// String termUri =
-			// Common.generateNameBasedUri(proxyTermDefinition.namespaceLocalTerms,
-			// name);
-
-			// if (objectMap != null)
-			// {
-			// objectMap.processDataObject(termUri, dataObject);
-			// }
-
 		} catch (Exception e) {
 			throw new Exception("Person Writer error on triple " + triple, e);
 		}

@@ -65,7 +65,6 @@ public class SolrPeopleTagger extends SolrTagger {
 		languagesForAltLabels.add(Lang.id);
 	}
 
-	@Override
 	boolean shouldInclude(Term term) {
 		return term.getLang() == null
 				|| languagesForAltLabels.contains(term.getLang());

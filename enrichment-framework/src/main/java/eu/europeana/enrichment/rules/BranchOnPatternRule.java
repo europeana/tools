@@ -38,34 +38,7 @@ public class BranchOnPatternRule extends AbstractBranchRule {
 
 	private boolean fullLinePattern;
 
-	/**
-	 * If RE matches on the value of <code>propertyName</code> of this object.
-	 * Note that there may be multiple occurrences of this
-	 * <code>propertyName</code> and their values would be merged.
-	 * 
-	 * @param pattern
-	 * @param propertyName
-	 *            property which value should be evaluated. Use
-	 *            <code>null</code> if you want to use the current triple
-	 *            instead of naming it to avoid errors with multiple occurrences
-	 *            of this property in the same record.
-	 * @param success
-	 * @param failure
-	 */
-	// @AnnoCultor.XConverter( include = true, affix = "default" )
-	// public BranchOnPatternRule(
-	// @AnnoCultor.XConverter.sourceXMLPath Path srcPath,
-	// String pattern,
-	// Path srcPropertyName,
-	// PropertyRule success,
-	// PropertyRule failure)
-	// {
-	// super(success, failure);
-	// this.fullLinePattern = pattern.startsWith("^") && pattern.endsWith("$");
-	// this.pattern = Pattern.compile(pattern);
-	// this.propertyName = srcPropertyName;
-	// this.patternString = pattern;
-	// }
+
 
 	/**
 	 * If RE matches on the value of <code>propertyName</code> of this object.

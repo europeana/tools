@@ -36,6 +36,9 @@ public class DebuggingUtils {
 		
 			SolrInputDocument doc = new SolrInputDocument();
 			doc.addField("proxy_dc_subject", dcSubject);
+			doc.addField("proxy_dcterms_spatial","Paris");
+			doc.addField("proxy_dc_date","1918");
+			doc.addField("proxy_dc_creator","Rembrandt");
 			List<Entity> entity = tagger.tagDocument(doc);
 			System.out.println(entity.size());
 			

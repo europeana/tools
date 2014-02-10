@@ -151,28 +151,7 @@ public class LookupTermRule extends AbstractLookupRule {
 	@Override
 	protected TermList getDisambiguatedTerms(DataObject converter,
 			String label, Lang lang) throws Exception {
-		// TODO:change to database
 		return new MongoDatabaseUtils().findByLabel(label, "concept");
-		//
-		//
-		// for (VocabularyOfTerms vocabulary : vocabularies)
-		// {
-		// try
-		// {
-		// TermList term = vocabulary.lookupTerm(label, null, null);
-		// result.add(term);
-		// }
-		// catch (Exception e)
-		// {
-		// throw new Exception("Vocabulary lookup error on term '"
-		// + label
-		// + "', vocabulary '"
-		// + vocabulary.getVocabularyName()
-		// + "', original message: "
-		// + e.getMessage());
-		// }
-		// }
-		// return result;
 	}
 
 	@Override

@@ -252,10 +252,7 @@ public abstract class AbstractLookupRule extends AbstractRenamePropertyRule {
 				if (proxyTermDefinition != null) {
 
 					// generate term uri
-					// long uriGeneration = new Date().getTime();
 					termUri = generateTermUri(element);
-					// System.out.println("Generating the term URI took " + (new
-					// Date().getTime() - uriGeneration) + " ms");
 					if (!lookedUpTermStrings.contains(element)) {
 						lookedUpTermStrings.add(element);
 						termWarner.warnOnStrangeTerms(element);
@@ -289,11 +286,7 @@ public abstract class AbstractLookupRule extends AbstractRenamePropertyRule {
 					reportLookup(lastMatch, element);
 				}
 			}
-			// System.out.println(labels.size() + " Elements took " + (new
-			// Date().getTime() - startElements) + " ms");
 		}
-		// System.out.println("Actual firing took " + (new
-		// Date().getTime()-startfiring) + " ms");
 	}
 
 	TermList lastMatch;

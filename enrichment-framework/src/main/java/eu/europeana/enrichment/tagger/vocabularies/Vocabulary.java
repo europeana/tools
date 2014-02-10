@@ -120,15 +120,6 @@ public abstract interface Vocabulary {
 	public void loadTermPropertiesSPARQL(String attributeName, String query,
 			File cacheDir, File dir, String... filePatterns) throws Exception;
 
-	// @Deprecated
-	// public void loadParentsSeRQL(String query, File cacheDir, String...
-	// files)
-	// throws Exception;
-	//
-	// public void loadParentsSPARQL(String query, File cacheDir, String...
-	// files)
-	// throws Exception;
-	//
 	/**
 	 * Find term up given the unique term code.
 	 * 
@@ -149,26 +140,6 @@ public abstract interface Vocabulary {
 	public TermList findByLabel(String label,
 			DisambiguationContext disambiguationContext) throws Exception;
 
-	// /**
-	// * Find all terms with the given term code.
-	// *
-	// * @param code
-	// * code of the term
-	// * @return list of terms, possibly, empty
-	// * @throws Exception
-	// */
-	// public TermList findAllByCode(CodeURI code, DisambiguationContext
-	// disambiguationContext) throws Exception;
-	//
-	// /**
-	// * Find all terms with the given label.
-	// *
-	// * @param label
-	// * @param lang
-	// * @return list of terms, possibly, empty
-	// */
-	// public TermList findAllByLabel(String label, DisambiguationContext
-	// disambiguationContext) throws Exception;
 
 	/**
 	 * A wrap-up to {@link #findByCode(String, Lang)}

@@ -187,40 +187,10 @@ public class ConverterHandler extends DefaultHandler implements DataObject {
 	 */
 	@Override
 	public void startDocument() throws SAXException {
-		// try
-		// {
-		// if (task.isMergeSourceFiles())
-		// {
-		// //
-		// }
-		// else
-		// {
-		// multiFileStartDocument();
-		// }
-		// }
-		// catch (Exception e)
-		// {
-		// throw new SAXException("Exception on starting document ", e);
-		// }
 	}
 
 	@Override
 	public void endDocument() throws SAXException {
-		// try
-		// {
-		// if (task.isMergeSourceFiles())
-		// {
-		// //
-		// }
-		// else
-		// {
-		// multiFileEndDocument();
-		// }
-		// }
-		// catch (Exception e)
-		// {
-		// throw new SAXException("Exception on ending document ", e);
-		// }
 	}
 
 	@Override

@@ -242,19 +242,6 @@ public class FacetRenamePropertyRule extends AbstractBranchRule
 
 			if (value != null)
 			{
-				// check variable languages
-//				String xmlLang = null;
-//				if (facetToLang != null)
-//				{
-//					xmlLang = facetToLang.get(dataObject.getFirstValue(langProperty));
-//				}
-//				else
-//				{
-//					if (lang != null)
-//					{
-//						xmlLang = lang.getCode();
-//					}
-//				}
 
 				Triple t =
 						triple
@@ -272,9 +259,6 @@ public class FacetRenamePropertyRule extends AbstractBranchRule
 			}
 		}
 
-//		if (env != null) {
-//			env.getReporter().inc(this, "Unmapped facet property", "", "", triple.getValue().getValue(), 1);
-//		}
 		if (failure != null)
 			failure.fire(triple, dataObject);
 	}

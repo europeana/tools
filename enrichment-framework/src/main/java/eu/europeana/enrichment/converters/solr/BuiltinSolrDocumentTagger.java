@@ -90,8 +90,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 		@Override
 		protected void logMessage(String message) throws IOException {
-			// log.write(message + "\n");
-			// log.flush();
 		}
 
 	};

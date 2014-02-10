@@ -528,7 +528,6 @@ public class MongoDatabaseUtils {
 	 */
 	private static void saveTimeTerms(VocabularyOfTime voc) {
 		Iterable<TermList> tlList = voc.listAllByCode();
-		int i = 0;
 		for (TermList tl : tlList) {
 			Term firstTerm = tl.getFirst();
 			MongoTermList termList = new MongoTermList();
@@ -595,7 +594,6 @@ public class MongoDatabaseUtils {
 	 */
 	private static void savePlaceTerms(VocabularyOfPlaces voc) {
 		Iterable<TermList> tlList = voc.listAllByCode();
-		int i = 0;
 		for (TermList tl : tlList) {
 			Term firstTerm = tl.getFirst();
 			MongoTermList termList = new MongoTermList();
@@ -675,7 +673,6 @@ public class MongoDatabaseUtils {
 	private static void saveTerms(AbstractVocabulary voc, String collection) {
 		// Get all terms by code
 		Iterable<TermList> tlList = voc.listAllByCode();
-		int i = 0;
 		// For each term list
 		for (TermList tl : tlList) {
 			// Get the first tirm to create the searchable uri

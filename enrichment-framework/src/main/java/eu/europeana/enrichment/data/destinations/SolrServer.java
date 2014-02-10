@@ -175,13 +175,6 @@ public class SolrServer extends AbstractFileWritingGraph {
 		}
 
 		String property = extractSolrProperty(triple);
-		// if (Concepts.ANNOCULTOR.PERIOD_BEGIN.getUri().equals(property)) {
-		// property = "enrichment_time_begin";
-		// }
-		// if (Concepts.ANNOCULTOR.PERIOD_END.getUri().equals(property)) {
-		// property = "enrichment_time_end";
-		// }
-		//
 		FieldDefinition fieldDefinition = fieldDefinitions.get(property);
 		if (fieldDefinition == null) {
 			System.out
@@ -195,10 +188,7 @@ public class SolrServer extends AbstractFileWritingGraph {
 		if (fieldDefinition == null) {
 			System.out.println("Skipped " + property
 					+ " because it is not defined");
-			// throw new Exception("Field " + triple.getProperty() +
-			// " is not defined in schema.xml");
 		} else {
-			// if (fieldDefinition.dataType)
 			System.out.println("Add " + property + "-"
 					+ triple.getValue().getValue() + " of type "
 					+ fieldDefinition.dataType);

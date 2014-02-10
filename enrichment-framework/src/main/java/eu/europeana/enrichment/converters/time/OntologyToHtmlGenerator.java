@@ -191,17 +191,6 @@ public class OntologyToHtmlGenerator extends HierarchyTracingFilter {
 	}
 
 	void addToIndexFile(StringInStack url, String prefLabel) {
-		// if (previous == null) {
-		//
-		// } else {
-		// if (url.getLevel() > previous.getLevel()) {
-		// urls.add("</div>");
-		// urls.add("<div class=\"div_" + url.getLevel() + "\">");
-		// } else {
-		// urls.add("<div class=\"div_" + url.getLevel() + "\">");
-		// urls.add("<div class=\"div_" + url.getLevel() + "\">");
-		// }
-		// }
 
 		String prefix = StringUtils.repeat(" ", url.getLevel());
 		String prefLabelToDisplay = StringUtils.substringBefore(prefLabel,
@@ -210,24 +199,18 @@ public class OntologyToHtmlGenerator extends HierarchyTracingFilter {
 				+ prefLabelToDisplay + "</a>";
 		if (url.getLevel() > lastLevel) {
 			last = new Node(text, url.getString(), url.getLevel(), last);
-			// urls.add(prefix + "<li><ul>");
 		}
 		if (url.getLevel() < lastLevel) {
 			for (int i = 0; i <= lastLevel - url.getLevel(); i++) {
 				last = last.getParent();
 			}
 			last = new Node(text, url.getString(), url.getLevel(), last);
-			// urls.add(prefix + "</ul></li>");
 		}
 		if (url.getLevel() == lastLevel) {
 			last = new Node(text, url.getString(), url.getLevel(),
 					last.getParent());
-			// urls.add("</li><li>");
 		}
 
-		// urls.add("<li><p class=\"level_" + url.getLevel() + "\"><a href=\"" +
-		// url.getString() + "\">"
-		// + StringUtils.substringBefore(prefLabel, "<sub>") + "</a></p>");
 		lastLevel = url.getLevel();
 	}
 

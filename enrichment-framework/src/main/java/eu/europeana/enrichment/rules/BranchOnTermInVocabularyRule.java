@@ -56,21 +56,7 @@ public class BranchOnTermInVocabularyRule extends AbstractBranchRule {
 
 	@Override
 	public void fire(Triple triple, DataObject dataObject) throws Exception {
-
-		// String value = null;
-		// current property is treated separately to avoid issues with multiple
-		// occurrences of property
-		// if (propertyName == null)
-		// value = triple.getValue();
-		// else
-		// value = converter.getFirstValue(propertyName);
-
 		throw new Exception("FIX");
-		/*
-		 * if (value != null && vocabulary.getTermCodeByLabel(value, null) !=
-		 * null) { if (success != null) { success.write(rdf, triple, converter);
-		 * return; } } else { if (failure != null) { failure.write(rdf, triple,
-		 * converter); return; } }
-		 */
+		
 	}
 }

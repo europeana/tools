@@ -93,9 +93,6 @@ public class TermCreator implements TermCreatorInt {
 						.substring(0, this.scheme.length() - 1);
 			}
 		}
-		// this.termUriPrefix = termUriPrefix;
-		// this.targetTerm = targetTerm;
-		// this.targetRecord = targetRecord;
 		this.labelAltPath = labelAltPath;
 		this.labelCaseOption = makeLowCaseLabels;
 		init();

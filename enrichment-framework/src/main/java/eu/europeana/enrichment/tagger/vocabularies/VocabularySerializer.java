@@ -23,7 +23,6 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.common.Language.Lang;
 import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.tagger.terms.Term;
@@ -36,8 +35,7 @@ import eu.europeana.enrichment.tagger.terms.TermList;
  * 
  */
 public class VocabularySerializer {
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
+	
 
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 

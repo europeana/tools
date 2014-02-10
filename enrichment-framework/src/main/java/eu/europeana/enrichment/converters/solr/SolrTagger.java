@@ -15,12 +15,10 @@
  */
 package eu.europeana.enrichment.converters.solr;
 
-import java.text.ParseException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,9 +28,12 @@ import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.enrichment.converters.europeana.Entity;
 import eu.europeana.enrichment.converters.europeana.Field;
+import eu.europeana.enrichment.converters.fields.AgentFields;
+import eu.europeana.enrichment.converters.fields.ConceptFields;
+import eu.europeana.enrichment.converters.fields.PlaceFields;
+import eu.europeana.enrichment.converters.fields.TimespanFields;
 import eu.europeana.enrichment.tagger.rules.AbstractLookupRule;
 import eu.europeana.enrichment.tagger.terms.CodeURI;
-import eu.europeana.enrichment.tagger.terms.ParentTermReconstructor;
 import eu.europeana.enrichment.tagger.terms.Term;
 import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
@@ -76,9 +77,6 @@ public abstract class SolrTagger {
 	String broaderTermFieldName;
 	String broaderLabelFieldName;
 
-	ParentTermReconstructor parentTermReconstructor = new ParentTermReconstructor(
-			10000);
-
 	public SolrTagger(String dbtable, String termFieldName,
 			String labelFieldName, String broaderTermFieldName,
 			String broaderLabelFieldName, FieldRulePair... fieldRulePairs) {
@@ -102,340 +100,352 @@ public abstract class SolrTagger {
 
 	}
 
-	List<Entity> tag(SolrInputDocument document) throws Exception,
-			ParseException {
-
-		List<Term> broaderTerms = new ArrayList<Term>();
-
-		beforeDocument(document);
-
-		Set<String> codes = new HashSet<String>();
-		Set<String> labels = new HashSet<String>();
+	List<Entity> tag(SolrInputDocument document) throws Exception {
 		List<Entity> entities = new ArrayList<Entity>();
-
+		String className = "";
+		if (StringUtils.equals(termFieldName, "skos_concept")) {
+			className = "Concept";
+			dbtable = "concept";
+		} else if (StringUtils.equals(termFieldName, "edm_place")) {
+			className = "Place";
+			dbtable = "place";
+		} else if (StringUtils.startsWith(termFieldName, "edm_timespan")) {
+			className = "Timespan";
+			dbtable = "period";
+		} else {
+			className = "Agent";
+			dbtable = "people";
+		}
 		for (FieldRulePair frp : fieldRulePairs) {
-
 			Collection<Object> values = document.getFieldValues(frp.getField());
-
 			if (values != null) {
-
-				for (Object valueObject : values) {
-					if (valueObject != null) {
-						String vocab = "";
-						Entity entity = new Entity();
-						if (StringUtils.equals(termFieldName, "skos_concept")) {
-							entity.setClassName("Concept");
-							vocab = "concept";
-						} else if (StringUtils.equals(termFieldName,
-								"edm_place")) {
-							entity.setClassName("Place");
-							vocab = "place";
-						} else if (StringUtils.startsWith(termFieldName,
-								"edm_timespan")) {
-							entity.setClassName("Timespan");
-							vocab = "period";
-						} else {
-							entity.setClassName("Agent");
-							vocab = "people";
-						}
-						entity.setOriginalField(frp.getField());
-
-						String value = valueObject.toString();
-						if (!StringUtils.isBlank(value)) {
-							TermList terms = MongoDatabaseUtils.findByLabel(
-									value.toLowerCase(), vocab);
-							List<Field> entityFields = new ArrayList<Field>();
-							if (terms != null && terms.size() > 0) {
-								for (Term term : terms) {
-									if (!entityExists(term.getCode(), entities)) {
-										entity.setUri(term.getCode());
-										codes.add(term.getCode());
-										Field codeField = new Field();
-										codeField.setName(termFieldName);
-										Map<String, List<String>> codeFieldValueLang = new HashMap<String, List<String>>();
-										List<String> codeVal = new ArrayList<String>();
-										codeVal.add(term.getCode());
-										codeFieldValueLang.put("def", codeVal);
-										codeField.setValues(codeFieldValueLang);
-										entityFields.add(codeField);
-										Field labelField = new Field();
-										labelField.setName(labelFieldName);
-										if (StringUtils.equals(
-												entity.getClassName(), "Place")) {
-											if (!StringUtils.endsWith(term
-													.getProperty("division"),
-													"A.PCLI")) {
-												String latitude = term
-														.getProperty("latitude");
-												String longitude = term
-														.getProperty("longitude");
-												if (Float.parseFloat(latitude) != 0
-														&& Float.parseFloat(longitude) != 0) {
-													Field latField = new Field();
-													latField.setName("pl_wgs84_pos_lat");
-													Map<String, List<String>> latValues = new HashMap<String, List<String>>();
-													List<String> lats = new ArrayList<String>();
-													lats.add(latitude);
-													latValues.put("def", lats);
-													latField.setValues(latValues);
-													entityFields.add(latField);
-													Field longField = new Field();
-													longField
-															.setName("pl_wgs84_pos_long");
-													Map<String, List<String>> longValues = new HashMap<String, List<String>>();
-													List<String> longs = new ArrayList<String>();
-													longs.add(longitude);
-													longValues
-															.put("def", longs);
-													longField
-															.setValues(longValues);
-													entityFields.add(longField);
-												}
-
-											}
-										}
-
-										TermList altTerms = MongoDatabaseUtils
-												.findByCode(
-														new CodeURI(term
-																.getCode()),
-														dbtable);
-										Map<String, List<String>> fieldValuesLang = new HashMap<String, List<String>>();
-										List<String> fieldVals = new ArrayList<String>();
-										for (Term altTerm : altTerms) {
-											if (shouldInclude(altTerm)) {
-												String key = altTerm.getLang() != null ? altTerm
-														.getLang().toString()
-														: "def";
-
-												if (fieldValuesLang
-														.containsKey(key)) {
-													fieldVals = fieldValuesLang
-															.get(key);
-												} else {
-													fieldVals = new ArrayList<String>();
-												}
-
-												fieldVals.add(altTerm
-														.getLabel());
-												fieldValuesLang.put(key,
-														fieldVals);
-												labelField
-														.setValues(fieldValuesLang);
-												labels.add(altTerm.getLabel());
-											}
-										}
-										entityFields.add(labelField);
-										if (broaderTermFieldName != null) {
-											List<Term> parents = parentTermReconstructor
-													.allParents(altTerms, vocab);
-											if (parents != null) {
-												broaderTerms.addAll(parents);
-
-												Field broaderField = new Field();
-												broaderField
-														.setName(broaderTermFieldName);
-												Map<String, List<String>> langVals = new HashMap<String, List<String>>();
-												List<String> vals = new ArrayList<String>();
-
-												for (Term termEuropeana : parents) {
-
-													String key = termEuropeana
-															.getLang() != null ? termEuropeana
-															.getLang()
-															.toString() : "def";
-
-													if (langVals
-															.containsKey(key)) {
-														vals = langVals
-																.get(termEuropeana
-																		.getLang() != null ? termEuropeana
-																		.getLang()
-																		.toString()
-																		: "def");
-													} else {
-														vals = new ArrayList<String>();
-													}
-													if (!vals
-															.contains(termEuropeana
-																	.getCode())) {
-														vals.add(termEuropeana
-																.getCode());
-													}
-													langVals.put(
-															termEuropeana
-																	.getLang() != null ? termEuropeana
-																	.getLang()
-																	.toString()
-																	: "def",
-															vals);
-
-												}
-												broaderField
-														.setValues(langVals);
-												entityFields.add(broaderField);
-
-												entities.addAll(computeBroaderLabels2(
-														vocab, frp.getField(),
-														broaderTerms));
-											}
-										}
-									}
-								}
-
-							}
-							entity.setFields(entityFields);
-						}
-						if (entity.getFields() != null
-								&& entity.getFields().size() > 0) {
-							entities.add(entity);
-						}
-					}
+				for (Object value : values) {
+					entities.addAll(findEntities(
+							value.toString().toLowerCase(), frp.getField(),
+							className));
 				}
 			}
 		}
 
-		return clean(entities);
-	}
-
-	private List<Entity> clean(List<Entity> entities) {
-		for (int i = 0; i < entities.size() - 1; i++) {
-			for (int k = i + 1; k < entities.size(); k++) {
-				if (StringUtils.equals(entities.get(i).getUri(), entities
-						.get(k).getUri())) {
-					entities.remove(k);
-					k--;
-				}
-			}
-		}
 		return entities;
 	}
 
-	private boolean entityExists(String code, List<Entity> entities) {
-		for (Entity entity : entities) {
-			if (StringUtils.equals(code, entity.getUri())) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void computeBroaderLabels(String vocab, List<Term> broaderTerms,
-			MongoDatabaseUtils db) throws Exception {
-		for (Term broaderTerm : broaderTerms) {
-			TermList altTerms = db.findByCode(
-					new CodeURI(broaderTerm.getCode()), dbtable);
-
-			for (Term altTerm : altTerms) {
-				if (altTerm != null && !StringUtils.isEmpty(altTerm.getLabel())
-						&& shouldInclude(altTerm)) {
-					broaderLabels.add(altTerm.getLabel());
-				}
-			}
-		}
-	}
-
-	List<Entity> computeBroaderLabels2(String vocab, String originalField,
-			List<Term> broaderTerms) throws Exception {
+	private List<Entity> findEntities(String value, String originalField,
+			String className) throws MalformedURLException {
 		List<Entity> entities = new ArrayList<Entity>();
+		TermList terms = MongoDatabaseUtils.findByLabel(value, dbtable);
+		if (terms.size() > 0) {
+			Term term = terms.getFirst();
+			Entity entity = new Entity();
+			if (originalField != null) {
+				entity.setOriginalField(originalField);
+			}
+			entity.setClassName(className);
 
-		for (Term broaderTerm : broaderTerms) {
+			entity.setUri(term.getCode());
+			TermList relatedLabels = MongoDatabaseUtils.findByCode(new CodeURI(
+					term.getCode()), dbtable);
 
-			TermList altTerms = MongoDatabaseUtils.findByCode(new CodeURI(
-					broaderTerm.getCode()), dbtable);
-			if (altTerms != null && altTerms.size() > 0) {
-				if (!entityExists(altTerms.getFirst().getCode(), entities)) {
-					Entity entity = new Entity();
-					if (StringUtils.equals(termFieldName, "skos_concept")) {
-						entity.setClassName("Concept");
-					} else if (StringUtils.equals(termFieldName, "edm_place")) {
-						entity.setClassName("Place");
-					} else if (StringUtils.startsWith(termFieldName,
-							"edm_timespan")) {
-						entity.setClassName("Timespan");
-					} else {
-						entity.setClassName("Agent");
-					}
-
-					entity.setUri(altTerms.getFirst().getCode());
-					entity.setOriginalField("");
-					Field codeField = new Field();
-					codeField.setName(termFieldName);
-					Map<String, List<String>> codeFieldValueMap = new HashMap<String, List<String>>();
-					List<String> codeFieldValue = Collections
-							.synchronizedList(new ArrayList<String>());
-					if (!codeFieldValue.contains(altTerms.getFirst().getCode())) {
-						codeFieldValue.add(altTerms.getFirst().getCode());
-						codeFieldValueMap.put("def", codeFieldValue);
-						codeField.setValues(codeFieldValueMap);
-					}
-					List<Field> fields = new ArrayList<Field>();
-					fields.add(codeField);
-					for (Term altTerm : altTerms) {
-						Field field = new Field();
-						field.setName(labelFieldName);
-						Map<String, List<String>> fieldValuesLang = new HashMap<String, List<String>>();
-						List<String> fieldValues = new ArrayList<String>();
-						fieldValues.add(altTerm.getLabel());
-						fieldValuesLang.put(altTerm.getLang() != null ? altTerm
-								.getLang().toString() : "def", fieldValues);
-						field.setValues(fieldValuesLang);
-						fields.add(field);
-						if (StringUtils.equals(entity.getClassName(), "Place")) {
-							if (!StringUtils.endsWith(
-									altTerm.getProperty("division"), "A.PCLI")) {
-								Field latField = new Field();
-								latField.setName("pl_wgs84_pos_lat");
-								Map<String, List<String>> latValues = new HashMap<String, List<String>>();
-								List<String> lats = new ArrayList<String>();
-								lats.add(altTerm.getProperty("latitude"));
-								latValues.put("def", lats);
-								latField.setValues(latValues);
-								fields.add(latField);
-								Field longField = new Field();
-								longField.setName("pl_wgs84_pos_long");
-								Map<String, List<String>> longValues = new HashMap<String, List<String>>();
-								List<String> longs = new ArrayList<String>();
-								longs.add(altTerm.getProperty("longitude"));
-								longValues.put("def", longs);
-								longField.setValues(longValues);
-								fields.add(longField);
-
-							}
-						}
-					}
-					entity.setFields(fields);
-					entities.add(entity);
-				}
+			entity.setFields(generateFields(relatedLabels, className));
+			entities.add(entity);
+			if (relatedLabels.getFirst().getParent() != null) {
+				entities.addAll(findParents(relatedLabels.getFirst()
+						.getParent(), className));
 			}
 		}
 		return entities;
 	}
 
-	void addBroaderTermsAndLabels(SolrInputDocument document,
-			List<Term> broaderTerms) {
-		if (!StringUtils.isEmpty(broaderTermFieldName)) {
-
-			Set<String> broaderCodes = new HashSet<String>();
-			for (Term term : broaderTerms) {
-				broaderCodes.add(term.getCode());
-			}
-
-			for (String code : broaderCodes) {
-				document.addField(broaderTermFieldName, code);
-			}
+	private List<Entity> findParents(Term parent, String className)
+			throws MalformedURLException {
+		List<Entity> parentEntities = new ArrayList<Entity>();
+		TermList parents = MongoDatabaseUtils.findByCode(
+				new CodeURI(parent.getCode()), dbtable);
+		Entity entity = new Entity();
+		entity.setClassName(className);
+		entity.setUri(parents.getFirst().getCode());
+		entity.setFields(generateFields(parents, className));
+		parentEntities.add(entity);
+		if (parents.getFirst().getParent() != null) {
+			parentEntities.addAll(findParents(parents.getFirst().getParent(),
+					className));
 		}
-
-		if (!StringUtils.isEmpty(broaderLabelFieldName)) {
-			for (String label : broaderLabels) {
-				document.addField(broaderLabelFieldName, label);
-			}
-		}
+		return parentEntities;
 	}
 
-	boolean shouldInclude(Term term) {
-		return true;
+	private List<Field> generateFields(TermList relatedLabels, String className) {
+		if (className.equals("Concept")) {
+			return generateConceptFields(relatedLabels);
+		}
+		if (className.equals("Timespan")) {
+			return generateTimespanFields(relatedLabels);
+		}
+		if (className.equals("Agent")) {
+			return generateAgentFields(relatedLabels);
+		}
+		if (className.equals("Place")) {
+			return generatePlaceFields(relatedLabels);
+		}
+		return null;
+	}
+
+	private List<Field> generatePlaceFields(TermList relatedLabel) {
+		List<Field> fields = new ArrayList<Field>();
+		Term firstTerm = relatedLabel.getFirst();
+		// First generate the unique fields
+		for (PlaceFields placeField : PlaceFields.values()) {
+			if (!placeField.isMulti()
+					&& !placeField.equals(PlaceFields.ISPARTOF)) {
+				if (firstTerm.getProperty(placeField.getInputField()) != null) {
+					Field field = new Field();
+					field.setName(placeField.getField());
+					Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+					List<String> vals = new ArrayList<String>();
+					vals.add(firstTerm.getProperty(placeField.getInputField()));
+					fieldValues.put("def", vals);
+					field.setValues(fieldValues);
+					fields.add(field);
+				}
+			}
+		}
+		if (firstTerm.getParent() != null) {
+			Field field = new Field();
+			field.setName(PlaceFields.ISPARTOF.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(firstTerm.getParent().getCode());
+			fieldValues.put("def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+		}
+		// Then the rest
+		for (Term term : relatedLabel) {
+			// Get the pref label first
+			Field field = new Field();
+			field.setName(PlaceFields.PREFLABEL.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(term.getLabel());
+			fieldValues.put(term.getLang() != null ? term.getLang().getCode()
+					: "def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+			// Get the rest after
+			for (PlaceFields placeField : PlaceFields.values()) {
+				if (placeField.isMulti()
+						&& !placeField.equals(PlaceFields.PREFLABEL)) {
+					if (term.getProperty(placeField.getInputField()) != null) {
+						Field fieldOther = new Field();
+						field.setName(placeField.getField());
+						Map<String, List<String>> fieldValuesOther = new HashMap<String, List<String>>();
+						List<String> valsOther = new ArrayList<String>();
+						valsOther.add(term.getProperty(placeField
+								.getInputField()));
+						fieldValuesOther.put(term.getLang() != null ? term
+								.getLang().getCode() : "def", valsOther);
+						fieldOther.setValues(fieldValuesOther);
+						fields.add(fieldOther);
+					}
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	private List<Field> generateAgentFields(TermList relatedLabel) {
+		List<Field> fields = new ArrayList<Field>();
+		Term firstTerm = relatedLabel.getFirst();
+		// First generate the unique fields
+		for (AgentFields agentField : AgentFields.values()) {
+			if (!agentField.isMulti()
+					&& !agentField.equals(AgentFields.ISPARTOF)) {
+				if (firstTerm.getProperty(agentField.getInputField()) != null) {
+					Field field = new Field();
+					field.setName(agentField.getField());
+					Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+					List<String> vals = new ArrayList<String>();
+					vals.add(firstTerm.getProperty(agentField.getInputField()));
+					fieldValues.put("def", vals);
+					field.setValues(fieldValues);
+					fields.add(field);
+				}
+			}
+		}
+		if (firstTerm.getParent() != null) {
+			Field field = new Field();
+			field.setName(AgentFields.ISPARTOF.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(firstTerm.getParent().getCode());
+			fieldValues.put("def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+		}
+		// Then the rest
+		for (Term term : relatedLabel) {
+			// Get the pref label first
+			Field field = new Field();
+			field.setName(AgentFields.PREFLABEL.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(term.getLabel());
+			fieldValues.put(term.getLang() != null ? term.getLang().getCode()
+					: "def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+			// Get the rest after
+			for (AgentFields agentField : AgentFields.values()) {
+				if (agentField.isMulti()
+						&& !agentField.equals(AgentFields.PREFLABEL)) {
+					if (term.getProperty(agentField.getInputField()) != null) {
+						Field fieldOther = new Field();
+						field.setName(agentField.getField());
+						Map<String, List<String>> fieldValuesOther = new HashMap<String, List<String>>();
+						List<String> valsOther = new ArrayList<String>();
+						valsOther.add(term.getProperty(agentField
+								.getInputField()));
+						fieldValuesOther.put(term.getLang() != null ? term
+								.getLang().getCode() : "def", valsOther);
+						fieldOther.setValues(fieldValuesOther);
+						fields.add(fieldOther);
+					}
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	private List<Field> generateTimespanFields(TermList relatedLabel) {
+		List<Field> fields = new ArrayList<Field>();
+		Term firstTerm = relatedLabel.getFirst();
+		// First generate the unique fields
+		for (TimespanFields timespanField : TimespanFields.values()) {
+			if (!timespanField.isMulti()
+					&& !timespanField.equals(TimespanFields.ISPARTOF)) {
+				if (firstTerm.getProperty(timespanField.getInputField()) != null) {
+					Field field = new Field();
+					field.setName(timespanField.getField());
+					Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+					List<String> vals = new ArrayList<String>();
+					vals.add(firstTerm.getProperty(timespanField
+							.getInputField()));
+					fieldValues.put("def", vals);
+					field.setValues(fieldValues);
+					fields.add(field);
+				}
+			}
+		}
+		if (firstTerm.getParent() != null) {
+			Field field = new Field();
+			field.setName(TimespanFields.ISPARTOF.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(firstTerm.getParent().getCode());
+			fieldValues.put("def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+		}
+		// Then the rest
+		for (Term term : relatedLabel) {
+			// Get the pref label first
+			Field field = new Field();
+			field.setName(TimespanFields.PREFLABEL.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(term.getLabel());
+			fieldValues.put(term.getLang() != null ? term.getLang().getCode()
+					: "def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+			// Get the rest after
+			for (TimespanFields timespanField : TimespanFields.values()) {
+				if (timespanField.isMulti()
+						&& !timespanField.equals(TimespanFields.PREFLABEL)) {
+					if (term.getProperty(timespanField
+							.getInputField()) != null) {
+						Field fieldOther = new Field();
+						field.setName(timespanField.getField());
+						Map<String, List<String>> fieldValuesOther = new HashMap<String, List<String>>();
+						List<String> valsOther = new ArrayList<String>();
+						valsOther.add(term.getProperty(timespanField
+								.getInputField()));
+						fieldValuesOther.put(term.getLang() != null ? term
+								.getLang().getCode() : "def", valsOther);
+						fieldOther.setValues(fieldValuesOther);
+						fields.add(fieldOther);
+					}
+
+				}
+			}
+		}
+
+		return fields;
+	}
+
+	private List<Field> generateConceptFields(TermList relatedLabel) {
+		List<Field> fields = new ArrayList<Field>();
+		Term firstTerm = relatedLabel.getFirst();
+		// First generate the unique fields
+		for (ConceptFields conceptField : ConceptFields.values()) {
+			if (!conceptField.isMulti()
+					&& !conceptField.equals(ConceptFields.BROADER)) {
+				if (firstTerm.getProperty(conceptField.getInputField()) != null) {
+					Field field = new Field();
+					field.setName(conceptField.getField());
+					Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+					List<String> vals = new ArrayList<String>();
+					vals.add(firstTerm.getProperty(conceptField.getInputField()));
+					fieldValues.put("def", vals);
+					field.setValues(fieldValues);
+					fields.add(field);
+				}
+			}
+		}
+		if (firstTerm.getParent() != null) {
+			Field field = new Field();
+			field.setName(ConceptFields.BROADER.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(firstTerm.getParent().getCode());
+			fieldValues.put("def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+		}
+		// Then the rest
+		for (Term term : relatedLabel) {
+			// Get the pref label first
+			Field field = new Field();
+			field.setName(ConceptFields.PREFLABEL.getField());
+			Map<String, List<String>> fieldValues = new HashMap<String, List<String>>();
+			List<String> vals = new ArrayList<String>();
+			vals.add(term.getLabel());
+			fieldValues.put(term.getLang() != null ? term.getLang().getCode()
+					: "def", vals);
+			field.setValues(fieldValues);
+			fields.add(field);
+			// Get the rest after
+			for (ConceptFields conceptField : ConceptFields.values()) {
+				if (conceptField.isMulti()
+						&& !conceptField.equals(ConceptFields.PREFLABEL)) {
+					if (term.getProperty(conceptField.getInputField()) != null) {
+						Field fieldOther = new Field();
+						field.setName(conceptField.getField());
+						Map<String, List<String>> fieldValuesOther = new HashMap<String, List<String>>();
+						List<String> valsOther = new ArrayList<String>();
+						valsOther.add(term.getProperty(conceptField
+								.getInputField()));
+						fieldValuesOther.put(term.getLang() != null ? term
+								.getLang().getCode() : "def", valsOther);
+						fieldOther.setValues(fieldValuesOther);
+						fields.add(fieldOther);
+					}
+				}
+			}
+		}
+
+		return fields;
 	}
 
 }
