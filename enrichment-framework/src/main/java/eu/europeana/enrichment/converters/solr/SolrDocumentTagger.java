@@ -121,7 +121,6 @@ public abstract class SolrDocumentTagger {
                 SolrDocumentList sourceDocs = response.getResults();
                 System.out.println("retrieved document query OK: "+sourceDocs.getNumFound());
                 if (sourceDocs.isEmpty() || page > MAX_PAGES_TO_TAG) {
-//                    log.flush();
                     return recordsPassed;
                 }
 
@@ -133,18 +132,12 @@ public abstract class SolrDocumentTagger {
                         recordsPassed += sourceDocs.size();
                         System.out.println("Let's try");
                         solrServerTo.add(destDocs);
-//                        log.println(new Date() + "Completed " + recordsPassed + " SOLR documents");
-//                        log.println("Passed " + originalWordCount + " original words and added " + enrichmentWordCount + " enrichment words");
                         break;
                     } catch (Exception e) {
                         e.printStackTrace();
-//                        log.println(new Date() + "Stopped at document " + recordsPassed);
-//                        log.println(new Date() + "Retry " + retry + " failed, keep trying");
-//                        log.flush();
                         Thread.sleep(60000 * retry);
                         retry ++;
                     } finally {
-//                        log.flush();
                     }
                 }
 
@@ -152,8 +145,6 @@ public abstract class SolrDocumentTagger {
                     throw new Exception("Failed completely.");
                 }
             } else {
-//                log.println("Skipping page " + page);
-//                log.flush();
             }
         }
     }
@@ -170,7 +161,6 @@ public abstract class SolrDocumentTagger {
             }
 
             // there is one below
-            //originalWordCount += countWords(destDocument, fieldNamePrefixForOriginalMetadata());
 
             String id = sourceDocument.getFirstValue(idFieldName).toString();
             preProcess(destDocument, id);
@@ -178,7 +168,6 @@ public abstract class SolrDocumentTagger {
             destDocs.add(destDocument);
 
             // there is one above
-            //enrichmentWordCount += countWords(destDocument, fieldNamePrefixForEnrichmentMetadata());
 
             flush(destDocs);
         }

@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.enrichment.api.Factory;
@@ -187,35 +186,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				+ property + " ?" + property + " }";
 	}
 
-	@Deprecated
-	public void clearDestination(String query) throws Exception {
-		solrServerTo.deleteByQuery(query);
-		if ("*:*".equals(query)) {
-			optimize();
-		}
-	}
-
-	@Deprecated
-	public void deleteCollection(String collection) throws SolrServerException,
-			IOException {
-		// log.println("Deleting collection by query: " + collection);
-		System.out.println("Deleting collection by query: " + collection);
-		solrServerTo.deleteByQuery(collection);
-		// log.println("Deleted collection by query: " + collection);
-		System.out.println("Deleted collection by query: " + collection);
-		solrServerTo.commit();
-	}
-
-	@Deprecated
-	public void optimize() throws Exception {
-		// log.println("Started optimize...");
-
-		solrServerTo.optimize();
-		// log.println("done.\n");
-		// log.flush();
-	}
-
-	public void init(String name, String... args) throws Exception {
+		public void init(String name, String... args) throws Exception {
 
 		task = Factory.makeTask(name, "", "Solr tagging with time and place",
 				Namespaces.ANNOCULTOR_CONVERTER, environment);
@@ -235,7 +206,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
 			File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
 			File baseDir = environment.getVocabularyDir();
-			// MongoDatabaseUtils.dbExists(host,port);
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(
@@ -257,7 +227,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 					makePlacePropertyQuery("country"), cacheDir, baseDir,
 					placeFiles, countryFiles);
 
-			// TODO:create the db
 			MongoDatabaseUtils.save("place", vocabularyOfPlaces);
 			String timeFiles = "time/*.rdf";
 			vocabularyOfPeriods.loadTermsSPARQL(

@@ -21,16 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.api.DataObjectPreprocessor;
 import eu.europeana.enrichment.api.ObjectRule;
-import eu.europeana.enrichment.api.Reporter;
 import eu.europeana.enrichment.api.Rule;
 import eu.europeana.enrichment.api.Task;
 import eu.europeana.enrichment.context.Concepts;
-import eu.europeana.enrichment.converter.ProgressReport;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.path.PathMap;
 import eu.europeana.enrichment.path.PathMap.MatchResult;
@@ -40,8 +37,8 @@ import eu.europeana.enrichment.triple.ResourceValue;
 import eu.europeana.enrichment.triple.Triple;
 import eu.europeana.enrichment.triple.XmlValue;
 import eu.europeana.enrichment.xconverter.api.DataObject;
-import eu.europeana.enrichment.xconverter.api.PropertyRule;
 import eu.europeana.enrichment.xconverter.api.DataObject.ListOfValues;
+import eu.europeana.enrichment.xconverter.api.PropertyRule;
 
 /**
  * A rule that separates objects and contains property mappings executed within
@@ -111,7 +108,6 @@ public class ObjectRuleImpl extends ObjectRule {
 				parent, registerAsPartListener);
 	}
 
-	ProgressReport progressReport;
 
 	private ObjectRuleImpl(Task task, Path recordSeparatingTag,
 			Path primaryRecordIdTag, Path secondaryRecordIdTag,
@@ -124,11 +120,6 @@ public class ObjectRuleImpl extends ObjectRule {
 		this.parent = parent;
 		if (registerAsPartListener) {
 			this.task.addPartListener(this);
-		}
-		try {
-			this.progressReport = new ProgressReport();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -284,8 +275,6 @@ public class ObjectRuleImpl extends ObjectRule {
 	@Override
 	public final void processDataObject(String subject, DataObject dataObject)
 			throws Exception {
-		progressReport.process(subject, dataObject.size(), dataObject
-				.getSeparatingPath().getLastTagExpanded());
 
 		// TODO! ugly!!! reverse? first rules then paths?
 		Set<Path> uniqueDataPaths = new HashSet<Path>();

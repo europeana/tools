@@ -106,7 +106,6 @@ public class SolrPeriodsTagger extends SolrTagger {
 		}
 	}
 
-	// TODO: set to 23:59
 	static Date endOfDay(Date date) {
 		if (date == null) {
 			return null;
