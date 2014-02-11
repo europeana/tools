@@ -21,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.enrichment.common.Language.Lang;
-import eu.europeana.enrichment.tagger.terms.Term;
+import eu.europeana.enrichment.model.internal.Term;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary;
 
 /**

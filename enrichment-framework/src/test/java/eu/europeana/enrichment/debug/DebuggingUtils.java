@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
 
-import eu.europeana.enrichment.converters.europeana.Entity;
 import eu.europeana.enrichment.converters.solr.BuiltinSolrDocumentTagger;
+import eu.europeana.enrichment.model.external.EntityWrapper;
 
 public class DebuggingUtils {
 
@@ -39,7 +39,7 @@ public class DebuggingUtils {
 			doc.addField("proxy_dcterms_spatial","Paris");
 			doc.addField("proxy_dc_date","1918");
 			doc.addField("proxy_dc_creator","Rembrandt");
-			List<Entity> entity = tagger.tagDocument(doc);
+			List<EntityWrapper> entity = tagger.tagDocument(doc);
 			System.out.println(entity.size());
 			
 		} catch (Exception e) {

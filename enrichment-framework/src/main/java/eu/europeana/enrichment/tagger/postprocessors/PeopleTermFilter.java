@@ -23,8 +23,8 @@ import java.util.Set;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
 /**

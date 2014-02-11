@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.europeana.enrichment.tagger.terms;
+package eu.europeana.enrichment.model.internal;
 
 import java.util.Iterator;
 import java.util.TreeSet;

@@ -22,9 +22,13 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
 import eu.europeana.enrichment.common.Language;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
+import eu.europeana.enrichment.model.internal.CodeURI;
+import eu.europeana.enrichment.model.internal.MongoTerm;
+import eu.europeana.enrichment.model.internal.MongoTermList;
+import eu.europeana.enrichment.model.internal.PeriodTerm;
+import eu.europeana.enrichment.model.internal.PlaceTerm;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.AbstractVocabulary;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
@@ -168,7 +172,7 @@ public class MongoDatabaseUtils {
 		TermList tList = new TermList();
 		for (MongoTerm mTerm : refList) {
 			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.label;
+			String label = mTerm.originalLabel;
 			String lang = mTerm.lang != null ? mTerm.lang : null;
 			JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
 					.wrap(db.getCollection(dbtable), MongoTerm.class,
@@ -182,7 +186,7 @@ public class MongoDatabaseUtils {
 			if (mParent != null && mParent.hasNext()) {
 				MongoTerm pTerm = mParent.next();
 				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.label;
+				String label2 = pTerm.originalLabel;
 				String lang2 = pTerm.lang != null ? pTerm.lang : null;
 				parent = new Term(label2,
 						lang2 != null ? Language.Lang.valueOf(lang2) : null,
@@ -266,7 +270,7 @@ public class MongoDatabaseUtils {
 		TermList tList = new TermList();
 		for (PlaceTerm mTerm : refList) {
 			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.label;
+			String label = mTerm.originalLabel;
 			String lang = mTerm.lang != null ? mTerm.lang : null;
 			float lat = mTerm.lat;
 			float lon = mTerm.lon;
@@ -283,7 +287,7 @@ public class MongoDatabaseUtils {
 			if (mParent != null && mParent.hasNext()) {
 				PlaceTerm pTerm = mParent.next();
 				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.label;
+				String label2 = pTerm.originalLabel;
 				String lang2 = pTerm.lang != null ? pTerm.lang : null;
 				float lat1 = pTerm.lat;
 				float lon1 = pTerm.lon;
@@ -325,7 +329,7 @@ public class MongoDatabaseUtils {
 		TermList tList = new TermList();
 		for (PeriodTerm mTerm : refList) {
 			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.label;
+			String label = mTerm.originalLabel;
 			String lang = mTerm.lang != null ? mTerm.lang : null;
 			JacksonDBCollection<PeriodTerm, String> pColl = JacksonDBCollection
 					.wrap(db.getCollection(dbtable), PeriodTerm.class,
@@ -339,7 +343,7 @@ public class MongoDatabaseUtils {
 			if (mParent != null && mParent.hasNext()) {
 				PeriodTerm pTerm = mParent.next();
 				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.label;
+				String label2 = pTerm.originalLabel;
 				String lang2 = pTerm.lang != null ? pTerm.lang : null;
 				parent = new Term(label2,
 						lang2 != null ? Language.Lang.valueOf(lang2) : null,
@@ -515,7 +519,7 @@ public class MongoDatabaseUtils {
 				tList.add(term);
 			}
 		}
-			typeMap.put(label, tList);
+			typeMap.put(label.toLowerCase(), tList);
 			memCache.put(dbtable, typeMap);
 			return tList;
 	}

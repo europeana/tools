@@ -17,8 +17,8 @@ package eu.europeana.enrichment.tagger.postprocessors;
 
 import org.apache.commons.lang.StringUtils;
 
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
 /**

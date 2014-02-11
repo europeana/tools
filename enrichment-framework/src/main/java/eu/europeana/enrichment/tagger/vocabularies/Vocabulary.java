@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import eu.europeana.enrichment.common.Language.Lang;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
+import eu.europeana.enrichment.model.internal.CodeURI;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 
 /**
  * A vocabulary. User vocabularies should extend specific

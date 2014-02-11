@@ -15,13 +15,10 @@
  */
 package eu.europeana.enrichment.converters.solr;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +30,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 
-import eu.europeana.enrichment.converters.europeana.Entity;
+import eu.europeana.enrichment.model.external.EntityWrapper;
 
 
 /**
@@ -92,7 +89,7 @@ public abstract class SolrDocumentTagger {
 
     public abstract void preProcess(SolrInputDocument document, String id);
 
-    public abstract List<Entity> tagDocument(SolrInputDocument document) throws Exception;
+    public abstract List<EntityWrapper> tagDocument(SolrInputDocument document) throws Exception;
 
 
     private void flush(List<SolrInputDocument> destDocs) throws Exception {

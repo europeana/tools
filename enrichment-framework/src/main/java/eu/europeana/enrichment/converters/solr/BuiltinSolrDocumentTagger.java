@@ -32,8 +32,12 @@ import eu.europeana.enrichment.common.Language;
 import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.EnvironmentImpl;
 import eu.europeana.enrichment.context.Namespaces;
-import eu.europeana.enrichment.converters.europeana.Entity;
 import eu.europeana.enrichment.converters.europeana.EuropeanaLabelExtractor;
+import eu.europeana.enrichment.model.external.Entity;
+import eu.europeana.enrichment.model.external.EntityWrapper;
+import eu.europeana.enrichment.model.internal.CodeURI;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.rules.ObjectRuleImpl;
 import eu.europeana.enrichment.tagger.rules.LookupPersonRule;
@@ -41,9 +45,6 @@ import eu.europeana.enrichment.tagger.rules.LookupPlaceRule;
 import eu.europeana.enrichment.tagger.rules.LookupTermRule;
 import eu.europeana.enrichment.tagger.rules.LookupTimeRule;
 import eu.europeana.enrichment.tagger.rules.PairOfStrings;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
@@ -64,9 +65,9 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
 public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 
 	@Override
-	public List<Entity> tagDocument(SolrInputDocument document)
+	public List<EntityWrapper> tagDocument(SolrInputDocument document)
 			throws Exception {
-		List<Entity> entities = new ArrayList<Entity>();
+		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
 		entities.addAll(periodsTagger.tag(document));
 		entities.addAll(peopleTagger.tag(document));
 		entities.addAll(placesTagger.tag(document));

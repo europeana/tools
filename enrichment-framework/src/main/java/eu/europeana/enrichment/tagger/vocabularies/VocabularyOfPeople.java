@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.europeana.enrichment.common.Language.Lang;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.postprocessors.PeopleTermFilter.UlanDisambiguationContext;
-import eu.europeana.enrichment.tagger.terms.TermList;
 
 /**
  * Directory of people, where each term has its specific context of birth-death

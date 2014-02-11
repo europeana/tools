@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 import org.apache.commons.lang.StringUtils;
 
 import eu.europeana.enrichment.api.Rule;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
+import eu.europeana.enrichment.model.internal.CodeURI;
 
 /**
  * Triple with a subject, property, and value that corresponds to an RDF triple.

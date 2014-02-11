@@ -15,7 +15,7 @@
  */
 package eu.europeana.enrichment.tagger.postprocessors;
 
-import eu.europeana.enrichment.tagger.terms.TermList;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.vocabularies.DisambiguationContext;
 
 /**

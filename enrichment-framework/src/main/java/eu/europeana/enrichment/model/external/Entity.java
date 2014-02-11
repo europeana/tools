@@ -1,4 +1,4 @@
-package eu.europeana.enrichment.converters.europeana;
+package eu.europeana.enrichment.model.external;
 
 import java.util.List;
 

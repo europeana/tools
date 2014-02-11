@@ -18,7 +18,7 @@ package eu.europeana.enrichment.converters.solr;
 import java.util.HashSet;
 
 import eu.europeana.enrichment.common.Language.Lang;
-import eu.europeana.enrichment.tagger.terms.Term;
+import eu.europeana.enrichment.model.internal.Term;
 import eu.europeana.enrichment.tagger.vocabularies.Vocabulary;
 
 /**

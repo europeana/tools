@@ -19,11 +19,11 @@ import java.io.File;
 import java.util.Collection;
 
 import eu.europeana.enrichment.common.Language.Lang;
+import eu.europeana.enrichment.model.internal.CodeURI;
+import eu.europeana.enrichment.model.internal.Term;
+import eu.europeana.enrichment.model.internal.TermList;
 import eu.europeana.enrichment.tagger.postprocessors.AdminDivisionTermFilter;
 import eu.europeana.enrichment.tagger.postprocessors.PopulationTermFilter;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
-import eu.europeana.enrichment.tagger.terms.Term;
-import eu.europeana.enrichment.tagger.terms.TermList;
 
 /**
  * Vocabulary of geographical places with its specific disambiguation context.

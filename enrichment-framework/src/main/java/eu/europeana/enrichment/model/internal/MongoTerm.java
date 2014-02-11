@@ -1,4 +1,4 @@
-package eu.europeana.enrichment.utils;
+package eu.europeana.enrichment.model.internal;
 
 import net.vz.mongodb.jackson.DBRef;
 import net.vz.mongodb.jackson.Id;

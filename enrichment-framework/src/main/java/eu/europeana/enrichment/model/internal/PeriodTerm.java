@@ -1,4 +1,4 @@
-package eu.europeana.enrichment.utils;
+package eu.europeana.enrichment.model.internal;
 
 public class PeriodTerm extends MongoTerm {
 

@@ -23,8 +23,8 @@ import java.util.List;
 
 import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.common.Language.Lang;
+import eu.europeana.enrichment.model.internal.CodeURI;
 import eu.europeana.enrichment.path.Path;
-import eu.europeana.enrichment.tagger.terms.CodeURI;
 import eu.europeana.enrichment.triple.Value;
 import eu.europeana.enrichment.xconverter.api.DataObject;
 import eu.europeana.enrichment.xconverter.api.DataObject.ListOfValues;
