@@ -44,7 +44,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     ErrorTypes::init();
   }
 
-  function xtestPaths() {
+  function testPaths() {
     $api = new Api2();
     $this->assertEquals('/v2/search.json', $api->getSearchPath());
     $this->assertEquals('/v2/opensearch.rss', $api->getOpenSearchPath());
@@ -92,7 +92,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
 
   /// Search related tests
 
-  function xtestSearch() {
+  function testSearch() {
     $api = new Api2();
     $query = "paris";
     $results = $api->search($query);
@@ -101,7 +101,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->_checkSearchResult($results, $hits);
   }
 
-  function xtestFacetRequest() {
+  function testFacetRequest() {
     $api = new Api2();
     $query = "*:*";
     $params = array(
@@ -116,7 +116,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertLessThanOrEqual(750, count($results->facets[0]->fields));
   }
 
-  function xtestFacetRequestWithLimitAndOffset() {
+  function testFacetRequestWithLimitAndOffset() {
     $api = new Api2();
     $query = "*:*";
     $params = array(
@@ -146,7 +146,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertObjectNotHasAttribute("facets", $results);
   }
 
-  function xtestSearchWithCallback() {
+  function testSearchWithCallback() {
     $api = new Api2();
     $query = "paris";
     $results = $api->search($query, 1, 12, "print");
@@ -161,7 +161,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->_checkSearchResult($resultsObject, $hits);
   }
 
-  function xtestGeoSearch() {
+  function testGeoSearch() {
     $api = new Api2();
     $query = "pl_wgs84_pos_lat:[1 TO 90]";
     $hits = $this->screenScrapper->getHitsOnPortal($query);
@@ -174,7 +174,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestProviders() {
+  function testProviders() {
     $api = new Api2();
     $results = $api->getProviders();
     $this->lastUrl = $api->getLastUrl();
@@ -184,7 +184,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestProvidersWithOffsetAndLimit() {
+  function testProvidersWithOffsetAndLimit() {
     $api = new Api2();
     $results = $api->getProviders(50, 50);
     $this->lastUrl = $api->getLastUrl();
@@ -194,7 +194,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestProvidersWithConuntryCode() {
+  function testProvidersWithConuntryCode() {
     $api = new Api2();
     foreach ($this->countries as $code) {
       $results = $api->getProviders(-1, -1, $code);
@@ -206,7 +206,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestProvider() {
+  function testProvider() {
     $api = new Api2();
     $baseResults = $api->getProviders();
     $this->lastUrl = $api->getLastUrl();
@@ -366,7 +366,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
   /// Object related tests
 
   
-  function xtestObjects() {
+  function testObjects() {
     $api = new Api2();
     $query = "paris";
     $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
@@ -382,7 +382,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestObjectsWithCallback() {
+  function testObjectsWithCallback() {
     $api = new Api2();
     $query = "paris";
     $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
@@ -405,7 +405,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function xtestObjectsWithSimilarProfile() {
+  function testObjectsWithSimilarProfile() {
     $api = new Api2();
     $query = "paris";
     $starts = array(1, 1000, 10000);
