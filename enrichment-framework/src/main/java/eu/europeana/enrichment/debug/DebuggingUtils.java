@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.converters.solr.BuiltinSolrDocumentTagger;
 import eu.europeana.enrichment.model.external.EntityWrapper;
 
@@ -40,10 +42,10 @@ public class DebuggingUtils {
 			doc.addField("proxy_dc_date","1918");
 			doc.addField("proxy_dc_creator","Rembrandt");
 			List<EntityWrapper> entity = tagger.tagDocument(doc);
+			TimespanImpl ts = (TimespanImpl)entity.get(0).getContextualEntity();
 			System.out.println(entity.size());
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

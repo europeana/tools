@@ -7,12 +7,16 @@ import net.vz.mongodb.jackson.ObjectId;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class MongoTermList {
+import eu.europeana.corelib.solr.entity.AbstractEdmEntityImpl;
 
-	
+public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
+
+	private String parent;
 	private String codeUri;
 	private List<DBRef<? extends MongoTerm,String>> terms;
 	private String id;
+	protected T representation;
+	private String entityType;
 	@ObjectId
 	  @JsonProperty("_id")
 	public String getId() {
@@ -34,6 +38,22 @@ public class MongoTermList {
 	}
 	public void setTerms(List<DBRef<? extends MongoTerm, String>> terms) {
 		this.terms = terms;
+	}
+	public String getParent() {
+		return parent;
+	}
+	public void setParent(String parent) {
+		this.parent = parent;
+	}
+	public abstract T getRepresentation();
+
+	public abstract void setRepresentation(T representation);
+	
+	public String getEntityType() {
+		return entityType;
+	}
+	public void setEntityType(String entityType) {
+		this.entityType = entityType;
 	}
 	
 	

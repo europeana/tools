@@ -151,7 +151,7 @@ public class LookupTermRule extends AbstractLookupRule {
 	@Override
 	protected TermList getDisambiguatedTerms(DataObject converter,
 			String label, Lang lang) throws Exception {
-		return new MongoDatabaseUtils().findByLabel(label, "concept");
+		return null;
 	}
 
 	@Override

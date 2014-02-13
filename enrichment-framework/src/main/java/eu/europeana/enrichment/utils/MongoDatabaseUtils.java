@@ -1,12 +1,16 @@
 package eu.europeana.enrichment.utils;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.vz.mongodb.jackson.DBCursor;
@@ -15,20 +19,24 @@ import net.vz.mongodb.jackson.JacksonDBCollection;
 import net.vz.mongodb.jackson.WriteResult;
 
 import org.apache.commons.lang.StringUtils;
-import org.bson.types.ObjectId;
+import org.jibx.runtime.JiBXException;
 
 import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
-import eu.europeana.enrichment.common.Language;
-import eu.europeana.enrichment.model.internal.CodeURI;
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
+import eu.europeana.corelib.solr.entity.TimespanImpl;
+import eu.europeana.enrichment.model.internal.AgentTermList;
+import eu.europeana.enrichment.model.internal.ConceptTermList;
 import eu.europeana.enrichment.model.internal.MongoTerm;
 import eu.europeana.enrichment.model.internal.MongoTermList;
-import eu.europeana.enrichment.model.internal.PeriodTerm;
-import eu.europeana.enrichment.model.internal.PlaceTerm;
+import eu.europeana.enrichment.model.internal.PlaceTermList;
 import eu.europeana.enrichment.model.internal.Term;
 import eu.europeana.enrichment.model.internal.TermList;
+import eu.europeana.enrichment.model.internal.TimespanTermList;
 import eu.europeana.enrichment.tagger.vocabularies.AbstractVocabulary;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
@@ -44,39 +52,76 @@ import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
-public class MongoDatabaseUtils {
+public class MongoDatabaseUtils<T> {
 
-	static JacksonDBCollection<MongoTermList, String> coll;
+	static JacksonDBCollection<ConceptTermList, String> cColl;
+	static JacksonDBCollection<PlaceTermList, String> pColl;
+	static JacksonDBCollection<TimespanTermList, String> tColl;
+	static JacksonDBCollection<AgentTermList, String> aColl;
 	static DB db;
-	static Map<String,Map<String, TermList>> memCache = new HashMap<String,Map<String, TermList>>();
-	
+	static Map<String, Map<String, MongoTermList>> memCache = new HashMap<String, Map<String, MongoTermList>>();
+
 	/**
 	 * Check if DB exists and initialization of the db
 	 * 
 	 * @return
 	 */
-	
-	
-	
+
 	public static boolean dbExists(String host, int port) {
 		try {
-			if(db==null){
-			Mongo mongo = new Mongo(host, port);
-			db = mongo.getDB("annocultor_db");
-			if (db.collectionExists("TermList")) {
-				coll = JacksonDBCollection.wrap(db.getCollection("TermList"),
-						MongoTermList.class, String.class);
+			if (db == null) {
 
-				coll.ensureIndex("codeUri");
+				Mongo mongo = new Mongo(host, port);
+				db = mongo.getDB("annocultor_db");
+				if (db.collectionExists("TermList")) {
+					cColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"),
+							ConceptTermList.class, String.class);
 
-				return true;
-			} else {
-				coll = JacksonDBCollection.wrap(db.getCollection("TermList"),
-						MongoTermList.class, String.class);
-				coll.ensureIndex("codeUri");
-				return false;
+					cColl.ensureIndex("codeUri");
+
+					aColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"), AgentTermList.class,
+							String.class);
+
+					aColl.ensureIndex("codeUri");
+					tColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"),
+							TimespanTermList.class, String.class);
+
+					tColl.ensureIndex("codeUri");
+					pColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"), PlaceTermList.class,
+							String.class);
+
+					pColl.ensureIndex("codeUri");
+
+					return true;
+				} else {
+					cColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"),
+							ConceptTermList.class, String.class);
+
+					cColl.ensureIndex("codeUri");
+
+					aColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"), AgentTermList.class,
+							String.class);
+
+					aColl.ensureIndex("codeUri");
+					tColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"),
+							TimespanTermList.class, String.class);
+
+					tColl.ensureIndex("codeUri");
+					pColl = JacksonDBCollection.wrap(
+							db.getCollection("TermList"), PlaceTermList.class,
+							String.class);
+
+					pColl.ensureIndex("codeUri");
+					return false;
+				}
 			}
-			} 
 			return true;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -85,7 +130,6 @@ public class MongoDatabaseUtils {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 		return false;
 	}
 
@@ -94,22 +138,27 @@ public class MongoDatabaseUtils {
 	 * 
 	 * @param dbtabl
 	 * @param vocabulary
+	 * @throws JiBXException
 	 */
-	public static void save(String dbtabl, AbstractVocabulary vocabulary) {
-
-		if (vocabulary instanceof VocabularyOfTime) {
-			saveTimeTerms((VocabularyOfTime) vocabulary);
-		} else if (vocabulary instanceof VocabularyOfTerms) {
-			saveTerms(vocabulary, "concept");
-		} else if (vocabulary instanceof VocabularyOfPeople) {
-			saveTerms(vocabulary, "people");
-		} else {
-			savePlaceTerms((VocabularyOfPlaces) vocabulary);
+	public static void save(String dbtabl, AbstractVocabulary vocabulary)
+			throws JiBXException {
+		try {
+			if (vocabulary instanceof VocabularyOfTime) {
+				saveTimespanTerms((VocabularyOfTime) vocabulary);
+			} else if (vocabulary instanceof VocabularyOfTerms) {
+				saveConceptTerms((VocabularyOfTerms) vocabulary);
+			} else if (vocabulary instanceof VocabularyOfPeople) {
+				saveAgentTerms((VocabularyOfPeople) vocabulary);
+			} else {
+				savePlacesTerms((VocabularyOfPlaces) vocabulary);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	public static void emptyCache() {
-		memCache = new HashMap<String,Map<String, TermList>>();
+		memCache.clear();
 	}
 
 	/**
@@ -120,274 +169,74 @@ public class MongoDatabaseUtils {
 	 * @return
 	 * @throws MalformedURLException
 	 */
-	public static TermList findByCode(CodeURI codeUri, String dbtable)
+	public static MongoTermList findByCode(String codeUri, String dbtable)
 			throws MalformedURLException {
-		Map<String,TermList> typeMap = memCache.get(dbtable)!=null?memCache.get(dbtable):new ConcurrentHashMap<String,TermList>();
-		if (typeMap.containsKey(codeUri.getUri())) {
-			return typeMap.get(codeUri.getUri());
+		Map<String, MongoTermList> typeMap = memCache.get(dbtable) != null ? memCache
+				.get(dbtable) : new ConcurrentHashMap<String, MongoTermList>();
+		if (typeMap.containsKey(codeUri)) {
+			return typeMap.get(codeUri);
 		}
-		
-		if(coll.find().is("codeUri", codeUri.getUri()).hasNext()){
-		MongoTermList mongoTermList = coll.find()
-				.is("codeUri", codeUri.getUri()).next();
-		if (mongoTermList != null) {
-			if (StringUtils.equals(dbtable, "concept")
-					|| StringUtils.equals(dbtable, "people")) {
-				TermList tList = retrieveTerms(mongoTermList, dbtable);
-					typeMap.put(codeUri.getUri(), tList);
-					memCache.put(dbtable, typeMap);
-				return tList;
-			} else if (StringUtils.equals(dbtable, "place")) {
-				TermList tList = retrievePlaceTerms(mongoTermList, dbtable);
-					typeMap.put(codeUri.getUri(), tList);
-					memCache.put(dbtable, typeMap);
-				return tList;
-			} else if (StringUtils.equals(dbtable, "period")) {
-				TermList tList = retrievePeriodTerms(mongoTermList, dbtable);
-					typeMap.put(codeUri.getUri(), tList);
-					memCache.put(dbtable, typeMap);
-				return tList;
-			}
+		if (dbtable.equals("concept")) {
+			return findConceptByCode(codeUri, typeMap);
 		}
+		if (dbtable.equals("place")) {
+			return findPlaceByCode(codeUri, typeMap);
+		}
+		if (dbtable.equals("people")) {
+			return findAgentByCode(codeUri, typeMap);
+		}
+		if (dbtable.equals("period")) {
+			return findTimespanByCode(codeUri, typeMap);
 		}
 		return null;
 	}
 
-	/**
-	 * Retrieve people and concept terms
-	 * 
-	 * @param mongoTermList
-	 *            The MongoTermList that will be used to create the period or
-	 *            concept
-	 * @param dbtable
-	 *            The table to search on
-	 * @return The TermList required by annocultor to perform enrichment
-	 * @throws MalformedURLException
-	 */
-	private static TermList retrieveTerms(MongoTermList mongoTermList,
-			String dbtable) throws MalformedURLException {
-
-		List<MongoTerm> refList = fetch(
-				normalize(new MongoTerm(), mongoTermList.getTerms()), dbtable);
-		TermList tList = new TermList();
-		for (MongoTerm mTerm : refList) {
-			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.originalLabel;
-			String lang = mTerm.lang != null ? mTerm.lang : null;
-			JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), MongoTerm.class,
-							String.class);
-			DBCursor<MongoTerm> mParent = null;
-			if (mTerm.parent != null) {
-				mParent = pColl.find().is("_id",
-						new ObjectId(mTerm.parent.getId()));
-			}
-			Term parent = null;
-			if (mParent != null && mParent.hasNext()) {
-				MongoTerm pTerm = mParent.next();
-				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.originalLabel;
-				String lang2 = pTerm.lang != null ? pTerm.lang : null;
-				parent = new Term(label2,
-						lang2 != null ? Language.Lang.valueOf(lang2) : null,
-						codeUri2, dbtable);
-			}
-			Term term = new Term(label,
-					lang != null ? Language.Lang.valueOf(lang) : null, codeUri,
-					dbtable);
-			if (parent != null) {
-				term.setParent(parent);
-			}
-			tList.add(term);
+	private static TimespanTermList findTimespanByCode(String codeUri,
+			Map<String, MongoTermList> typeMap) {
+		DBCursor<TimespanTermList> curs = tColl.find().is("codeUri", codeUri);
+		if (curs.hasNext()) {
+			TimespanTermList terms = curs.next();
+			typeMap.put(codeUri, terms);
+			memCache.put("period", typeMap);
+			return terms;
 		}
-		return tList;
+		return null;
 	}
 
-	private static List<MongoTerm> fetch(
-			List<DBRef<MongoTerm, String>> normalize, String dbtable) {
-		List<MongoTerm> list = new ArrayList<MongoTerm>();
-
-		JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
-				.wrap(db.getCollection(dbtable), MongoTerm.class, String.class);
-		for (DBRef<MongoTerm, String> mongoRef : normalize) {
-			DBCursor<MongoTerm> mongoTerm = pColl.find().is("_id",
-					new ObjectId(mongoRef.getId()));
-			if (mongoTerm.hasNext()) {
-				list.add(mongoTerm.next());
-			}
+	private static MongoTermList findAgentByCode(String codeUri,
+			Map<String, MongoTermList> typeMap) {
+		DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
+		if (curs.hasNext()) {
+			AgentTermList terms = curs.next();
+			typeMap.put(codeUri, terms);
+			memCache.put("people", typeMap);
+			return terms;
 		}
-
-		return list;
+		return null;
 	}
 
-	private static List<PlaceTerm> fetchPlace(
-			List<DBRef<PlaceTerm, String>> normalize, String dbtable) {
-		List<PlaceTerm> list = new ArrayList<PlaceTerm>();
-		JacksonDBCollection<PlaceTerm, String> pColl = JacksonDBCollection
-				.wrap(db.getCollection(dbtable), PlaceTerm.class, String.class);
-		for (DBRef<PlaceTerm, String> mongoRef : normalize) {
-			DBCursor<PlaceTerm> cur = pColl.find().is("_id",
-					new ObjectId(mongoRef.getId()));
-			if (cur.hasNext()) {
-				list.add(cur.next());
-			}
+	private static MongoTermList findPlaceByCode(String codeUri,
+			Map<String, MongoTermList> typeMap) {
+		DBCursor<PlaceTermList> curs = pColl.find().is("codeUri", codeUri);
+		if (curs.hasNext()) {
+			PlaceTermList terms = curs.next();
+			typeMap.put(codeUri, terms);
+			memCache.put("place", typeMap);
+			return terms;
 		}
-
-		return list;
+		return null;
 	}
 
-	private static List<PeriodTerm> fetchPeriod(
-			List<DBRef<PeriodTerm, String>> normalize, String dbtable) {
-		List<PeriodTerm> list = new ArrayList<PeriodTerm>();
-		JacksonDBCollection<PeriodTerm, String> pColl = JacksonDBCollection
-				.wrap(db.getCollection(dbtable), PeriodTerm.class, String.class);
-		for (DBRef<PeriodTerm, String> mongoRef : normalize) {
-			DBCursor<PeriodTerm> cur = pColl.find().is("_id",
-					new ObjectId(mongoRef.getId()));
-			if (cur.hasNext()) {
-				list.add(cur.next());
-			}
+	private static MongoTermList findConceptByCode(String codeUri,
+			Map<String, MongoTermList> typeMap) {
+		DBCursor<ConceptTermList> curs = cColl.find().is("codeUri", codeUri);
+		if (curs.hasNext()) {
+			ConceptTermList terms = curs.next();
+			typeMap.put(codeUri, terms);
+			memCache.put("concept", typeMap);
+			return terms;
 		}
-
-		return list;
-	}
-
-	/**
-	 * Retrieve place terms
-	 * 
-	 * @param mongoTermList
-	 *            The MongoTermList that will be used to create the place
-	 * @param dbtable
-	 *            The table to search on
-	 * @return The TermList required by annocultor to perform enrichment
-	 * @throws MalformedURLException
-	 */
-	private static TermList retrievePlaceTerms(MongoTermList mongoTermList,
-			String dbtable) throws MalformedURLException {
-
-		List<PlaceTerm> refList = fetchPlace(
-				normalize(new PlaceTerm(), mongoTermList.getTerms()), "place");
-		TermList tList = new TermList();
-		for (PlaceTerm mTerm : refList) {
-			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.originalLabel;
-			String lang = mTerm.lang != null ? mTerm.lang : null;
-			float lat = mTerm.lat;
-			float lon = mTerm.lon;
-
-			JacksonDBCollection<PlaceTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), PlaceTerm.class,
-							String.class);
-			DBCursor<PlaceTerm> mParent = null;
-			if (mTerm.parent != null) {
-				mParent = pColl.find().is("_id",
-						new ObjectId(mTerm.parent.getId()));
-			}
-			Term parent = null;
-			if (mParent != null && mParent.hasNext()) {
-				PlaceTerm pTerm = mParent.next();
-				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.originalLabel;
-				String lang2 = pTerm.lang != null ? pTerm.lang : null;
-				float lat1 = pTerm.lat;
-				float lon1 = pTerm.lon;
-				parent = new Term(label2,
-						lang2 != null ? Language.Lang.valueOf(lang2) : null,
-						codeUri2, dbtable);
-				
-				parent.setProperty("latitude", Float.toString(lat1));
-				parent.setProperty("longitude", Float.toString(lon1));
-			}
-			Term term = new Term(label,
-					lang != null ? Language.Lang.valueOf(lang) : null, codeUri,
-					dbtable);
-			if (parent != null) {
-				term.setParent(parent);
-			}
-			term.setProperty("latitude", Float.toString(lat));
-			term.setProperty("longitude", Float.toString(lon));
-			tList.add(term);
-		}
-		return tList;
-	}
-
-	/**
-	 * Retrieve timespan terms
-	 * 
-	 * @param mongoTermList
-	 *            The MongoTermList that will be used to create the timespan
-	 * @param dbtable
-	 *            The table to search on
-	 * @return The TermList required by annocultor to perform enrichment
-	 * @throws MalformedURLException
-	 */
-	private static TermList retrievePeriodTerms(MongoTermList mongoTermList,
-			String dbtable) throws MalformedURLException {
-
-		List<PeriodTerm> refList = fetchPeriod(
-				normalize(new PeriodTerm(), mongoTermList.getTerms()), "period");
-		TermList tList = new TermList();
-		for (PeriodTerm mTerm : refList) {
-			CodeURI codeUri = new CodeURI(mTerm.codeUri);
-			String label = mTerm.originalLabel;
-			String lang = mTerm.lang != null ? mTerm.lang : null;
-			JacksonDBCollection<PeriodTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), PeriodTerm.class,
-							String.class);
-			DBCursor<PeriodTerm> mParent = null;
-			if (mTerm.parent != null) {
-				mParent = pColl.find().is("_id",
-						new ObjectId(mTerm.parent.getId()));
-			}
-			Term parent = null;
-			if (mParent != null && mParent.hasNext()) {
-				PeriodTerm pTerm = mParent.next();
-				CodeURI codeUri2 = new CodeURI(pTerm.codeUri);
-				String label2 = pTerm.originalLabel;
-				String lang2 = pTerm.lang != null ? pTerm.lang : null;
-				parent = new Term(label2,
-						lang2 != null ? Language.Lang.valueOf(lang2) : null,
-						codeUri2, dbtable);
-				if (pTerm.begin != null && pTerm.end != null) {
-					parent.setProperty("begin", pTerm.begin);
-					parent.setProperty("end", pTerm.end);
-				}
-			}
-			Term term = new Term(label,
-					lang != null ? Language.Lang.valueOf(lang) : null, codeUri,
-					dbtable);
-			if (parent != null) {
-				term.setParent(parent);
-			}
-			if (mTerm.begin != null && mTerm.end != null) {
-				term.setProperty("begin", mTerm.begin);
-				term.setProperty("end", mTerm.end);
-			}
-			tList.add(term);
-		}
-		return tList;
-	}
-
-	/**
-	 * Normalize method to deal with extension of MongoTerm
-	 * 
-	 * @param obj
-	 * @param terms
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	private static <T> List<DBRef<T, String>> normalize(T obj,
-			List<DBRef<? extends MongoTerm, String>> terms) {
-		List<DBRef<T, String>> norm = new ArrayList<DBRef<T, String>>();
-		for (DBRef<? extends MongoTerm, String> ref : terms) {
-			DBRef<T, String> refNew = (DBRef<T, String>) ref;
-			norm.add(refNew);
-		}
-		return norm;
-	}
-
-	public static void prePopulateCache() {
-
+		return null;
 	}
 
 	/**
@@ -401,338 +250,317 @@ public class MongoDatabaseUtils {
 	 * @throws MalformedURLException
 	 */
 
-	public static  TermList findByLabel(String label, String dbtable)
+	public static MongoTermList findByLabel(String label, String dbtable)
 
-			throws MalformedURLException {
-		Map<String,TermList> typeMap= memCache.get(dbtable)!=null?memCache.get(dbtable):new ConcurrentHashMap<String,TermList>();
+	throws MalformedURLException {
+		Map<String, MongoTermList> typeMap = memCache.get(dbtable) != null ? memCache
+				.get(dbtable) : new ConcurrentHashMap<String, MongoTermList>();
 		if (typeMap.containsKey(label)) {
-			return typeMap.get(label);
+			return typeMap.get(label.toLowerCase());
 		}
-		TermList tList = null;
-		if (StringUtils.equals("people", dbtable)
-				|| StringUtils.equals("concept", dbtable)) {
-			tList = new TermList();
-			JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), MongoTerm.class,
-							String.class);
-			pColl.ensureIndex("label");
-			
-			DBCursor<MongoTerm> curs = pColl.find().is("label", label);
-			if (curs.hasNext()) {
-				MongoTerm mTerm = curs.next();
-				CodeURI codeUri = new CodeURI(mTerm.codeUri);
-				String lang = mTerm.lang != null ? mTerm.lang : null;
 
-				MongoTerm mParent = null;
-				if (mTerm.parent != null) {
-					mParent = pColl.findOneById(mTerm.parent.getId());
-				}
-				Term parent = null;
-				if (mParent != null) {
-					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.originalLabel;
-					String lang2 = mParent.lang != null ? mParent.lang : null;
-					parent = new Term(label2,
-							lang != null ? Language.Lang.valueOf(lang2) : null,
-							codeUri2, dbtable);
-				}
-				Term term = new Term(label,
-						lang != null ? Language.Lang.valueOf(lang) : null,
-						codeUri, dbtable);
-				if (parent != null) {
-					term.setParent(parent);
-				}
+		JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+				.wrap(db.getCollection(dbtable), MongoTerm.class, String.class);
+		pColl.ensureIndex("label");
 
-				tList.add(term);
-			}
-		} else if (StringUtils.equals("period", dbtable)) {
-			tList = new TermList();
-			JacksonDBCollection<PeriodTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), PeriodTerm.class,
-							String.class);
-			pColl.ensureIndex("label");
-			DBCursor<PeriodTerm> curs = pColl.find().is("label", label);
-			if (curs.hasNext()) {
-				PeriodTerm mTerm = curs.next();
-				CodeURI codeUri = new CodeURI(mTerm.codeUri);
-				String lang = mTerm.lang != null ? mTerm.lang : null;
-				PeriodTerm mParent = null;
-				if (mTerm.parent != null) {
-					mParent = pColl.findOneById(mTerm.parent.getId());
-				}
-				Term parent = null;
-				if (mParent != null) {
-					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.originalLabel;
-					String lang2 = mParent.lang != null ? mParent.lang : null;
-					parent = new Term(label2,
-							lang != null ? Language.Lang.valueOf(lang2) : null,
-							codeUri2, dbtable);
-					parent.setProperty("begin", mParent.begin);
-					parent.setProperty("end", mParent.end);
-				}
-				Term term = new Term(label,
-						lang != null ? Language.Lang.valueOf(lang) : null,
-						codeUri, dbtable);
-				if (parent != null) {
-					term.setParent(parent);
-				}
-				term.setProperty("begin", mTerm.begin);
-				term.setProperty("end", mTerm.end);
-				tList.add(term);
-			}
-		} else if (StringUtils.equals("place", dbtable)) {
-
-			tList = new TermList();
-			JacksonDBCollection<PlaceTerm, String> pColl = JacksonDBCollection
-					.wrap(db.getCollection(dbtable), PlaceTerm.class,
-							String.class);
-			pColl.ensureIndex("label");
-			DBCursor<PlaceTerm> curs = pColl.find().is("label", label);
-			if (curs.hasNext()) {
-				PlaceTerm mTerm = curs.next();
-				CodeURI codeUri = new CodeURI(mTerm.codeUri);
-				String lang = mTerm.lang != null ? mTerm.lang : null;
-				PlaceTerm mParent = null;
-				if (mTerm.parent != null) {
-					mParent = pColl.findOneById(mTerm.parent.getId());
-				}
-				Term parent = null;
-				if (mParent != null) {
-					CodeURI codeUri2 = new CodeURI(mParent.codeUri);
-					String label2 = mParent.originalLabel;
-					String lang2 = mParent.lang != null ? mParent.lang : null;
-					parent = new Term(label2,
-							lang != null ? Language.Lang.valueOf(lang2) : null,
-							codeUri2, dbtable);
-					parent.setProperty("latitude", Float.toString(mParent.lat));
-					parent.setProperty("longitude", Float.toString(mParent.lon));
-				}
-				Term term = new Term(label,
-						lang != null ? Language.Lang.valueOf(lang) : null,
-						codeUri, dbtable);
-				if (parent != null) {
-					term.setParent(parent);
-				}
-				term.setProperty("latitude", Float.toString(mTerm.lat));
-				term.setProperty("longitude", Float.toString(mTerm.lon));
-				tList.add(term);
-			}
-		}
-			typeMap.put(label.toLowerCase(), tList);
+		DBCursor<MongoTerm> curs = pColl.find()
+				.is("label", label.toLowerCase());
+		if (curs.hasNext()) {
+			MongoTerm mTerm = curs.next();
+			MongoTermList t = findByCode(mTerm.getCodeUri(), dbtable);
+			typeMap.put(label.toLowerCase(), t);
 			memCache.put(dbtable, typeMap);
-			return tList;
-	}
-
-	/**
-	 * Save time terms
-	 * 
-	 * @param voc
-	 *            The time vocabulary to use
-	 */
-	private static void saveTimeTerms(VocabularyOfTime voc) {
-		Iterable<TermList> tlList = voc.listAllByCode();
-		for (TermList tl : tlList) {
-			Term firstTerm = tl.getFirst();
-			MongoTermList termList = new MongoTermList();
-			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
-			termList.setCodeUri(firstTerm.getCode());
-			Iterator<Term> iter = tl.iterator();
-			while (iter.hasNext()) {
-				Term term = iter.next();
-				PeriodTerm pTerm = new PeriodTerm();
-				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel().toLowerCase();
-				pTerm.originalLabel = term.getLabel();
-				if (term.getLang() != null) {
-					pTerm.lang = term.getLang().getCode();
-				}
-				pTerm.begin = term.getProperty("begin");
-				pTerm.end = term.getProperty("end");
-				JacksonDBCollection<PeriodTerm, String> pColl = JacksonDBCollection
-						.wrap(db.getCollection("period"), PeriodTerm.class,
-								String.class);
-				pColl.ensureIndex("codeUri");
-				pColl.ensureIndex("label");
-				PeriodTerm parentTerm = new PeriodTerm();
-				Term parent = term.getParent();
-				if (parent != null) {
-					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel().toLowerCase();
-					parentTerm.originalLabel = parent.getLabel();
-					if (parent.getLang() != null) {
-						parentTerm.lang = parent.getLang().getCode();
-					}
-					parentTerm.begin = parent.getProperty("begin");
-					parentTerm.end = parent.getProperty("end");
-					DBRef<PeriodTerm, String> parentTermRef;
-					if (pColl.find().is("codeUri", parentTerm.codeUri)
-							.hasNext()) {
-						parentTermRef = new DBRef<PeriodTerm, String>(pColl
-								.find().is("codeUri", parentTerm.codeUri)
-								.next().id, "period");
-					} else {
-						WriteResult<PeriodTerm, String> resP = pColl
-								.insert(parentTerm);
-						parentTermRef = new DBRef<PeriodTerm, String>(
-								resP.getSavedObject().id, "period");
-					}
-					pTerm.parent = parentTermRef;
-				}
-				WriteResult<PeriodTerm, String> res = pColl.insert(pTerm);
-				DBRef<PeriodTerm, String> pTermRef = new DBRef<PeriodTerm, String>(
-						res.getSavedObject().id, "period");
-				pList.add(pTermRef);
-			}
-			termList.setTerms(pList);
-			coll.insert(termList);
+			return t;
 		}
-
+		return null;
 	}
 
-	/**
-	 * Save place terms in MongoDB
-	 * 
-	 * @param voc
-	 *            The place vocabulary instance
-	 */
-	private static void savePlaceTerms(VocabularyOfPlaces voc) {
-		Iterable<TermList> tlList = voc.listAllByCode();
-		for (TermList tl : tlList) {
-			Term firstTerm = tl.getFirst();
-			MongoTermList termList = new MongoTermList();
-			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
-			termList.setCodeUri(firstTerm.getCode());
-			Iterator<Term> iter = tl.iterator();
-			while (iter.hasNext()) {
-				Term term = iter.next();
-				PlaceTerm pTerm = new PlaceTerm();
-				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel().toLowerCase();
-				pTerm.originalLabel = term.getLabel();
-				if (term.getLang() != null) {
-					pTerm.lang = term.getLang().getCode();
-				}
-				if (!StringUtils.endsWith(term.getProperty("division"),
-						"A.PCLI")) {
-					pTerm.lat = Float.parseFloat(term.getProperty("latitude"));
-					pTerm.lon = Float.parseFloat(term.getProperty("longitude"));
-				}
-				JacksonDBCollection<PlaceTerm, String> pColl = JacksonDBCollection
-						.wrap(db.getCollection("place"), PlaceTerm.class,
-								String.class);
-				pColl.ensureIndex("codeUri");
-				pColl.ensureIndex("label");
-				PlaceTerm parentTerm = new PlaceTerm();
-				Term parent = term.getParent();
-				if (parent != null) {
-					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel().toLowerCase();
-					parentTerm.originalLabel = parent.getLabel();
-					if (parent.getLang() != null) {
-						parentTerm.lang = parent.getLang().getCode();
-					}
-					if (!StringUtils.endsWith(parent.getProperty("division"),
-							"A.PCLI")) {
-						parentTerm.lat = Float.parseFloat(parent
-								.getProperty("latitude"));
-						parentTerm.lon = Float.parseFloat(parent
-								.getProperty("longitude"));
-					}
-					DBRef<PlaceTerm, String> parentTermRef;
-					if (pColl.find().is("codeUri", parentTerm.codeUri)
-							.hasNext()) {
-						parentTermRef = new DBRef<PlaceTerm, String>(pColl
-								.find().is("codeUri", parentTerm.codeUri)
-								.next().id, "place");
-					} else {
-						WriteResult<PlaceTerm, String> resP = pColl
-								.insert(parentTerm);
-						parentTermRef = new DBRef<PlaceTerm, String>(
-								resP.getSavedObject().id, "place");
-					}
-					pTerm.parent = parentTermRef;
-				}
-				WriteResult<PlaceTerm, String> res = pColl.insert(pTerm);
-				DBRef<PlaceTerm, String> pTermRef = new DBRef<PlaceTerm, String>(
-						res.getSavedObject().id, "place");
-				pList.add(pTermRef);
-			}
-
-			termList.setTerms(pList);
-			coll.insert(termList);
-		}
-
-	}
-
-	/**
-	 * Save Concept and Agent Terms with their parents in the TermList, people
-	 * and concept DB
-	 * 
-	 * @param voc
-	 *            Vocabulary to use
-	 * @param collection
-	 *            The collection to save to
-	 */
-	private static void saveTerms(AbstractVocabulary voc, String collection) {
+	private static void saveConceptTerms(VocabularyOfTerms voc)
+			throws IOException, JiBXException {
 		// Get all terms by code
 		Iterable<TermList> tlList = voc.listAllByCode();
-		// For each term list
+
 		for (TermList tl : tlList) {
 			// Get the first tirm to create the searchable uri
 			Term firstTerm = tl.getFirst();
 			// Create the mongo term list object
-			MongoTermList termList = new MongoTermList();
-			// Create the list of references to terms
-			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
+			ConceptTermList termList = new ConceptTermList();
 			termList.setCodeUri(firstTerm.getCode());
+			ConceptImpl concept = new ConceptImpl();
+			concept.setAbout(firstTerm.getCode());
+
+			if (firstTerm.getParent() != null) {
+				String[] broader = new String[1];
+				termList.setParent(firstTerm.getParent().getCode());
+				broader[0] = firstTerm.getParent().getCode();
+				concept.setBroader(broader);
+
+			}
+			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
 			Iterator<Term> iter = tl.iterator();
+			Map<String, List<String>> prefLabel = new HashMap<String, List<String>>();
 			while (iter.hasNext()) {
 				Term term = iter.next();
 				MongoTerm pTerm = new MongoTerm();
-				pTerm.codeUri = term.getCode();
-				pTerm.label = term.getLabel().toLowerCase();
-				pTerm.originalLabel = term.getLabel();
-				if (term.getLang() != null) {
-					pTerm.lang = term.getLang().getCode();
+				pTerm.setCodeUri(term.getCode());
+				pTerm.setLabel(term.getLabel().toLowerCase());
+				String lang = term.getLang() != null ? term.getLang().getCode()
+						: "def";
+				List<String> prefLabelList = prefLabel.get(lang);
+				if (prefLabelList == null) {
+					prefLabelList = new ArrayList<String>();
 				}
-
-				MongoTerm parentTerm = new MongoTerm();
-				Term parent = term.getParent();
+				prefLabelList.add(term.getLabel());
+				pTerm.setOriginalLabel(term.getLabel());
+				if (term.getLang() != null) {
+					pTerm.setLang(term.getLang().getCode());
+				}
+				prefLabel.put(lang, prefLabelList);
 				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
-						.wrap(db.getCollection(collection), MongoTerm.class,
+						.wrap(db.getCollection("concept"), MongoTerm.class,
 								String.class);
 				pColl.ensureIndex("codeUri");
 				pColl.ensureIndex("label");
-				if (parent != null) {
-					parentTerm.codeUri = parent.getCode();
-					parentTerm.label = parent.getLabel().toLowerCase();
-					parentTerm.originalLabel = parent.getLabel();
-					if (parent.getLang() != null) {
-						parentTerm.lang = parent.getLang().getCode();
-					}
-
-					DBRef<MongoTerm, String> parentTermRef;
-					if (pColl.find().is("codeUri", parentTerm.codeUri)
-							.hasNext()) {
-						parentTermRef = new DBRef<MongoTerm, String>(pColl
-								.find().is("codeUri", parentTerm.codeUri)
-								.next().id, collection);
-					} else {
-						WriteResult<MongoTerm, String> resP = pColl
-								.insert(parentTerm);
-						parentTermRef = new DBRef<MongoTerm, String>(
-								resP.getSavedObject().id, collection);
-					}
-					pTerm.parent = parentTermRef;
-				}
 				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
 				DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
-						res.getSavedObject().id, collection);
+						res.getSavedObject().getId(), "concept");
+				pList.add(pTermRef);
+			}
+			concept.setPrefLabel(prefLabel);
+			termList.setTerms(pList);
+
+			termList.setRepresentation(concept);
+			termList.setEntityType(ConceptImpl.class.getSimpleName());
+			cColl.insert(termList);
+
+		}
+	}
+
+	private static void saveAgentTerms(VocabularyOfPeople voc)
+			throws IOException, JiBXException {
+		// Get all terms by code
+		Iterable<TermList> tlList = voc.listAllByCode();
+
+		for (TermList tl : tlList) {
+			// Get the first tirm to create the searchable uri
+			Term firstTerm = tl.getFirst();
+			// Create the mongo term list object
+			AgentTermList termList = new AgentTermList();
+			termList.setCodeUri(firstTerm.getCode());
+			AgentImpl agent = new AgentImpl();
+			agent.setAbout(firstTerm.getCode());
+
+			if (firstTerm.getParent() != null) {
+				termList.setParent(firstTerm.getParent().getCode());
+			}
+			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
+			Iterator<Term> iter = tl.iterator();
+			Map<String, List<String>> plList = new HashMap<String, List<String>>();
+			while (iter.hasNext()) {
+				Term term = iter.next();
+				MongoTerm pTerm = new MongoTerm();
+				pTerm.setCodeUri(term.getCode());
+				pTerm.setLabel(term.getLabel().toLowerCase());
+				String lang = term.getLang() != null ? term.getLang().getCode()
+						: "def";
+				List<String> prefLabelList = plList.get(lang);
+				if (prefLabelList == null) {
+					prefLabelList = new ArrayList<String>();
+				}
+				prefLabelList.add(term.getLabel());
+				pTerm.setOriginalLabel(term.getLabel());
+				if (term.getLang() != null) {
+					pTerm.setLang(term.getLang().getCode());
+				}
+				plList.put(lang, prefLabelList);
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+						.wrap(db.getCollection("people"), MongoTerm.class,
+								String.class);
+				pColl.ensureIndex("codeUri");
+				pColl.ensureIndex("label");
+				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
+				DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
+						res.getSavedObject().getId(), "people");
 				pList.add(pTermRef);
 			}
 			termList.setTerms(pList);
-			coll.insert(termList);
+			agent.setPrefLabel(plList);
+
+			termList.setRepresentation(agent);
+			termList.setEntityType(AgentImpl.class.getSimpleName());
+			aColl.insert(termList);
+
 		}
 	}
+
+	private static void saveTimespanTerms(VocabularyOfTime voc)
+			throws IOException, JiBXException {
+		// Get all terms by code
+		Iterable<TermList> tlList = voc.listAllByCode();
+
+		for (TermList tl : tlList) {
+			// Get the first tirm to create the searchable uri
+			Term firstTerm = tl.getFirst();
+			// Create the mongo term list object
+			TimespanTermList termList = new TimespanTermList();
+			termList.setCodeUri(firstTerm.getCode());
+			TimespanImpl timeSpan = new TimespanImpl();
+			timeSpan.setAbout(firstTerm.getCode());
+
+			if (firstTerm.getParent() != null) {
+				termList.setParent(firstTerm.getParent().getCode());
+				Map<String, List<String>> isPartOf = new HashMap<String, List<String>>();
+				List<String> isPartOfList = new ArrayList<String>();
+				isPartOfList.add(firstTerm.getParent().getCode());
+				isPartOf.put("def", isPartOfList);
+				timeSpan.setIsPartOf(isPartOf);
+			}
+			if (firstTerm.getProperty("begin") != null) {
+				Map<String, List<String>> begin = new HashMap<String, List<String>>();
+				List<String> beginList = new ArrayList<String>();
+				beginList.add(parseDate(firstTerm.getProperty("begin"),
+						"-01-01"));
+				begin.put("def", beginList);
+				timeSpan.setBegin(begin);
+			}
+			if (firstTerm.getProperty("end") != null) {
+				Map<String, List<String>> end = new HashMap<String, List<String>>();
+				List<String> endList = new ArrayList<String>();
+				endList.add(parseDate(firstTerm.getProperty("end"), "-12-31"));
+				end.put("def", endList);
+				timeSpan.setEnd(end);
+			}
+			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
+			Iterator<Term> iter = tl.iterator();
+			Map<String, List<String>> plList = new HashMap<String, List<String>>();
+			while (iter.hasNext()) {
+				Term term = iter.next();
+				MongoTerm pTerm = new MongoTerm();
+				pTerm.setCodeUri(term.getCode());
+				pTerm.setLabel(term.getLabel().toLowerCase());
+
+				pTerm.setOriginalLabel(term.getLabel());
+				String lang = term.getLang() != null ? term.getLang().getCode()
+						: "def";
+				List<String> prefLabelList = plList.get(lang);
+				if (prefLabelList == null) {
+					prefLabelList = new ArrayList<String>();
+				}
+				prefLabelList.add(term.getLabel());
+
+				if (term.getLang() != null) {
+					pTerm.setLang(term.getLang().getCode());
+
+				}
+				plList.put(lang, prefLabelList);
+
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+						.wrap(db.getCollection("period"), MongoTerm.class,
+								String.class);
+				pColl.ensureIndex("codeUri");
+				pColl.ensureIndex("label");
+				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
+				DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
+						res.getSavedObject().getId(), "period");
+				pList.add(pTermRef);
+			}
+			termList.setTerms(pList);
+			timeSpan.setPrefLabel(plList);
+
+			termList.setRepresentation(timeSpan);
+			termList.setEntityType(TimespanImpl.class.getSimpleName());
+			tColl.insert(termList);
+
+		}
+	}
+
+	private static void savePlacesTerms(VocabularyOfPlaces voc)
+			throws IOException, JiBXException {
+		Iterable<TermList> tlList = voc.listAllByCode();
+
+		for (TermList tl : tlList) {
+			// Get the first tirm to create the searchable uri
+			Term firstTerm = tl.getFirst();
+			// Create the mongo term list object
+			PlaceTermList termList = new PlaceTermList();
+			termList.setCodeUri(firstTerm.getCode());
+			PlaceImpl place = new PlaceImpl();
+			place.setAbout(firstTerm.getCode());
+
+			if (firstTerm.getParent() != null) {
+				termList.setParent(firstTerm.getParent().getCode());
+				Map<String, List<String>> isPartOf = new HashMap<String, List<String>>();
+				List<String> isPartOfList = new ArrayList<String>();
+				isPartOfList.add(firstTerm.getParent().getCode());
+				isPartOf.put("def", isPartOfList);
+				place.setIsPartOf(isPartOf);
+			}
+			if (!StringUtils.endsWith(firstTerm.getProperty("division"),
+					"A.PCLI")) {
+				place.setLatitude(Float.parseFloat(firstTerm
+						.getProperty("latitude")));
+				place.setLongitude(Float.parseFloat(firstTerm
+						.getProperty("longitude")));
+			}
+			List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
+			Iterator<Term> iter = tl.iterator();
+			Map<String, List<String>> plList = new HashMap<String, List<String>>();
+			while (iter.hasNext()) {
+				Term term = iter.next();
+				MongoTerm pTerm = new MongoTerm();
+				pTerm.setCodeUri(term.getCode());
+				pTerm.setLabel(term.getLabel().toLowerCase());
+				pTerm.setOriginalLabel(term.getLabel());
+				String lang = term.getLang() != null ? term.getLang().getCode()
+						: "def";
+				List<String> prefLabelList = plList.get(lang);
+				if (prefLabelList == null) {
+					prefLabelList = new ArrayList<String>();
+				}
+				prefLabelList.add(term.getLabel());
+
+				if (term.getLang() != null) {
+					pTerm.setLang(term.getLang().getCode());
+
+				}
+				plList.put(lang, prefLabelList);
+
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+						.wrap(db.getCollection("place"), MongoTerm.class,
+								String.class);
+				pColl.ensureIndex("codeUri");
+				pColl.ensureIndex("label");
+				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
+				DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
+						res.getSavedObject().getId(), "place");
+				pList.add(pTermRef);
+			}
+			termList.setTerms(pList);
+			place.setPrefLabel(plList);
+
+			termList.setRepresentation(place);
+			termList.setEntityType(PlaceImpl.class.getSimpleName());
+			pColl.insert(termList);
+
+		}
+	}
+
+	private static String parseDate(String dateString,
+			String affixToTryOnYearOnly) {
+		try {
+			if (dateString.length() == 4 && dateString.matches("\\d\\d\\d\\d")) {
+				dateString += affixToTryOnYearOnly;
+			}
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			if (StringUtils.isEmpty(dateString)) {
+				return null;
+			}
+			return dateFormat.parse(dateString).toString();
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+	}
+
 }

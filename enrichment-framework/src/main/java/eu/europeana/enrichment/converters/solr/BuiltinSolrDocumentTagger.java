@@ -205,8 +205,8 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 			port = Integer.parseInt(args[1]);
 		}
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
-			File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
-			File baseDir = environment.getVocabularyDir();
+			File cacheDir = new File("/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/tmp");
+			File baseDir = new File("/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/");
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(
