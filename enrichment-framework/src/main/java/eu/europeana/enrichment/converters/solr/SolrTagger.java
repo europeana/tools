@@ -17,17 +17,12 @@ package eu.europeana.enrichment.converters.solr;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.enrichment.model.external.EntityWrapper;
+import eu.europeana.enrichment.model.external.api.EntityClass;
+import eu.europeana.enrichment.model.external.api.InputValue;
 import eu.europeana.enrichment.model.internal.MongoTermList;
-import eu.europeana.enrichment.model.internal.Term;
-import eu.europeana.enrichment.tagger.rules.AbstractLookupRule;
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 
 /**
@@ -37,110 +32,40 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
  * @author Yorgos.Mamakis@ europeana.eu
  * 
  */
-public abstract class SolrTagger {
+@SuppressWarnings({"rawtypes","unchecked"})
+public class SolrTagger {
 
-	public static class FieldRulePair {
-		String field;
-		AbstractLookupRule rule;
 
-		public FieldRulePair(String field, AbstractLookupRule rule) {
-			this.field = field;
-			this.rule = rule;
-		}
-
-		public String getField() {
-			return field;
-		}
-
-		public AbstractLookupRule getRule() {
-			return rule;
-		}
-
+	public SolrTagger(){
+		
 	}
 
-	FieldRulePair[] fieldRulePairs;
-
-	String dbtable;
-	String termFieldName;
-
-	String labelFieldName;
-
-	Set<String> broaderLabels;
-	String broaderTermFieldName;
-	String broaderLabelFieldName;
-
-	public SolrTagger(String dbtable, String termFieldName,
-			String labelFieldName, String broaderTermFieldName,
-			String broaderLabelFieldName, FieldRulePair... fieldRulePairs) {
-		this.dbtable = dbtable;
-		this.fieldRulePairs = fieldRulePairs;
-		this.termFieldName = termFieldName;
-		this.labelFieldName = labelFieldName;
-		this.broaderTermFieldName = broaderTermFieldName;
-		this.broaderLabelFieldName = broaderLabelFieldName;
-	}
-
-	void afterTermMatched(Term term) throws Exception {
-
-	}
-
-	void afterDocument(SolrInputDocument document) {
-
-	}
-
-	void beforeDocument(SolrInputDocument document) {
-
-	}
-
-	
-
-	List<EntityWrapper> tag(SolrInputDocument document) throws Exception {
+	List<EntityWrapper> tag(List<InputValue> values) throws Exception {
+		
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-		String className = "";
-		if (StringUtils.equals(termFieldName, "skos_concept")) {
-			className = "Concept";
-			dbtable = "concept";
-		} else if (StringUtils.equals(termFieldName, "edm_place")) {
-			className = "Place";
-			dbtable = "place";
-		} else if (StringUtils.startsWith(termFieldName, "edm_timespan")) {
-			className = "Timespan";
-			dbtable = "period";
-		} else {
-			className = "Agent";
-			dbtable = "people";
-		}
-		for (FieldRulePair frp : fieldRulePairs) {
-			Collection<Object> values = document.getFieldValues(frp.getField());
-			if (values != null) {
-				for (Object value : values) {
-					entities.addAll(findEntities(
-							value.toString().toLowerCase(), frp.getField(),
-							className));
-				}
+		for (InputValue inputValue : values) {
+			for(EntityClass voc:inputValue.getVocabularies()){
+				entities.addAll(findEntities(inputValue.getValue().toLowerCase(), inputValue.getOriginalField(), voc));
 			}
 		}
-
 		return entities;
 	}
-	
-	
 
 	private List<EntityWrapper> findEntities(String lowerCase,
-			String field, String className) throws MalformedURLException {
+			String field, EntityClass className) throws MalformedURLException {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-		
-		if(className.equals("Concept")){
-			entities.addAll(findConceptEntities(lowerCase, field));
-		}
-		if(className.equals("Place")){
-			entities.addAll(findPlaceEntities(lowerCase, field));
-		}
-		if(className.equals("Agent")){
+		switch (className) {
+		case AGENT:
 			entities.addAll(findAgentEntities(lowerCase, field));
-		}
-		if(className.equals("Timespan")){
+			break;
+		case CONCEPT:
+			entities.addAll(findConceptEntities(lowerCase, field));
+		case PLACE:
+			entities.addAll(findPlaceEntities(lowerCase, field));
+		case TIMESPAN:
 			entities.addAll(findTimespanEntities(lowerCase, field));
+		default:
+			break;
 		}
 		return entities;
 	}
@@ -150,7 +75,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findConceptEntities(String value,
 			String originalField) throws MalformedURLException  {
 		List<EntityWrapper> concepts = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, dbtable);
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "concept");
 		if (terms!=null) {
 			
 			EntityWrapper conceptEntity = new EntityWrapper();
@@ -167,9 +92,10 @@ public abstract class SolrTagger {
 		return concepts;
 	}
 
+	
 	private List<EntityWrapper> findConceptParents(String parent) throws MalformedURLException{
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, dbtable);
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "concept");
 	
 		EntityWrapper entity = new EntityWrapper();
 		entity.setContextualEntity(parents.getRepresentation());
@@ -185,7 +111,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findAgentEntities(String value,
 			String originalField) throws MalformedURLException {
 		List<EntityWrapper> agents = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, dbtable);
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "people");
 		if (terms!=null) {
 			
 			EntityWrapper agentEntity = new EntityWrapper();
@@ -204,7 +130,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findAgentParents(String parent) throws MalformedURLException
 			 {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, dbtable);
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "people");
 		
 		EntityWrapper entity = new EntityWrapper();
 	 
@@ -221,7 +147,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findPlaceEntities(String value,
 			String originalField) throws MalformedURLException {
 		List<EntityWrapper> places = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, dbtable);
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "place");
 		if (terms!=null) {
 			
 			EntityWrapper placeEntity = new EntityWrapper();
@@ -238,7 +164,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findPlaceParents(String parent)
 			throws MalformedURLException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, dbtable);
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "place");
 		
 		EntityWrapper entity = new EntityWrapper();
 		entity.setContextualEntity(parents.getRepresentation());
@@ -253,7 +179,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findTimespanEntities(
 			String value, String originalField) throws MalformedURLException {
 		List<EntityWrapper> timespans = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, dbtable);
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "period");
 		if (terms!=null) {
 			EntityWrapper timeSpanEntity = new EntityWrapper();
 			timeSpanEntity.setOriginalField(originalField);
@@ -269,7 +195,7 @@ public abstract class SolrTagger {
 	private List<EntityWrapper> findTimespanParents(String parent)
 			throws MalformedURLException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, dbtable);
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "period");
 		
 		EntityWrapper entity = new EntityWrapper();
 		entity.setContextualEntity(parents.getRepresentation());

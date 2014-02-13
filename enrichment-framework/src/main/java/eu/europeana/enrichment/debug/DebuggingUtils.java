@@ -3,46 +3,72 @@ package eu.europeana.enrichment.debug;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.solr.common.SolrInputDocument;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import eu.europeana.corelib.solr.entity.TimespanImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.enrichment.converters.solr.BuiltinSolrDocumentTagger;
 import eu.europeana.enrichment.model.external.EntityWrapper;
+import eu.europeana.enrichment.model.external.api.EntityClass;
+import eu.europeana.enrichment.model.external.api.InputValue;
 
 public class DebuggingUtils {
 
 	public static void main(String... args){
-		BuiltinSolrDocumentTagger tagger = new BuiltinSolrDocumentTagger() {
-			
-			@Override
-			public boolean shouldReplicateThisField(String fieldName) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-			
-			@Override
-			public void preProcess(SolrInputDocument document, String id) {
-				// TODO Auto-generated method stub
-				
-			}
-		};
+		BuiltinSolrDocumentTagger tagger = new BuiltinSolrDocumentTagger() ;
 		
 		try {
 			tagger.init("Europeana");
 			
-			List<String> dcSubject = new ArrayList<String>();
-			dcSubject.add("music");
-			dcSubject.add("ivory");
-			dcSubject.add("steel");
-		
-			SolrInputDocument doc = new SolrInputDocument();
-			doc.addField("proxy_dc_subject", dcSubject);
-			doc.addField("proxy_dcterms_spatial","Paris");
-			doc.addField("proxy_dc_date","1918");
-			doc.addField("proxy_dc_creator","Rembrandt");
-			List<EntityWrapper> entity = tagger.tagDocument(doc);
-			TimespanImpl ts = (TimespanImpl)entity.get(0).getContextualEntity();
+			List<InputValue> values = new ArrayList<InputValue>();
+			
+			InputValue val1 = new  InputValue();
+			val1.setOriginalField("proxy_dc_subject");
+			val1.setValue("Music");
+			List<EntityClass> entityClasses1 = new ArrayList<EntityClass>();
+			entityClasses1.add(EntityClass.CONCEPT);
+			val1.setVocabularies(entityClasses1);
+			
+			InputValue val2 = new  InputValue();
+			val2.setOriginalField("proxy_dc_subject");
+			val2.setValue("Ivory");
+			List<EntityClass> entityClasses2 = new ArrayList<EntityClass>();
+			entityClasses2.add(EntityClass.CONCEPT);
+			val2.setVocabularies(entityClasses2);
+			
+			InputValue val3 = new  InputValue();
+			val3.setOriginalField("proxy_dc_subject");
+			val3.setValue("Steel");
+			List<EntityClass> entityClasses3 = new ArrayList<EntityClass>();
+			entityClasses3.add(EntityClass.CONCEPT);
+			val3.setVocabularies(entityClasses3);
+			
+			InputValue val4 = new  InputValue();
+			val4.setOriginalField("proxy_dcterms_spatial");
+			val4.setValue("Paris");
+			List<EntityClass> entityClasses4 = new ArrayList<EntityClass>();
+			entityClasses4.add(EntityClass.PLACE);
+			val4.setVocabularies(entityClasses4);
+			
+			InputValue val5 = new  InputValue();
+			val5.setOriginalField("proxy_dc_date");
+			val5.setValue("1918");
+			List<EntityClass> entityClasses5 = new ArrayList<EntityClass>();
+			entityClasses5.add(EntityClass.TIMESPAN);
+			val5.setVocabularies(entityClasses5);
+			
+			InputValue val6 = new  InputValue();
+			val6.setOriginalField("proxy_dc_creator");
+			val6.setValue("Rembrandt");
+			List<EntityClass> entityClasses6 = new ArrayList<EntityClass>();
+			entityClasses6.add(EntityClass.AGENT);
+			val6.setVocabularies(entityClasses6);
+			
+			values.add(val1);
+			values.add(val2);
+			values.add(val3);
+			values.add(val4);
+			values.add(val5);
+			values.add(val6);
+			List<EntityWrapper> entity = tagger.tagExternal(values);
+			ConceptImpl ts = (ConceptImpl)entity.get(0).getContextualEntity();
 			System.out.println(entity.size());
 			
 		} catch (Exception e) {

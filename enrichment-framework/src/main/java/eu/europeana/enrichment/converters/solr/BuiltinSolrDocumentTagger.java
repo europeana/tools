@@ -17,13 +17,10 @@ package eu.europeana.enrichment.converters.solr;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.SolrInputDocument;
 
 import eu.europeana.enrichment.api.Factory;
 import eu.europeana.enrichment.api.ObjectRule;
@@ -33,8 +30,8 @@ import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.EnvironmentImpl;
 import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.converters.europeana.EuropeanaLabelExtractor;
-import eu.europeana.enrichment.model.external.Entity;
 import eu.europeana.enrichment.model.external.EntityWrapper;
+import eu.europeana.enrichment.model.external.api.InputValue;
 import eu.europeana.enrichment.model.internal.CodeURI;
 import eu.europeana.enrichment.model.internal.Term;
 import eu.europeana.enrichment.model.internal.TermList;
@@ -60,18 +57,15 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
  * vocabularies.
  * 
  * @author Borys Omelayenko
- * 
+ * @author Yorgos.Mamakis@ europeana.eu
  */
-public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
+public class BuiltinSolrDocumentTagger {
 
-	@Override
-	public List<EntityWrapper> tagDocument(SolrInputDocument document)
+	@SuppressWarnings("rawtypes")
+	public List<EntityWrapper> tagExternal(List<InputValue> values)
 			throws Exception {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-		entities.addAll(periodsTagger.tag(document));
-		entities.addAll(peopleTagger.tag(document));
-		entities.addAll(placesTagger.tag(document));
-		entities.addAll(categoriesTagger.tag(document));
+		entities.addAll(new SolrTagger().tag(values));
 		return entities;
 	}
 
@@ -152,13 +146,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 	final String DEFAULT_HOST = "localhost";
 	final int DEFAULT_PORT = 27017;
 
-	public BuiltinSolrDocumentTagger(String idFieldName, String query,
-			String solrServerFrom, String solrServerTo, int start,
-			PrintWriter log) throws MalformedURLException {
-
-		super(idFieldName, query, solrServerFrom, solrServerTo, start, log);
-	}
-
 	public BuiltinSolrDocumentTagger() {
 
 	}
@@ -187,15 +174,11 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 				+ property + " ?" + property + " }";
 	}
 
-		public void init(String name, String... args) throws Exception {
+	public void init(String name, String... args) throws Exception {
 
 		task = Factory.makeTask(name, "", "Solr tagging with time and place",
 				Namespaces.ANNOCULTOR_CONVERTER, environment);
-
 		environment.getDocDir().delete();
-		// AbstractFileWritingGraph.createTempDocToShowWhileWorking(new File(
-		// environment.getDocDir(), task.getDatasetId() + "/index.html"));
-
 		objectRule = ObjectRuleImpl.makeObjectRule(task, new Path(""),
 				new Path(""), new Path(""), null, false);
 		String host = DEFAULT_HOST;
@@ -205,8 +188,10 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 			port = Integer.parseInt(args[1]);
 		}
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
-			File cacheDir = new File("/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/tmp");
-			File baseDir = new File("/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/");
+			File cacheDir = new File(
+					"/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/tmp");
+			File baseDir = new File(
+					"/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/");
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(
@@ -263,45 +248,6 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 			MongoDatabaseUtils.save("people", vocabularyOfPeople);
 		}
 
-		periodsTagger = new SolrPeriodsTagger(vocabularyOfPeriods,
-
-		"edm_timespan", "ts_skos_prefLabel", "ts_edm_begin", "ts_edm_end",
-				"ts_dcterms_isPartOf", "ts_dcterms_isPartOf_label",
-
-				new SolrTagger.FieldRulePair("proxy_dc_date",
-						makePeriodLookupRule("proxy_dc_date")),
-				new SolrTagger.FieldRulePair("proxy_dc_coverage",
-						makePeriodLookupRule("proxy_dc_coverage")),
-				new SolrTagger.FieldRulePair("proxy_dcterms_temporal",
-						makePeriodLookupRule("proxy_dcterms_temporal")),
-				new SolrTagger.FieldRulePair("proxy_edm_year",
-						makePeriodLookupRule("proxy_edm_year")));
-		placesTagger = new SolrPlacesTagger(vocabularyOfPlaces,
-
-		"edm_place", "pl_skos_prefLabel", "pl_dcterms_isPartOf",
-				"pl_dcterms_isPartOf_label",
-
-				new SolrTagger.FieldRulePair("proxy_dcterms_spatial",
-						makePlaceLookupRule("proxy_dcterms_spatial")),
-				new SolrTagger.FieldRulePair("proxy_dc_coverage",
-						makePlaceLookupRule("proxy_dc_coverage")));
-		categoriesTagger = new SolrConceptsTagger(vocabularyOfTerms,
-
-		"skos_concept", "cc_skos_prefLabel", "cc_skos_broader",
-
-		new SolrTagger.FieldRulePair("proxy_dc_type",
-				makeTermLookupRule("proxy_dc_type")),
-				new SolrTagger.FieldRulePair("proxy_dc_subject",
-						makeTermLookupRule("proxy_dc_subject")));
-
-		peopleTagger = new SolrPeopleTagger(vocabularyOfPeople,
-
-		"edm_agent", "ag_skos_prefLabel",
-
-		new SolrTagger.FieldRulePair("proxy_dc_creator",
-				makePersonLookupRule("proxy_dc_creator")),
-				new SolrTagger.FieldRulePair("proxy_dc_contributor",
-						makePersonLookupRule("proxy_dc_contributor")));
 	}
 
 	LookupTimeRule makePeriodLookupRule(String field) throws Exception {
@@ -377,7 +323,7 @@ public abstract class BuiltinSolrDocumentTagger extends SolrDocumentTagger {
 		rule.setObjectRule(objectRule);
 		rule.setTask(task);
 		rule.setSourcePath(new Path(field));
-		// rule.addLabelExtractor(new EuropeanaLabelExtractor(false));
+		rule.addLabelExtractor(new EuropeanaLabelExtractor(false));
 		return rule;
 	}
 
