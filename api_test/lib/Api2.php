@@ -15,7 +15,7 @@ class Api2 extends Basic {
   protected $providersPath = '/v2/providers.json';
   protected $providerPath = '/v2/provider/[ID].json';
   protected $providerDatasetsPath = '/v2/provider/[ID]/datasets.json';
-  protected $datasetPath = '/v2/datasets/[ID].json';
+  protected $datasetPath = '/v2/dataset/[ID].json';
 
   /**
    * List of valid search profiles (in API 2.0)
@@ -112,7 +112,7 @@ class Api2 extends Basic {
     $params = array(
         'wskey' => $this->apiKey,
     );
-    return $this->getContent($this->getVariablePath($this->datasetPath, $providerId), $params);
+    return $this->getContent($this->getVariablePath($this->datasetPath, $datasetId), $params);
   }
 
   private function isValidObjectProfile($profile) {

@@ -236,6 +236,28 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
+  function testDataset() {
+    $api = new Api2();
+    $resultsProviders = $api->getProviders();
+    $this->lastUrl = $api->getLastUrl();
+    foreach ($resultsProviders->items as $providersItem) {
+      $datasetsResults = $api->getProviderDatasets($providersItem->identifier);
+      $this->lastUrl = $api->getLastUrl();
+      if ($datasetsResults->itemsCount > 0) {
+        foreach ($datasetsResults->items as $datasetsItem) {
+          $this->_testDataset($datasetsItem);
+          $datasetResults = $api->getDataset($datasetsItem->identifier);
+          $this->lastUrl = $api->getLastUrl();
+          if ($datasetResults->itemsCount > 0) {
+            foreach ($datasetResults->items as $datasetItem) {
+              $this->_testDataset($datasetItem);
+            }
+          }
+        }
+      }
+    }
+  }
+
   private function _testDataset($item) {
     $this->assertObjectHasAttribute('identifier', $item, 'Each dataset should have identifier');
     $this->assertNotNull($item->identifier);
@@ -276,7 +298,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $this->assertTrue(preg_match($this->publicationDatePattern, $item->publicationDate) == 1,
         "publicationDate should match to pattern: \n" . $item->publicationDate . LN . $this->lastUrl);
     } else {
-      echo $item->identifier, ' doesn\'t have publicationDate', LN;
+      // echo $item->identifier, ' doesn\'t have publicationDate', LN;
     }
   }
 
