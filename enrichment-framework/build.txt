@@ -1,0 +1,1 @@
+Writing Revision ${buildNumber} built at ${timestamp} to build.txt

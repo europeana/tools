@@ -1,0 +1,577 @@
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY ac 'http://annocultor.sourceforge.net/XmlApi/'>
+]>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ac="http://annocultor.sourceforge.net/XmlApi/"
+	targetNamespace="http://annocultor.sourceforge.net/XmlApi/" xmlns="http://annocultor.sourceforge.net/XmlApi/"
+	elementFormDefault="qualified" attributeFormDefault="qualified"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+>
+	<!--
+		should be XmlApiTemplate to be changed to XmlApi after extension with rules
+	-->
+	<xs:import namespace="&rdf;" schemaLocation="XmlApi.xsd"></xs:import>
+
+	<xs:element name="Profile" type="ac:TypeProfile">
+		<xs:annotation>
+			<xs:documentation>Conversion profile of an organisation
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:complexType name="TypeProfile">
+		<xs:complexContent>
+			<xs:extension base="rdf:Identified">
+				<xs:sequence>
+					<xs:element ref="parameters" minOccurs="0" maxOccurs="1" />
+					<xs:element ref="vocabularies" minOccurs="0" maxOccurs="1" />
+					<xs:element name="repositories" minOccurs="0" maxOccurs="1" />
+				</xs:sequence>
+				<xs:attributeGroup ref="ac:attlist.profile" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:attributeGroup name="attlist.profile">
+		<!-- rdf:id is defined in the RDF layer -->
+		<xs:attribute name="institution" />
+		<xs:attribute name="publisherId" />
+		<xs:attribute name="versionAnnoCultor" fixed="2.0" use="required" />
+	</xs:attributeGroup>
+
+	<xs:element name="parameters">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:sequence>
+						<xs:element name="Parameter" minOccurs="0" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="name" minOccurs="1" maxOccurs="1">
+										<xs:simpleType>
+											<xs:union>
+												<xs:simpleType>
+													<xs:restriction base="xs:string">
+														<xs:enumeration value="annoCultorHome">
+															<xs:annotation>
+																<xs:documentation>
+																	Working directory of AnnoCultor,
+																	defaults to current dir.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<xs:enumeration value="inputDir">
+															<xs:annotation>
+																<xs:documentation>
+																	Path where input XML data can be
+																	found.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<xs:enumeration value="outputDir">
+															<xs:annotation>
+																<xs:documentation>
+																	Path where RDF data should be stored.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<xs:enumeration value="outputOntologyDir">
+															<xs:annotation>
+																<xs:documentation>
+																	Path where generated RDFS/OWL files
+																	should be stored.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<xs:enumeration value="vocabularyDir">
+															<xs:annotation>
+																<xs:documentation>
+																	Path to the vocabularies to be used.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<xs:enumeration value="tmpDir">
+															<xs:annotation>
+																<xs:documentation>
+																	Path to temp storage, also vocabulary
+																	caches.
+																</xs:documentation>
+															</xs:annotation>
+														</xs:enumeration>
+														<!--
+															<xs:enumeration value="docDir" /> <xs:enumeration value="finalDir" />
+															<xs:enumeration value="previousDir" /> <xs:enumeration value="diffDir" />
+															<xs:enumeration value="annoCultorHomeSource" /> <xs:enumeration
+															value="collectionDirSource" /> <xs:enumeration value="localProfileFile" />
+														-->
+													</xs:restriction>
+												</xs:simpleType>
+												<xs:simpleType>
+													<xs:restriction base="xs:string">
+														<xs:pattern value="(.)+"></xs:pattern>
+													</xs:restriction>
+												</xs:simpleType>
+											</xs:union>
+										</xs:simpleType>
+									</xs:element>
+									<xs:element name="value" minOccurs="1" maxOccurs="1"></xs:element>
+									<xs:element name="comment" minOccurs="0" maxOccurs="1"></xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="repositories">
+		<xs:annotation>
+			<xs:documentation>An XML file or a SQL query result
+			</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:sequence>
+						<xs:element name="Repository">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="rdf:Identified">
+										<xs:sequence>
+											<xs:element name="datasource" minOccurs="1" maxOccurs="1">
+												<xs:complexType>
+													<xs:choice minOccurs="1">
+														<xs:element name="XmlFile" minOccurs="0" maxOccurs="unbounded">
+															<xs:complexType>
+																<xs:sequence>
+																	<xs:element name="fileNamePattern" minOccurs="1" maxOccurs="unbounded">
+																		<xs:simpleType>
+																			<xs:restriction base="xs:string">
+																				<!--
+																					<xs:pattern value="([\w]+/)*(([\w]+|[\*])\.xml)"></xs:pattern>
+																				-->
+																			</xs:restriction>
+																		</xs:simpleType>
+																	</xs:element>
+																</xs:sequence>
+															</xs:complexType>
+														</xs:element>
+														<xs:element name="Jdbc" minOccurs="0" maxOccurs="1">
+															<xs:complexType>
+																<xs:sequence>
+																	<xs:element name="driver">
+																		<xs:annotation>
+																			<xs:documentation>Ensure that the jar file with
+																				this driver is on
+																				the classpath</xs:documentation>
+																		</xs:annotation>
+																	</xs:element>
+																	<xs:element name="url">
+																		<xs:annotation>
+																			<xs:documentation>Connection url with all
+																				properties, user
+																				name, passowrd, etc.
+																			</xs:documentation>
+																		</xs:annotation>
+																	</xs:element>
+																	<xs:element name="query">
+																		<xs:annotation>
+																			<xs:documentation>SQL query that produces the data
+																				to be converted.
+																				Each record is treated as a new
+																				object.</xs:documentation>
+																		</xs:annotation>
+																	</xs:element>
+																</xs:sequence>
+															</xs:complexType>
+														</xs:element>
+													</xs:choice>
+												</xs:complexType>
+											</xs:element>
+											<xs:element ref="destinations" minOccurs="0" maxOccurs="1" />
+											<xs:element ref="objectRules" minOccurs="1" maxOccurs="1" />
+											<xs:element name="listeners" maxOccurs="1">
+												<xs:complexType>
+													<xs:complexContent>
+														<xs:extension base="rdf:Collection">
+															<xs:sequence>
+																<xs:element name="Declarations" minOccurs="0" maxOccurs="1"
+																	type="TypeListener"
+																>
+																	<xs:annotation>
+																		<xs:documentation>// variable and type declarations
+																		</xs:documentation>
+																	</xs:annotation>
+																</xs:element>
+																<xs:element name="OnConversionStarts" minOccurs="0" maxOccurs="1"
+																	type="TypeListener"
+																>
+																	<xs:annotation>
+																		<xs:documentation> public void onConversionStarts()
+																			throws Exception;
+																		</xs:documentation>
+																	</xs:annotation>
+																</xs:element>
+																<xs:element name="OnConversionEnds" minOccurs="0" maxOccurs="1"
+																	type="TypeListener"
+																>
+																	<xs:annotation>
+																		<xs:documentation>public void onConversionEnds()
+																			throws Exception;
+																		</xs:documentation>
+																	</xs:annotation>
+																</xs:element>
+															</xs:sequence>
+														</xs:extension>
+													</xs:complexContent>
+												</xs:complexType>
+											</xs:element>
+											<xs:element name="maxRecordsToConvert" minOccurs="0" maxOccurs="1"
+												default="-1"
+											>
+												<xs:annotation>
+													<xs:documentation>Setting this property makes
+														conversion stop after the
+														specified
+														number of records is
+														passed. It will stop by
+														exception and you will
+														see an error
+														message.
+														Scroll up to find out that it stopped by reaching
+														this
+														limit and not for some other reason.
+													</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<!-- Object rules -->
+	<xs:element name="objectRules">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:annotation>
+						<xs:documentation>Object rule</xs:documentation>
+					</xs:annotation>
+					<xs:sequence>
+					  <xs:element ref="ObjectRule" minOccurs="0" maxOccurs="unbounded"></xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="parentObjectRule">
+		<xs:annotation>
+			<xs:documentation>Parent rule</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+			  <xs:element ref="ObjectRule" minOccurs="0" maxOccurs="unbounded"></xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="ObjectRule">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Identifiable">
+					<xs:sequence>
+						<xs:element name="recordSeparator" minOccurs="1" maxOccurs="1" />
+						<xs:element name="recordIdentifier" minOccurs="1" maxOccurs="1" />
+						<xs:element name="recordInformalIdentifier" minOccurs="1" maxOccurs="1" />
+						<xs:element ref="parentObjectRule" minOccurs="0" maxOccurs="1" />
+						<xs:element name="listeners" maxOccurs="1">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="rdf:Collection">
+										<xs:sequence>
+											<xs:element name="Declarations" minOccurs="0" maxOccurs="1"
+												type="TypeListener"
+											>
+												<xs:annotation>
+													<xs:documentation>// variable and type declarations
+																		</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+											<xs:element name="OnPreCondition" minOccurs="0" maxOccurs="1"
+												type="TypeListener"
+											>
+												<xs:annotation>
+													<xs:documentation>public boolean
+														onPreCondition(DataObject sourceDataObject) throws
+														Exception;</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+											<xs:element name="OnProcess" minOccurs="0" maxOccurs="1" type="TypeListener">
+												<xs:annotation>
+													<xs:documentation>public void
+														onProcess(DataObject sourceDataObject) throws
+														Exception;</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+											<xs:element name="OnPostCondition" minOccurs="0" maxOccurs="1"
+												type="TypeListener"
+											>
+												<xs:annotation>
+													<xs:documentation>public boolean
+														onPostCondition(DataObject sourceDataObject) throws
+														Exception;</xs:documentation>
+												</xs:annotation>
+											</xs:element>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+						<xs:element name="propertyRules" minOccurs="1" maxOccurs="1">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element ref="ABSTRACT-RULE" minOccurs="0" maxOccurs="unbounded" />
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<!-- Property rules -->
+	<xs:element name="destinations">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:sequence>
+						<xs:element name="RdfGraph" minOccurs="1" maxOccurs="unbounded">
+							<xs:complexType>
+								<xs:complexContent>
+									<xs:extension base="rdf:Identified">
+										<xs:sequence>
+											<xs:element name="comment" minOccurs="0" maxOccurs="1"></xs:element>
+										</xs:sequence>
+									</xs:extension>
+								</xs:complexContent>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="TypeAbstractVocabulary">
+		<xs:choice>
+			<xs:element name="VocabularyOfTerms" type="ac:Vocabulary" minOccurs="0"
+				maxOccurs="unbounded" />
+			<xs:element name="VocabularyOfPlaces" type="ac:Vocabulary" minOccurs="0"
+				maxOccurs="unbounded" />
+			<xs:element name="VocabularyOfPeople" type="ac:Vocabulary" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xs:choice>
+	</xs:complexType>
+
+	<xs:element name="vocabularies">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="rdf:Collection">
+					<xs:sequence>
+						<xs:element name="VocabularyOfTerms" type="ac:Vocabulary" minOccurs="0"
+							maxOccurs="unbounded" />
+						<xs:element name="VocabularyOfPlaces" type="ac:Vocabulary" minOccurs="0"
+							maxOccurs="unbounded" />
+						<xs:element name="VocabularyOfPeople" type="ac:Vocabulary" minOccurs="0"
+							maxOccurs="unbounded" />
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="Vocabulary">
+		<xs:complexContent>
+			<xs:extension base="rdf:Identified">
+				<xs:sequence>
+					<xs:element name="language" minOccurs="0" maxOccurs="1"></xs:element>
+					<xs:element name="comment" minOccurs="0" maxOccurs="1"></xs:element>
+					<xs:element name="file" minOccurs="1" maxOccurs="unbounded"></xs:element>
+					<xs:element name="sparqlQuery" minOccurs="1" maxOccurs="unbounded">
+						<xs:complexType>
+							<xs:simpleContent>
+								<xs:extension base="xs:string">
+									<xs:attribute name="termProperty"></xs:attribute>
+								</xs:extension>
+							</xs:simpleContent>
+						</xs:complexType>
+					</xs:element>
+					<xs:element name="listeners" minOccurs="0" maxOccurs="1">
+						<xs:complexType>
+							<xs:complexContent>
+								<xs:extension base="rdf:Collection">
+									<xs:sequence>
+										<xs:element name="OnInit" minOccurs="0" maxOccurs="1" type="TypeListener">
+											<xs:annotation>
+												<xs:documentation>
+													public void init() throws Exception
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="OnLoadTermCode" minOccurs="0" maxOccurs="1"
+											type="TypeListener"
+										>
+											<xs:annotation>
+												<xs:documentation>
+													public String onLoadTermCode(String code) throws Exception
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="OnNormaliseLabel" minOccurs="0" maxOccurs="1"
+											type="TypeListener"
+										>
+											<xs:annotation>
+												<xs:documentation>
+													public String onNormaliseLabel(String label) throws
+													Exception
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="OnDisambiguate" minOccurs="0" maxOccurs="1"
+											type="TypeListener"
+										>
+											<xs:annotation>
+												<xs:documentation>
+													public TermList disambiguate(TermList termList, DisambiguationContext
+													disambiguationContext) throws Exception
+												</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:extension>
+							</xs:complexContent>
+						</xs:complexType>
+					</xs:element>
+
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+
+	<xs:complexType name="TypeListener">
+		<xs:complexContent>
+			<xs:extension base="rdf:Identifiable">
+				<xs:sequence>
+					<xs:element name="java">
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<!-- AnnoCultor XML API parameter types -->
+	<xs:complexType name="String">
+		<xs:simpleContent>
+			<xs:extension base="rdf:String">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Graph">
+		<xs:simpleContent>
+			<xs:extension base="rdf:RdfGraph">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Property">
+		<xs:simpleContent>
+			<xs:extension base="rdf:RdfProperty">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Resource">
+		<xs:simpleContent>
+			<xs:extension base="rdf:Resource">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Path">
+		<xs:annotation>
+			<xs:documentation>
+				XPath-like expressions. Absolute expressions, that you are likely to
+				use in
+				DataObjects should start with /.
+				Relative expressions, that you will use in
+				assigning rules to paths, should
+				start with a tag name.
+				A typical expression may look
+				like /ns1:work[@checked='1' and
+				@visibility='public']/ns2:record/dc:TITLE
+			</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="rdf:XmlPath">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Lang">
+		<xs:simpleContent>
+			<xs:extension base="rdf:Lang">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Namespace">
+		<xs:simpleContent>
+			<xs:extension base="rdf:Namespace">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfTerms">
+		<xs:simpleContent>
+			<xs:extension base="rdf:VocabularyOfTerms">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfPeople">
+		<xs:simpleContent>
+			<xs:extension base="rdf:VocabularyOfPeople">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfPlaces">
+		<xs:simpleContent>
+			<xs:extension base="rdf:VocabularyOfPlaces">
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<!-- AnnoCultor XML API add-on: Rule -->
+	<xs:element name="ABSTRACT-RULE" />
+
+	<!--
+		AnnoCultor XML API add-on: Specific rules with their XML signatures generated from Java code.
+	-->
+
+	<!--
+		AnnoCultor XML API add-on: This comment will be replaced with the generated signatures, DO NOT ALTER THIS LINE.
+	-->
+</xs:schema>

@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY ac 'http://annocultor.sourceforge.net/XmlApi/'>
+]>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="&rdf;" xmlns="&rdf;" elementFormDefault="qualified"
+	attributeFormDefault="qualified" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:ac="&ac;"
+>
+	<xs:import namespace="&ac;" schemaLocation="XConverterInclude.xsd"></xs:import>
+	<xs:element name="RDF">
+		<xs:annotation>
+			<xs:documentation>
+				RDF wrap-up for AnnoCultor XML profiles.
+	 </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ac:Profile"></xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:complexType name="Identified">
+		<xs:annotation>
+			<xs:documentation>
+				Concepts with RDF id.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="about" use="required"></xs:attribute>
+	</xs:complexType>
+	
+	<xs:complexType name="Identifiable">
+		<xs:annotation>
+			<xs:documentation>
+				Concepts with RDF id.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="about" use="optional"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="Collection">
+		<xs:annotation>
+			<xs:documentation>
+				RDF collections.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="parseType" fixed="Collection" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<!-- AnnoCultor XML API parameter types -->
+	<xs:complexType name="String">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="datatype" fixed="ac:String" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="RdfGraph">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="datatype" fixed="ac:RdfGraph" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="RdfProperty">
+		<xs:simpleContent>
+			<xs:extension base="xs:QName">
+				<xs:attribute name="datatype" fixed="ac:RdfProperty" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Resource">
+		<xs:simpleContent>
+			<xs:extension base="xs:QName">
+				<xs:attribute name="datatype" fixed="ac:Resource" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Map">
+	</xs:complexType>
+
+	<xs:complexType name="Rule">
+	</xs:complexType>
+
+	<xs:complexType name="XmlPath">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="datatype" fixed="ac:XmlPath" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="LangCode">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">			
+				<xs:attribute name="datatype" fixed="ac:Lang" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<xs:complexType name="Lang">
+		<xs:simpleContent>
+			<xs:restriction base="LangCode">
+				<xs:pattern value="\w\w"></xs:pattern>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="Namespace">
+		<xs:simpleContent>
+			<xs:extension base="xs:NCName">
+				<xs:attribute name="datatype" fixed="ac:Namespace" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfTerms">
+		<xs:simpleContent>
+			<xs:extension base="xs:Name">
+				<xs:attribute name="datatype" fixed="ac:VocabularyOfTerms" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfPeople">
+		<xs:simpleContent>
+			<xs:extension base="xs:Name">
+				<xs:attribute name="datatype" fixed="ac:VocabularyOfPeople" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="VocabularyOfPlaces">
+		<xs:simpleContent>
+			<xs:extension base="xs:Name">
+				<xs:attribute name="datatype" fixed="ac:VocabularyOfPlaces" use="required"></xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+</xs:schema>
