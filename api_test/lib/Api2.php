@@ -12,6 +12,10 @@ class Api2 extends Basic {
   protected $searchPath = '/v2/search.json';
   protected $objectPath = '/v2/record/[ID].json';
   protected $openSearchPath = '/v2/opensearch.rss';
+  protected $providersPath = '/v2/providers.json';
+  protected $providerPath = '/v2/provider/[ID].json';
+  protected $providerDatasetsPath = '/v2/provider/[ID]/datasets.json';
+  protected $datasetPath = '/v2/datasets/[ID].json';
 
   /**
    * List of valid search profiles (in API 2.0)
@@ -50,7 +54,9 @@ class Api2 extends Basic {
         $params[$key] = $value;
       }
     }
-    return http_build_query($params, '', '&');
+    $query = http_build_query($params, '', '&');
+    $query = preg_replace('/%5B[0-9]+%5D/simU', '', $query);
+    return $query; //http_build_query($params, '', '&');
   }
 
   /**
@@ -69,6 +75,44 @@ class Api2 extends Basic {
       $params['profile'] = $profile;
     }
     return http_build_query($params, '', '&');
+  }
+
+  public function getProviders($offset = -1, $pageSize = -1, $countryCode = null) {
+    $params = array(
+      'wskey' => $this->apiKey,
+    );
+    if ($offset != -1) {
+      $params['offset'] = $offset;
+    }
+    if ($pageSize != -1) {
+      $params['pageSize'] = $pageSize;
+    }
+    if ($countryCode != null) {
+      $params['countryCode'] = $countryCode;
+    }
+    // $this->providersPath
+    return $this->getContent($this->providersPath, $params);
+  }
+
+  public function getProvider($providerId = FALSE) {
+    $params = array(
+      'wskey' => $this->apiKey,
+    );
+    return $this->getContent($this->getVariablePath($this->providerPath, $providerId), $params);
+  }
+
+  public function getProviderDatasets($providerId = FALSE) {
+    $params = array(
+      'wskey' => $this->apiKey,
+    );
+    return $this->getContent($this->getVariablePath($this->providerDatasetsPath, $providerId), $params);
+  }
+
+  public function getDataset($datasetId = FALSE) {
+    $params = array(
+        'wskey' => $this->apiKey,
+    );
+    return $this->getContent($this->getVariablePath($this->datasetPath, $providerId), $params);
   }
 
   private function isValidObjectProfile($profile) {
