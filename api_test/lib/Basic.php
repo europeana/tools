@@ -163,6 +163,13 @@ abstract class Basic {
     return str_replace('//', '/', str_replace('[ID]', $id, $this->objectPath));
   }
 
+  function getVariablePath($path, $id = FALSE) {
+    if ($id === FALSE) {
+      return $path;
+    }
+    return str_replace('//', '/', str_replace('[ID]', $id, $path));
+  }
+
   private function getOpenSearchParams($searchTerms, $startIndex = 1, $count = 12) {
     $params = array(
       'searchTerms' => $searchTerms,
@@ -170,6 +177,15 @@ abstract class Basic {
       'count'  => $count,
     );
     return http_build_query($params, '', '&');
+  }
+
+  protected function getContent($path, $params = array(), $callback = '') {
+    $this->lastUrl = $this->server . $path . '?' . http_build_query($params, '', '&');
+    $content = file_get_contents($this->lastUrl);
+    if ($callback == '') {
+      return json_decode($content);
+    }
+    return $content;
   }
 
   /**

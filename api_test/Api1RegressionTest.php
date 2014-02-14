@@ -13,7 +13,7 @@ class Api1RegressionTest extends PHPUnit_Framework_TestCase {
   function setUp() {
     $this->idPattern = "@^/[^/]+/[^/]+$@";
     $this->keyParam = "wskey=" . API_KEY;
-    $this->guidPattern = "@^" . SERVER . '/portal/record/[^/]+/[^/]+\.html$@';
+    $this->guidPattern = "@^http://(www\.)?" . DOMAIN . '/portal/record/[^/]+/[^/]+\.html$@';
     $this->linkPattern = "@^http://(www\.)?" . DOMAIN . '/api/v1/record/[^/]+/[^/]+\.json\?' . $this->keyParam . '$@';
   }
 
