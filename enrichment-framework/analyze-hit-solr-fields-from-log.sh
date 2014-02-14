@@ -1,1 +1,0 @@
-/usr/local/java/bin/java -cp ~/.m2/repository/annocultor/annocultor/2.3.17/annocultor-2.3.17.jar eu.annocultor.analyzers.SolrPropertyHitsAnalyzer http://solr1.europeana.sara.nl/solr/ dc enrichment_ clickstream/

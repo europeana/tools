@@ -1,1 +1,0 @@
-mvn deploy "-DupdateReleaseInfo=true" "-DskipTests=true"
