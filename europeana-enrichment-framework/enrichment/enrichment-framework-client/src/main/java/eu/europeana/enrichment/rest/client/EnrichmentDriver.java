@@ -30,7 +30,7 @@ public class EnrichmentDriver {
 		Form form = new Form();
 		form.param("input", new ObjectMapper().writeValueAsString(inList));
 		Response res = client
-				.target("http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/")
+				.target(path)
 				.request()
 				.post(Entity
 						.entity(form, MediaType.APPLICATION_FORM_URLENCODED),
