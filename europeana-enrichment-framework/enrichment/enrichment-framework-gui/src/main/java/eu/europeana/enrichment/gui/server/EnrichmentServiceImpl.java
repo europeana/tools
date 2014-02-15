@@ -33,6 +33,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 			inputValue.setValue(value.getValue());
 			List<EntityClass> classes = new ArrayList<EntityClass>();
 			classes.add(EntityClass.valueOf(value.getVocabulary()));
+			inputValue.setVocabularies(classes);
 			inputValues.add(inputValue);
 		}
 
@@ -40,16 +41,20 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 			List<EntityWrapper> reply = driver
 					.enrich("http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
 							inputValues);
+			
 			List<EntityWrapperDTO> replyDTO = new ArrayList<EntityWrapperDTO>();
 			for (EntityWrapper entity : reply) {
 				EntityWrapperDTO entityDTO = new EntityWrapperDTO();
 				entityDTO.setClassName(entity.getClassName());
-				entityDTO.setContextualEntity(entity.getClassName());
+				entityDTO.setContextualEntity(entity.getContextualEntity());
 				if(entity.getOriginalField()!=null){
 					entityDTO.setOriginalField(entity.getOriginalField());
+				} else {
+					entityDTO.setOriginalField("");
 				}
 				replyDTO.add(entityDTO);
 			}
+			
 			return replyDTO;
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block

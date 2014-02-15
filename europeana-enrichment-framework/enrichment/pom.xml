@@ -11,6 +11,7 @@
 	<module>enrichment-framework-common</module>
 	<module>enrichment-framework-rest</module>
 	<module>enrichment-framework-client</module>
+	<module>enrichment-framework-gui</module>
   </modules>	
   
   <dependencies>

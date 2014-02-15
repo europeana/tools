@@ -1,6 +1,8 @@
 package eu.europeana.enrichment.gui.shared;
 
-public class EntityWrapperDTO {
+import com.google.gwt.user.client.rpc.IsSerializable;
+
+public class EntityWrapperDTO implements IsSerializable {
 	private String originalField;
 	private String className;
 	private String contextualEntity;

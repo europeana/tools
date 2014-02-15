@@ -59,9 +59,9 @@ public class MainPage implements EntryPoint {
 	private Widget createEnrichmentArea() {
 		final DecoratorPanel headerPanel = new DecoratorPanel();
 		final FlexTable headerTable = new FlexTable();
-		headerTable.setWidget(0,0,enrichment);
+		headerTable.setWidget(0, 0, enrichment);
 		headerPanel.add(headerTable);
-		return headerTable;
+		return headerPanel;
 	}
 
 	private Widget createEnrichmentTable() {
@@ -80,16 +80,23 @@ public class MainPage implements EntryPoint {
 								inputValueDTOs.clear();
 								area.setText("");
 								enrichment.setText("");
+
 								for (EntityWrapperDTO entityWrapper : arg0) {
-									enrichment.setText("Original Field: "
-											+ entityWrapper.getOriginalField()
+									enrichment
+											.setText(enrichment.getText()
+													+ "Original Field: "
+													+ entityWrapper
+															.getOriginalField());
+									enrichment.setText(enrichment.getText()
 											+ "\nClassName: "
-											+ entityWrapper.getClassName()
+											+ entityWrapper.getClassName());
+									enrichment.setText(enrichment.getText()
 											+ "\nContextual Entity:"
 											+ entityWrapper
-													.getContextualEntity());
-								}
+													.getContextualEntity()
+											+ "\n==========================================\n");
 
+								}
 							}
 
 							@Override

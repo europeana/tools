@@ -184,9 +184,9 @@ public class Enricher {
 		}
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
 			File cacheDir = new File(
-					"/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/tmp");
+					"/home/gmamakis/workspace3/tools/annocultor_solr4/converters/vocabularies/tmp");
 			File baseDir = new File(
-					"/home/gmamakis/git/tools/annocultor_solr4/converters/vocabularies/");
+					"/home/gmamakis/workspace3/tools/annocultor_solr4/converters/vocabularies/");
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
 			vocabularyOfPlaces.loadTermsSPARQL(

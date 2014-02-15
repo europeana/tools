@@ -71,8 +71,10 @@ public class InternalEnricher {
 			break;
 		case CONCEPT:
 			entities.addAll(findConceptEntities(lowerCase, field));
+			break;
 		case PLACE:
 			entities.addAll(findPlaceEntities(lowerCase, field));
+			break;
 		case TIMESPAN:
 			entities.addAll(findTimespanEntities(lowerCase, field));
 		default:
