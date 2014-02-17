@@ -39,7 +39,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 
 		try {
 			List<EntityWrapper> reply = driver
-					.enrich("http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
+					.enrich("http://testenv-solr.eanadev.org:9191/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
 							inputValues);
 			
 			List<EntityWrapperDTO> replyDTO = new ArrayList<EntityWrapperDTO>();

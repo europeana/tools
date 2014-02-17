@@ -7,6 +7,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+/**
+ * Convenience class for JSON and XML generation
+ * @author Yorgos.Mamakis@ europeana.eu
+ *
+ */
 @XmlRootElement
 @JsonSerialize
 public class EntityWrapperList {

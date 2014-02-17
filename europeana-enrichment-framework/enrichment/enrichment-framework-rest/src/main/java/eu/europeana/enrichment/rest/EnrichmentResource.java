@@ -34,9 +34,9 @@ public class EnrichmentResource {
 	private static Enricher enricher = new Enricher();
 	static {
 		try {
-			enricher.init("Europeana");
+			enricher.init("Europeana", "");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}
@@ -46,8 +46,8 @@ public class EnrichmentResource {
 	 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response enrich(@FormParam("input") String input) {
-
 		try {
+			
 			ObjectMapper mapper = new ObjectMapper();
 			InputValueList values = mapper.readValue(input, InputValueList.class);
 			EntityWrapperList response = new EntityWrapperList();

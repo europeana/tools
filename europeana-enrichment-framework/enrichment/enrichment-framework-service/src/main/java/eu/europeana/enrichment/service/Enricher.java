@@ -61,6 +61,12 @@ import eu.europeana.enrichment.xconverter.api.DataObject;
  */
 public class Enricher {
 
+	/**
+	 * Main enrichment method
+	 * @param values The values to enrich
+	 * @return The resulting enrichment List
+	 * @throws Exception
+	 */
 	public List<EntityWrapper> tagExternal(List<InputValue> values)
 			throws Exception {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
@@ -169,6 +175,20 @@ public class Enricher {
 				+ property + " ?" + property + " }";
 	}
 
+	/**
+	 * Initialization method of the Enricher. Should be called in order to
+	 * connect to the database. If the database is not existing it will
+	 * reconstruct it by fecthing data from a folder that vocabularies exist).
+	 * This should be modified 
+	 * 
+	 * TODO: Remove the Environment dependency
+	 * 
+	 * @param name
+	 *            - The name of the enrichment session to use
+	 * @param args
+	 *            - Override the connection details
+	 * @throws Exception
+	 */
 	public void init(String name, String... args) throws Exception {
 
 		task = Factory.makeTask(name, "", "Solr tagging with time and place",

@@ -46,24 +46,37 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 @SuppressWarnings("rawtypes")
 public class InternalEnricher {
 
+	public InternalEnricher() {
 
-	public InternalEnricher(){
-		
 	}
 
-	List<? extends EntityWrapper> tag(List<InputValue> values) throws Exception {
-		
+	/**
+	 * The internal enrichment functionality not to be exposed yet as there is a
+	 * strong dependency to the external resources to recreate the DB The
+	 * enrichment is performed by lowercasing every value so that searchability
+	 * in the DB is enhanced, but the Capitalized version is always retrieved
+	 * 
+	 * @param values
+	 *            The values to enrich
+	 * @return A list of enrichments
+	 * @throws Exception
+	 */
+	protected List<? extends EntityWrapper> tag(List<InputValue> values)
+			throws Exception {
+
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
 		for (InputValue inputValue : values) {
-			for(EntityClass voc:inputValue.getVocabularies()){
-				entities.addAll(findEntities(inputValue.getValue().toLowerCase(), inputValue.getOriginalField(), voc));
+			for (EntityClass voc : inputValue.getVocabularies()) {
+				entities.addAll(findEntities(inputValue.getValue()
+						.toLowerCase(), inputValue.getOriginalField(), voc));
 			}
 		}
 		return entities;
 	}
 
 	private List<? extends EntityWrapper> findEntities(String lowerCase,
-			String field, EntityClass className) throws JsonGenerationException, JsonMappingException, IOException {
+			String field, EntityClass className)
+			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
 		switch (className) {
 		case AGENT:
@@ -83,19 +96,19 @@ public class InternalEnricher {
 		return entities;
 	}
 
-	
-
 	private List<EntityWrapper> findConceptEntities(String value,
-			String originalField) throws JsonGenerationException, JsonMappingException, IOException  {
+			String originalField) throws JsonGenerationException,
+			JsonMappingException, IOException {
 		List<EntityWrapper> concepts = new ArrayList<EntityWrapper>();
 		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "concept");
-		if (terms!=null) {
-			
+		if (terms != null) {
+
 			EntityWrapper conceptEntity = new EntityWrapper();
 			conceptEntity.setOriginalField(originalField);
 			conceptEntity.setClassName(ConceptImpl.class.getName());
-		 
-			conceptEntity.setContextualEntity(getObjectMapper().writeValueAsString(terms.getRepresentation()));
+
+			conceptEntity.setContextualEntity(getObjectMapper()
+					.writeValueAsString(terms.getRepresentation()));
 			concepts.add(conceptEntity);
 			if (terms.getParent() != null) {
 				concepts.addAll(findConceptParents(terms.getParent()));
@@ -105,14 +118,16 @@ public class InternalEnricher {
 		return concepts;
 	}
 
-	
-	private List<? extends EntityWrapper> findConceptParents(String parent) throws JsonGenerationException, JsonMappingException, IOException{
+	private List<? extends EntityWrapper> findConceptParents(String parent)
+			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "concept");
-	
+		MongoTermList parents = MongoDatabaseUtils
+				.findByCode(parent, "concept");
+
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(ConceptImpl.class.getName());
-		entity.setContextualEntity(getObjectMapper().writeValueAsString(parents.getRepresentation()));
+		entity.setContextualEntity(getObjectMapper().writeValueAsString(
+				parents.getRepresentation()));
 		parentEntities.add(entity);
 		if (parents.getParent() != null) {
 			parentEntities.addAll(findConceptParents(parents.getParent()));
@@ -120,19 +135,19 @@ public class InternalEnricher {
 		return parentEntities;
 	}
 
-	
-
 	private List<? extends EntityWrapper> findAgentEntities(String value,
-			String originalField) throws JsonGenerationException, JsonMappingException, IOException {
+			String originalField) throws JsonGenerationException,
+			JsonMappingException, IOException {
 		List<EntityWrapper> agents = new ArrayList<EntityWrapper>();
 		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "people");
-		if (terms!=null) {
-			
+		if (terms != null) {
+
 			EntityWrapper agentEntity = new EntityWrapper();
 			agentEntity.setOriginalField(originalField);
-			
+
 			agentEntity.setClassName(AgentImpl.class.getName());
-			agentEntity.setContextualEntity(getObjectMapper().writeValueAsString(terms.getRepresentation()));
+			agentEntity.setContextualEntity(getObjectMapper()
+					.writeValueAsString(terms.getRepresentation()));
 			agents.add(agentEntity);
 			if (terms.getParent() != null) {
 				agents.addAll(findAgentParents(terms.getParent()));
@@ -141,14 +156,15 @@ public class InternalEnricher {
 		return agents;
 	}
 
-	private List<? extends EntityWrapper> findAgentParents(String parent) throws JsonGenerationException, JsonMappingException, IOException
-			 {
+	private List<? extends EntityWrapper> findAgentParents(String parent)
+			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
 		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "people");
-		
+
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(AgentImpl.class.getName());
-		entity.setContextualEntity(getObjectMapper().writeValueAsString(parents.getRepresentation()));
+		entity.setContextualEntity(getObjectMapper().writeValueAsString(
+				parents.getRepresentation()));
 		parentEntities.add(entity);
 		if (parents.getParent() != null) {
 			parentEntities.addAll(findAgentParents(parents.getParent()));
@@ -156,19 +172,19 @@ public class InternalEnricher {
 		return parentEntities;
 	}
 
-	
-
 	private List<? extends EntityWrapper> findPlaceEntities(String value,
-			String originalField) throws JsonGenerationException, JsonMappingException, IOException {
+			String originalField) throws JsonGenerationException,
+			JsonMappingException, IOException {
 		List<EntityWrapper> places = new ArrayList<EntityWrapper>();
 		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "place");
-		if (terms!=null) {
-			
+		if (terms != null) {
+
 			EntityWrapper placeEntity = new EntityWrapper();
 			placeEntity.setOriginalField(originalField);
 			placeEntity.setClassName(PlaceImpl.class.getName());
-		
-			placeEntity.setContextualEntity(getObjectMapper().writeValueAsString(terms.getRepresentation()));
+
+			placeEntity.setContextualEntity(getObjectMapper()
+					.writeValueAsString(terms.getRepresentation()));
 			places.add(placeEntity);
 			if (terms.getParent() != null) {
 				places.addAll(findPlaceParents(terms.getParent()));
@@ -181,11 +197,12 @@ public class InternalEnricher {
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
 		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "place");
-		
+
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(PlaceImpl.class.getName());
-		
-		entity.setContextualEntity(getObjectMapper().writeValueAsString(parents.getRepresentation()));
+
+		entity.setContextualEntity(getObjectMapper().writeValueAsString(
+				parents.getRepresentation()));
 		parentEntities.add(entity);
 		if (parents.getParent() != null) {
 			parentEntities.addAll(findPlaceParents(parents.getParent()));
@@ -193,16 +210,17 @@ public class InternalEnricher {
 		return parentEntities;
 	}
 
-	
-	private List<? extends EntityWrapper> findTimespanEntities(
-			String value, String originalField) throws JsonGenerationException, JsonMappingException, IOException {
+	private List<? extends EntityWrapper> findTimespanEntities(String value,
+			String originalField) throws JsonGenerationException,
+			JsonMappingException, IOException {
 		List<EntityWrapper> timespans = new ArrayList<EntityWrapper>();
 		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "period");
-		if (terms!=null) {
+		if (terms != null) {
 			EntityWrapper timeSpanEntity = new EntityWrapper();
 			timeSpanEntity.setOriginalField(originalField);
 			timeSpanEntity.setClassName(TimespanImpl.class.getName());
-			timeSpanEntity.setContextualEntity(getObjectMapper().writeValueAsString(terms.getRepresentation()));
+			timeSpanEntity.setContextualEntity(getObjectMapper()
+					.writeValueAsString(terms.getRepresentation()));
 			timespans.add(timeSpanEntity);
 			if (terms.getParent() != null) {
 				timespans.addAll(findTimespanParents(terms.getParent()));
@@ -215,10 +233,11 @@ public class InternalEnricher {
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
 		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "period");
-		
+
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(TimespanImpl.class.getName());
-		entity.setContextualEntity(getObjectMapper().writeValueAsString(parents.getRepresentation()));
+		entity.setContextualEntity(getObjectMapper().writeValueAsString(
+				parents.getRepresentation()));
 		parentEntities.add(entity);
 		if (parents.getParent() != null) {
 			parentEntities.addAll(findTimespanParents(parents.getParent()));
@@ -226,9 +245,9 @@ public class InternalEnricher {
 		return parentEntities;
 	}
 
-	private ObjectMapper getObjectMapper(){
-		ObjectMapper obj= new ObjectMapper();
-		SimpleModule sm = new SimpleModule("test",Version.unknownVersion());
+	private ObjectMapper getObjectMapper() {
+		ObjectMapper obj = new ObjectMapper();
+		SimpleModule sm = new SimpleModule("test", Version.unknownVersion());
 		sm.addSerializer(new ObjectIdSerializer());
 		obj.registerModule(sm);
 		return obj;
