@@ -7,14 +7,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
+/**
+ * Enrichment input class wrapper. It defines the basics needed for enrichment
+ * as the value to be enriched, the Controlled vocabulary to be used and the
+ * field (optional) from which the value originated
+ * 
+ * @author Yorgos.Mamakis@ europeana.eu
+ * 
+ */
 @XmlRootElement
-@JsonSerialize(include=Inclusion.ALWAYS)
+@JsonSerialize(include = Inclusion.ALWAYS)
 public class InputValue {
-	
+
 	private String originalField;
-	
+
 	private String value;
-	
+
 	private List<EntityClass> vocabularies;
 
 	public String getOriginalField() {
@@ -40,6 +48,5 @@ public class InputValue {
 	public void setVocabularies(List<EntityClass> vocabularies) {
 		this.vocabularies = vocabularies;
 	}
-	
-	
+
 }

@@ -6,6 +6,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+/**
+ * JSON helper class for InputValue class
+ * @author Yorgos.Mamakis@ europeana.eu
+ *
+ */
 @JsonSerialize
 @XmlRootElement
 public class InputValueList {

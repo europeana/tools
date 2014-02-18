@@ -19,12 +19,35 @@ import eu.europeana.enrichment.api.external.EntityWrapperList;
 import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.api.external.InputValueList;
 
+/**
+ * REST API wrapper class abstracting the REST calls and providing a clean POJO
+ * implementation
+ * 
+ * @author Yorgos.Mamakis@ europeana.eu
+ * 
+ */
 public class EnrichmentDriver {
 
 	JerseyClient client = JerseyClientBuilder.createClient();
 
-	public List<EntityWrapper> enrich(String path, List<InputValue> values, boolean toEdm)
-			throws JsonGenerationException, JsonMappingException, IOException {
+	/**
+	 * Enrich REST call invocation
+	 * 
+	 * @param path
+	 *            The path the REST service is deployed
+	 * @param values
+	 *            The values to be enriched
+	 * @param toEdm
+	 *            Whether the enrichments should be retrieved in JSON (parsable
+	 *            to POJO through Jackson) or XML (for copy pasting)
+	 * @return The enrichments generated for the input values
+	 * @throws JsonGenerationException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
+	public List<EntityWrapper> enrich(String path, List<InputValue> values,
+			boolean toEdm) throws JsonGenerationException,
+			JsonMappingException, IOException {
 		InputValueList inList = new InputValueList();
 		inList.setInputValueList(values);
 		Form form = new Form();

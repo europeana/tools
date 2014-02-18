@@ -2,6 +2,15 @@ package eu.europeana.enrichment.api.internal;
 
 import net.vz.mongodb.jackson.Id;
 
+/**
+ * Basic POJO for search by label functionality. The class is comprised by the
+ * CodeURI linking all the individual MongoTerms together, the lowercased label
+ * (label) for search functionality, the original label to maintain
+ * capitalization and the language of this label
+ * 
+ * @author Yorgos.Mamakis@ europeana.eu
+ * 
+ */
 public class MongoTerm {
 
 	@Id
@@ -10,7 +19,6 @@ public class MongoTerm {
 	private String label;
 	private String originalLabel;
 	private String lang;
-	
 
 	public String getId() {
 		return id;
@@ -51,5 +59,5 @@ public class MongoTerm {
 	public void setLang(String lang) {
 		this.lang = lang;
 	}
-	
+
 }
