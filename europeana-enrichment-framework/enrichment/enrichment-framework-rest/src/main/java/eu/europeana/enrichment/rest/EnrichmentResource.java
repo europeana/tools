@@ -18,14 +18,11 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.Version;
-import org.codehaus.jackson.io.JsonStringEncoder;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.module.SimpleModule;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import com.google.common.html.HtmlEscapers;
 
 import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.solr.entity.AgentImpl;
@@ -86,19 +83,19 @@ public class EnrichmentResource {
 
 		} catch (JsonParseException e) {
 			log.error(e.getMessage());
-			return Response.status(Status.BAD_GATEWAY)
+			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (JsonMappingException e) {
 			log.error(e.getMessage());
-			return Response.status(Status.BAD_REQUEST)
+			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (IOException e) {
 			log.error(e.getMessage());
-			return Response.status(Status.CONFLICT)
+			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return Response.status(Status.FORBIDDEN)
+			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		}
 
@@ -141,7 +138,7 @@ public class EnrichmentResource {
 		addMap(sb, ts.getEnd(), "edm:end", "xml:lang", false);
 		addMap(sb, ts.getDctermsHasPart(), "dcterms:hasPart", "rdf:resource",
 				true);
-		addMap(sb, ts.getHiddenLabel(), "edm:hiddenLabel", "xml:lang", false);
+		addMap(sb, ts.getHiddenLabel(), "skos:hiddenLabel", "xml:lang", false);
 		addMap(sb, ts.getIsPartOf(), "dcterms:isPartOf", "rdf:resource", true);
 		addMap(sb, ts.getNote(), "skos:note", "xml:lang", false);
 		addArray(sb, ts.getOwlSameAs(), "owl:sameAs", "rdf:resource");

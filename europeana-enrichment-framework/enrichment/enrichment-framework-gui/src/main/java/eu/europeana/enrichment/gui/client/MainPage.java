@@ -244,6 +244,7 @@ public class MainPage implements EntryPoint {
 		inputGrid.setSize("1024px", "300px");
 		
 		headerPanel.add(inputGrid);
+		headerPanel.add(asEdm);
 		headerPanel.add(enrichButton);
 		dp.add(headerPanel);
 		return dp;
@@ -305,7 +306,6 @@ public class MainPage implements EntryPoint {
 		headerTable.setWidget(1, 1, txtValue);
 		headerTable.setWidget(2, 0, lblVocabulary);
 		headerTable.setWidget(2, 1, lstSelection);
-		headerTable.setWidget(3, 0, asEdm);
 		headerTable.setWidget(3, 1, addButton);
 		headerPanel.add(headerTable);
 		return headerPanel;
