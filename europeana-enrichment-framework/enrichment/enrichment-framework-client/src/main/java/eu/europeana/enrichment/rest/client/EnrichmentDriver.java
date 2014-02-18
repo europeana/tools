@@ -23,12 +23,13 @@ public class EnrichmentDriver {
 
 	JerseyClient client = JerseyClientBuilder.createClient();
 
-	public List<EntityWrapper> enrich(String path, List<InputValue> values)
+	public List<EntityWrapper> enrich(String path, List<InputValue> values, boolean toEdm)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		InputValueList inList = new InputValueList();
 		inList.setInputValueList(values);
 		Form form = new Form();
 		form.param("input", new ObjectMapper().writeValueAsString(inList));
+		form.param("toXml", Boolean.toString(toEdm));
 		Response res = client
 				.target(path)
 				.request()

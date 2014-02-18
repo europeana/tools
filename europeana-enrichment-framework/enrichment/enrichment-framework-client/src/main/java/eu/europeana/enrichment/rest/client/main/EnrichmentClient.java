@@ -86,16 +86,14 @@ public class EnrichmentClient {
 		
 		Form form = new Form();
 		form.param("input", obj.writeValueAsString(inList));
+		form.param("toXml", Boolean.toString(true));
 		Response res = client.target(
 				"http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/")
 				.request()
-				.post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED),
+				.post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), 
 						Response.class);
 		List<EntityWrapper> entities = new ObjectMapper().readValue(res.readEntity(String.class),EntityWrapperList.class).getWrapperList();
-		if(entities.get(0).getClassName().equalsIgnoreCase(ConceptImpl.class.getName())){
-			ConceptImpl concept = new ObjectMapper().readValue(entities.get(0).getContextualEntity(),ConceptImpl.class);
-			System.out.println(concept.getAbout());
-		}
+		System.out.println(res);
 		
 	}
 

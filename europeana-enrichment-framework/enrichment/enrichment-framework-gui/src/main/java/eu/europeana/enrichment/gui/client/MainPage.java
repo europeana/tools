@@ -19,6 +19,7 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
@@ -52,7 +53,7 @@ public class MainPage implements EntryPoint {
 	final TextArea enrichment = new TextArea();
 	AsyncDataProvider<InputValueDTO> inputValueProvider;
 	DataGrid<InputValueDTO> inputGrid;
-
+	final CheckBox asEdm = new CheckBox("Retrieve as XML");
 	@Override
 	public void onModuleLoad() {
 		initialize();
@@ -133,7 +134,7 @@ public class MainPage implements EntryPoint {
 
 			@Override
 			public void onClick(ClickEvent arg0) {
-				enrichmentService.enrich(inputValueDTOs,
+				enrichmentService.enrich(inputValueDTOs,asEdm.getValue(),
 						new AsyncCallback<List<EntityWrapperDTO>>() {
 
 							@Override
@@ -304,7 +305,8 @@ public class MainPage implements EntryPoint {
 		headerTable.setWidget(1, 1, txtValue);
 		headerTable.setWidget(2, 0, lblVocabulary);
 		headerTable.setWidget(2, 1, lstSelection);
-		headerTable.setWidget(3, 0, addButton);
+		headerTable.setWidget(3, 0, asEdm);
+		headerTable.setWidget(3, 1, addButton);
 		headerPanel.add(headerTable);
 		return headerPanel;
 	}

@@ -11,5 +11,5 @@ import eu.europeana.enrichment.gui.shared.InputValueDTO;
 @RemoteServiceRelativePath("enrich")
 public interface EnrichmentService extends RemoteService {
 
-	List<EntityWrapperDTO> enrich(List<InputValueDTO> values);
+	List<EntityWrapperDTO> enrich(List<InputValueDTO> values, boolean toEdm);
 }

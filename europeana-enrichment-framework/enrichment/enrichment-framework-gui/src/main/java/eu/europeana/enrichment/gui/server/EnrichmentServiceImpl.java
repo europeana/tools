@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
@@ -23,7 +26,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 	EnrichmentDriver driver = new EnrichmentDriver();
 
 	@Override
-	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values) {
+	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values, boolean toEdm) {
 		List<InputValue> inputValues = new ArrayList<InputValue>();
 		for (InputValueDTO value : values) {
 			InputValue inputValue = new InputValue();
@@ -39,14 +42,18 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 
 		try {
 			List<EntityWrapper> reply = driver
-					.enrich("http://testenv-solr.eanadev.org:9191/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
-							inputValues);
+					.enrich("http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
+							inputValues, toEdm);
 			
 			List<EntityWrapperDTO> replyDTO = new ArrayList<EntityWrapperDTO>();
 			for (EntityWrapper entity : reply) {
 				EntityWrapperDTO entityDTO = new EntityWrapperDTO();
 				entityDTO.setClassName(entity.getClassName());
+				if(!toEdm){
 				entityDTO.setContextualEntity(entity.getContextualEntity());
+				} else {
+					entityDTO.setContextualEntity(StringEscapeUtils.unescapeXml(entity.getContextualEntity()));
+				}
 				if(entity.getOriginalField()!=null){
 					entityDTO.setOriginalField(entity.getOriginalField());
 				} else {
@@ -55,7 +62,8 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 				replyDTO.add(entityDTO);
 			}
 			
-			return replyDTO;
+				return replyDTO;
+			
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -69,5 +77,6 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 
 		return null;
 	}
+
 
 }

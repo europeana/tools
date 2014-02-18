@@ -9,6 +9,6 @@ import eu.europeana.enrichment.gui.shared.InputValueDTO;
 
 public interface EnrichmentServiceAsync {
 	
-	void enrich(List<InputValueDTO> values, AsyncCallback<List<EntityWrapperDTO>> entities);
+	void enrich(List<InputValueDTO> values, boolean toEdm, AsyncCallback<List<EntityWrapperDTO>> entities);
 	
 }
