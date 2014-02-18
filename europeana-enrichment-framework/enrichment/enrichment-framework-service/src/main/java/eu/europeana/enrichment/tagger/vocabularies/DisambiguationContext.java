@@ -37,9 +37,6 @@ import eu.europeana.enrichment.xconverter.api.DataObject.ListOfValues;
  */
 public class DisambiguationContext {
 
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
-
 	public static DisambiguationContext NO_DISAMBIGUATION = null;
 
 	private Collection<CodeURI> parents;

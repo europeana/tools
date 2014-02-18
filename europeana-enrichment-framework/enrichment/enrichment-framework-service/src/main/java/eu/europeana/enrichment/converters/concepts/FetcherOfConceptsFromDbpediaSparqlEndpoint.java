@@ -16,12 +16,13 @@
 package eu.europeana.enrichment.converters.concepts;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
-import eu.europeana.enrichment.context.Environment;
-import eu.europeana.enrichment.context.EnvironmentImpl;
+import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 
 /**
@@ -42,11 +43,10 @@ public class FetcherOfConceptsFromDbpediaSparqlEndpoint {
 
 	};
 
-	protected Environment environment = new EnvironmentImpl();
 
-	public void fetch() throws Exception {
+	public void fetch(String path) throws Exception {
 
-		File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
+		File cacheDir = new File(path + "/tmp");
 
 		vocabularyOfTerms.loadTermsFromSparqlEndpoint(makeDbpediaSparqlQuery(),
 				cacheDir, new URL("http://dbpedia.org/sparql"));
@@ -63,7 +63,8 @@ public class FetcherOfConceptsFromDbpediaSparqlEndpoint {
 	}
 
 	public void save() throws Exception {
-		environment.getNamespaces().addNamespace(
+		Namespaces ns = new Namespaces();
+		ns.addNamespace(
 				"http://dbpedia.org/ontology/", "dbpedia");
 		Map<String, String> resourcePropertiesToExport = new HashMap<String, String>();
 		vocabularyOfTerms
@@ -71,13 +72,15 @@ public class FetcherOfConceptsFromDbpediaSparqlEndpoint {
 						"Selection from DBPedia WorldWar I: battles \n"
 								+ "Extracted from http://dbpedia.org/snorql/ \n"
 								+ "Original data is distributed under the GNU General Public License",
-						environment.getNamespaces(), null,
+						ns, null,
 						resourcePropertiesToExport);
 	}
 
 	public static void main(String[] args) throws Exception {
 		FetcherOfConceptsFromDbpediaSparqlEndpoint fetcher = new FetcherOfConceptsFromDbpediaSparqlEndpoint();
-		fetcher.fetch();
+		Properties props = new Properties();
+		props.load(new FileInputStream("enrichment.properties"));
+		fetcher.fetch(props.getProperty("vocabulary.path"));
 		fetcher.save();
 	}
 

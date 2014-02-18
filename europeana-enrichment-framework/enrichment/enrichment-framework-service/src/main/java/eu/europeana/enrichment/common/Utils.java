@@ -53,30 +53,8 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
  */
 public class Utils {
 
-	public static String getLocalOrGlobalEnvironmentVariable(String parameter)
-			throws RuntimeException {
-		return (System.getProperty(parameter) == null) ? System
-				.getenv(parameter) : System.getProperty(parameter);
-	}
+	
 
-	/**
-	 * Passing parameters via env variable, versus command line, works around
-	 * the fact that maven exec plugin launches a shell that enforces its own
-	 * interpretation of wildcards.
-	 * 
-	 * E.g. on Win a parameter input_files/*.xml gets replaced with
-	 * input_files/first-file-name.xml where first-file-name is the name of the
-	 * first file in input_files.
-	 * 
-	 */
-	public static String[] getCommandLineFromANNOCULTOR_ARGS(String... args) {
-		List<String> resArgs = new ArrayList<String>();
-		resArgs.addAll(Arrays.asList(args));
-		String envArgs = System.getenv("ANNOCULTOR_ARGS");
-		if (envArgs != null)
-			resArgs.addAll(Arrays.asList(envArgs.split(" ")));
-		return resArgs.toArray(new String[] {});
-	}
 
 	public static List<File> expandFileTemplateFrom(File dir, String... pattern)
 			throws IOException {

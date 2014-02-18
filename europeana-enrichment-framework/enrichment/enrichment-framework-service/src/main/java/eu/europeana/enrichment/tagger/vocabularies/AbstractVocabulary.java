@@ -68,13 +68,10 @@ import eu.europeana.enrichment.utils.SesameWriter;
  * 
  */
 public abstract class AbstractVocabulary implements Vocabulary {
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
 
 	private Logger log = LoggerFactory.getLogger(getClass().getName());
 
 	protected void logMessage(String message) throws IOException {
-		System.out.println("we entered in logmessage");
 
 		log.info(message);
 	}
@@ -295,9 +292,7 @@ public abstract class AbstractVocabulary implements Vocabulary {
 		if (!wasLoadedFromCache) {
 
 			Repository rdf = createRepository(locations);
-			// if (!new File("/host/linux_servers/annocultor/lock").exists()) {
 			populateRepositoryWithTerms(query, isSesame, handler, rdf);
-			// }
 			reconstructParents(handler);
 
 			saveToCache(locations, query, cacheDir, handler, cacheFileTerms,

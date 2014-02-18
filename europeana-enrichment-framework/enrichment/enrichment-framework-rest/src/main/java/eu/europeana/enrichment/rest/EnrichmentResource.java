@@ -43,7 +43,7 @@ public class EnrichmentResource {
 	private static Enricher enricher = new Enricher();
 	static {
 		try {
-			enricher.init("Europeana", "");
+			enricher.init("Europeana");
 		} catch (Exception e) {
 
 			e.printStackTrace();

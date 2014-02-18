@@ -29,7 +29,6 @@ import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.api.ObjectRule;
 import eu.europeana.enrichment.api.Task;
 import eu.europeana.enrichment.path.Path;
@@ -48,8 +47,6 @@ public class ConverterHandler extends DefaultHandler implements DataObject {
 		neverRun, success, failure
 	};
 
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
 
 	Logger log = LoggerFactory.getLogger(getClass().getName());
 

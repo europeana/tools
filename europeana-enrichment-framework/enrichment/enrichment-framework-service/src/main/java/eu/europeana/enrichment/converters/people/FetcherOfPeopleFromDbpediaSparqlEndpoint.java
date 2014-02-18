@@ -16,12 +16,13 @@
 package eu.europeana.enrichment.converters.people;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
-import eu.europeana.enrichment.context.Environment;
-import eu.europeana.enrichment.context.EnvironmentImpl;
+import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 
 /**
@@ -42,9 +43,8 @@ public class FetcherOfPeopleFromDbpediaSparqlEndpoint {
 
 	};
 
-	protected Environment environment = new EnvironmentImpl();
 
-	public void fetch() throws Exception {
+	public void fetch(String path) throws Exception {
 
 		// from
 		// http://dbpedia.org/snorql/?describe=http%3A//dbpedia.org/class/yago/Painter110391653
@@ -102,7 +102,7 @@ public class FetcherOfPeopleFromDbpediaSparqlEndpoint {
 				"20th-centuryPainters", "19th-centuryPainters",
 				"15th-centuryPainters", "19thCenturyItalianPainters" };
 
-		File cacheDir = new File(environment.getVocabularyDir() + "/tmp");
+		File cacheDir = new File(path + "/tmp");
 
 		for (String category : dbpediaCategories) {
 			try {
@@ -139,7 +139,8 @@ public class FetcherOfPeopleFromDbpediaSparqlEndpoint {
 	}
 
 	public void save() throws Exception {
-		environment.getNamespaces().addNamespace(
+		Namespaces ns = new Namespaces();
+		ns.addNamespace(
 				"http://dbpedia.org/ontology/", "dbpedia");
 		Map<String, String> propertiesToExport = new HashMap<String, String>();
 		propertiesToExport.put("birth", "dbpedia:birth");
@@ -150,12 +151,14 @@ public class FetcherOfPeopleFromDbpediaSparqlEndpoint {
 						"Selection from DBPedia painters: names and birth/death dates \n"
 								+ "Extracted from http://dbpedia.org/snorql/ \n"
 								+ "Original data is distributed under the GNU General Public License",
-						environment.getNamespaces(), propertiesToExport, null);
+						ns, propertiesToExport, null);
 	}
 
 	public static void main(String[] args) throws Exception {
 		FetcherOfPeopleFromDbpediaSparqlEndpoint fetcher = new FetcherOfPeopleFromDbpediaSparqlEndpoint();
-		fetcher.fetch();
+		Properties props = new Properties();
+		props.load(new FileInputStream("enrichment.properties"));
+		fetcher.fetch(props.getProperty("vocabulary.path"));
 		fetcher.save();
 	}
 

@@ -56,7 +56,6 @@ import org.openrdf.sail.inferencer.fc.DirectTypeHierarchyInferencer;
 import org.openrdf.sail.inferencer.fc.ForwardChainingRDFSInferencer;
 import org.openrdf.sail.memory.MemoryStore;
 import org.openrdf.sail.memory.model.MemStatement;
-import org.openrdf.sail.nativerdf.NativeStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

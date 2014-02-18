@@ -21,12 +21,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.api.DataSource;
 import eu.europeana.enrichment.api.ObjectRule;
-import eu.europeana.enrichment.api.Reporter;
 import eu.europeana.enrichment.api.Task;
-import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.Namespace;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.path.PathMap;
@@ -40,8 +37,6 @@ import eu.europeana.enrichment.xconverter.api.Graph;
  * 
  */
 class TaskImpl implements Task {
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
 
 	private String datasetId;
 
@@ -53,8 +48,6 @@ class TaskImpl implements Task {
 
 	private Namespace targetNamespace;
 
-	private Environment environment;
-
 	/**
 	 * Access via <code>CoreFactory</code>.
 	 * 
@@ -65,7 +58,7 @@ class TaskImpl implements Task {
 	 * @throws Exception
 	 */
 	TaskImpl(String datasetId, String subsignature, String description,
-			Namespace targetNamespace, Environment environment)
+			Namespace targetNamespace)
 			throws Exception {
 
 		this.datasetId = datasetId;
@@ -77,7 +70,6 @@ class TaskImpl implements Task {
 		this.datasetDescription = description;
 		this.targetNamespace = targetNamespace;
 		graphs = new HashSet<Graph>();
-		this.environment = environment;
 
 	}
 
@@ -147,8 +139,5 @@ class TaskImpl implements Task {
 		return datasetDescription;
 	}
 
-	public Environment getEnvironment() {
-		return environment;
-	}
 
 }

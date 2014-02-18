@@ -98,6 +98,7 @@ public final class JarResources {
 					}
 					rb += chunk;
 				}
+				zis.close();
 				// add to internal resource hashtable
 				htJarContents.put(ze.getName(), b);
 				if (debugOn) {

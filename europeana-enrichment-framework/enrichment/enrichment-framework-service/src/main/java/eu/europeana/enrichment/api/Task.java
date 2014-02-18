@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.Namespace;
 import eu.europeana.enrichment.path.Path;
 import eu.europeana.enrichment.xconverter.api.Graph;
@@ -95,6 +94,5 @@ public interface Task {
 
 	public List<ObjectRule> getObjectRules();
 
-	public Environment getEnvironment();
 
 }

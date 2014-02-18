@@ -30,8 +30,7 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.Repository;
 
 import eu.europeana.enrichment.common.Helper;
-import eu.europeana.enrichment.context.Environment;
-import eu.europeana.enrichment.context.EnvironmentImpl;
+import eu.europeana.enrichment.context.Namespaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 
 /**
@@ -52,7 +51,6 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 
 	};
 
-	protected Environment environment = new EnvironmentImpl();
 
 	public void fetch() throws Exception {
 
@@ -88,11 +86,6 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 								"/resource") + "/sparql");
 					}
 				}
-				for (String s : repos) {
-					System.out.println(s);
-				}
-				FileUtils.writeLines(new File("/home/gmamakis/dbpediaEntries"),
-						repos);
 			} catch (Exception e) {
 				System.out.println("dbpedia resource " + resource
 						+ " does not have anything under it");
@@ -121,7 +114,8 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 	}
 
 	public void save() throws Exception {
-		environment.getNamespaces().addNamespace(
+		Namespaces ns = new Namespaces();
+		ns.addNamespace(
 				"http://dbpedia.org/ontology/", "dbpedia");
 		Map<String, String> propertiesToExport = new HashMap<String, String>();
 		vocabularyOfConcepts
@@ -129,7 +123,7 @@ public class FetcherOfVariousFromDbpediaSparqlEndpoint {
 						"Selection from DBPedia: various concepts \n"
 								+ "Extracted from http://dbpedia.org/snorql/ \n"
 								+ "Original data is distributed under the GNU General Public License",
-						environment.getNamespaces(), propertiesToExport, null);
+						ns, propertiesToExport, null);
 	}
 
 	public static void main(String[] args) throws Exception {

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import eu.europeana.enrichment.api.Common;
 import eu.europeana.enrichment.api.DataObjectPreprocessor;
 import eu.europeana.enrichment.api.ObjectRule;
 import eu.europeana.enrichment.api.Rule;
@@ -48,8 +47,6 @@ import eu.europeana.enrichment.xconverter.api.PropertyRule;
  * 
  */
 public class ObjectRuleImpl extends ObjectRule {
-	private static final long serialVersionUID = Common
-			.getCommonSerialVersionUID();
 
 	private Task task;
 

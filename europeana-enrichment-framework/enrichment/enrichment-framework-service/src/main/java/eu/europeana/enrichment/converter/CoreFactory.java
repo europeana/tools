@@ -15,13 +15,8 @@
  */
 package eu.europeana.enrichment.converter;
 
-import eu.europeana.enrichment.api.ConverterTester;
 import eu.europeana.enrichment.api.Task;
-import eu.europeana.enrichment.context.Environment;
 import eu.europeana.enrichment.context.Namespace;
-import eu.europeana.enrichment.data.destinations.IgnoredRdfGraph;
-import eu.europeana.enrichment.data.destinations.RdfGraph;
-import eu.europeana.enrichment.xconverter.api.Graph;
 
 /**
  * Core factory.
@@ -49,50 +44,9 @@ public class CoreFactory {
 	 */
 
 	public static Task makeTask(String signature, String subsignature,
-			String description, Namespace targetNamespace,
-			Environment environment) throws Exception {
-		if (!environment.checkSignatureForDuplicates(signature)) {
-			throw new Exception("Duplicated task " + signature);
-		}
-
+			String description, Namespace targetNamespace) throws Exception {
 		return new TaskImpl(signature, subsignature, description,
-				targetNamespace, environment);
-	}
-
-	public static Converter makeConverter(Task task, ConverterTester tester) {
-		return new Converter(task, null, tester);
-	}
-
-	public static Graph makeGraph(Task task, String objectType,
-			String propertyType, boolean addThisGraphToTask, boolean ignoreIt,
-			String... comment) {
-		// checking name of this graph
-		if (objectType.contains("."))
-			throw new RuntimeException(
-					"Dot is not allowed in target object type signature "
-							+ objectType);
-
-		Graph newGraph = ignoreIt ? makeIgnoredGraph(task.getDatasetId(),
-				task.getEnvironment(), null, objectType, propertyType, comment)
-				: makeNamedGraph(task.getDatasetId(), task.getEnvironment(),
-						null, objectType, propertyType, comment);
-		if (addThisGraphToTask)
-			task.addGraph(newGraph);
-		return newGraph;
-	}
-
-	public static Graph makeNamedGraph(String datasetId,
-			Environment environment, String datasetModifier, String objectType,
-			String propertyType, String... comment) {
-		return new RdfGraph(datasetId, environment, datasetModifier,
-				objectType, propertyType, comment);
-	}
-
-	private static Graph makeIgnoredGraph(String datasetId,
-			Environment environment, String datasetModifier, String objectType,
-			String propertyType, String... comment) {
-		return new IgnoredRdfGraph(datasetId, environment, datasetModifier,
-				objectType, propertyType, comment);
+				targetNamespace);
 	}
 
 }
