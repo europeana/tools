@@ -122,6 +122,14 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>images</directory>
+						</resource>
+					</webResources>
+					<webappDirectory>${webappDirectory}</webappDirectory>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
