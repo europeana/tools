@@ -2,9 +2,12 @@ package eu.europeana.enrichment.api.internal;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlTransient;
+
 import net.vz.mongodb.jackson.DBRef;
 import net.vz.mongodb.jackson.ObjectId;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -26,6 +29,8 @@ public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
 
 	private String parent;
 	private String codeUri;
+	@JsonIgnore
+	@XmlTransient
 	private List<DBRef<? extends MongoTerm, String>> terms;
 	private String id;
 	protected T representation;

@@ -46,8 +46,12 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 @SuppressWarnings("rawtypes")
 public class InternalEnricher {
 
+	private final static ObjectMapper obj = new ObjectMapper();
+	
 	public InternalEnricher() {
-
+		SimpleModule sm = new SimpleModule("test", Version.unknownVersion());
+		sm.addSerializer(new ObjectIdSerializer());
+		obj.registerModule(sm);
 	}
 
 	/**
@@ -129,7 +133,7 @@ public class InternalEnricher {
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
 		parentEntities.add(entity);
-		if (parents.getParent() != null) {
+		if (parents.getParent() != null && !parent.equals(parents.getParent())) {
 			parentEntities.addAll(findConceptParents(parents.getParent()));
 		}
 		return parentEntities;
@@ -166,7 +170,7 @@ public class InternalEnricher {
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
 		parentEntities.add(entity);
-		if (parents.getParent() != null) {
+		if (parents.getParent() != null&&!parent.equals(parents.getParent())) {
 			parentEntities.addAll(findAgentParents(parents.getParent()));
 		}
 		return parentEntities;
@@ -204,7 +208,8 @@ public class InternalEnricher {
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
 		parentEntities.add(entity);
-		if (parents.getParent() != null) {
+		if (parents.getParent() != null && !parent.equals(parents.getParent())) {
+			
 			parentEntities.addAll(findPlaceParents(parents.getParent()));
 		}
 		return parentEntities;
@@ -239,17 +244,13 @@ public class InternalEnricher {
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
 		parentEntities.add(entity);
-		if (parents.getParent() != null) {
+		if (parents.getParent() != null&&!parent.equals(parents.getParent())) {
 			parentEntities.addAll(findTimespanParents(parents.getParent()));
 		}
 		return parentEntities;
 	}
 
 	private ObjectMapper getObjectMapper() {
-		ObjectMapper obj = new ObjectMapper();
-		SimpleModule sm = new SimpleModule("test", Version.unknownVersion());
-		sm.addSerializer(new ObjectIdSerializer());
-		obj.registerModule(sm);
 		return obj;
 	}
 }
