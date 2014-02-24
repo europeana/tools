@@ -42,7 +42,11 @@ import com.google.gwt.view.client.SingleSelectionModel;
 
 import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
-
+/**
+ * Main GWT web page for enrichment
+ * @author Yorgos.Mamakis@ europeana.eu
+ *
+ */
 public class MainPage implements EntryPoint {
 
 	private RootPanel rootPanel;

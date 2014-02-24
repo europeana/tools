@@ -2,12 +2,23 @@ package eu.europeana.enrichment.gui.shared;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
+/**
+ * The Input value data transformation object
+ * @author Yorgos.Mamakis@ europeana.eu
+ *
+ */
 public class InputValueDTO implements IsSerializable{
 
 	private String originalField;
 	
 	private String vocabulary;
 	
+	private String value;
+	
+	/**
+	 * The (optional) metadata field name that generated the enrichment
+	 * @return
+	 */
 	public String getOriginalField() {
 		return originalField;
 	}
@@ -16,6 +27,10 @@ public class InputValueDTO implements IsSerializable{
 		this.originalField = originalField;
 	}
 
+	/**
+	 * The vocabulary to use to generate the enrichment
+	 * @return
+	 */
 	public String getVocabulary() {
 		return vocabulary;
 	}
@@ -24,6 +39,10 @@ public class InputValueDTO implements IsSerializable{
 		this.vocabulary = vocabulary;
 	}
 
+	/**
+	 * The value to enrich
+	 * @return
+	 */
 	public String getValue() {
 		return value;
 	}
@@ -32,7 +51,7 @@ public class InputValueDTO implements IsSerializable{
 		this.value = value;
 	}
 
-	private String value;
+
 	
 	
 }

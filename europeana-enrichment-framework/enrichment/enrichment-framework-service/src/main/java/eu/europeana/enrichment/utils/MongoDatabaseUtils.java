@@ -52,14 +52,16 @@ import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
+@SuppressWarnings("rawtypes")
 public class MongoDatabaseUtils<T> {
 
-	static JacksonDBCollection<ConceptTermList, String> cColl;
-	static JacksonDBCollection<PlaceTermList, String> pColl;
-	static JacksonDBCollection<TimespanTermList, String> tColl;
-	static JacksonDBCollection<AgentTermList, String> aColl;
-	static DB db;
-	static Map<String, Map<String, MongoTermList>> memCache = new HashMap<String, Map<String, MongoTermList>>();
+	private static JacksonDBCollection<ConceptTermList, String> cColl;
+	private static JacksonDBCollection<PlaceTermList, String> pColl;
+	private static JacksonDBCollection<TimespanTermList, String> tColl;
+	private static JacksonDBCollection<AgentTermList, String> aColl;
+	private static DB db;
+
+	private static Map<String, Map<String, MongoTermList>> memCache = new HashMap<String, Map<String, MongoTermList>>();
 
 	/**
 	 * Check if DB exists and initialization of the db

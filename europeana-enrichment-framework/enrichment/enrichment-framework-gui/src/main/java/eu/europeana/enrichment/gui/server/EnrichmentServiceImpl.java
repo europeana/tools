@@ -11,8 +11,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
@@ -22,6 +20,10 @@ import eu.europeana.enrichment.gui.shared.InputValueDTO;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 
 public class EnrichmentServiceImpl extends RemoteServiceServlet implements EnrichmentService {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2840650647541713067L;
 	Logger log = Logger.getLogger(this.getClass());
 	EnrichmentDriver driver = new EnrichmentDriver();
 
@@ -65,14 +67,11 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 				return replyDTO;
 			
 		} catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log(e.getMessage(),e);
 		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log(e.getMessage(),e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log(e.getMessage(),e);
 		}
 
 		return null;

@@ -37,9 +37,8 @@ import eu.europeana.enrichment.api.internal.MongoTermList;
 import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 
 /**
- * Lookup (tagging) rule.
+ * Main enrichment class
  * 
- * @author Borys Omelayenko
  * @author Yorgos.Mamakis@ europeana.eu
  * 
  */
@@ -47,6 +46,10 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 public class InternalEnricher {
 
 	private final static ObjectMapper obj = new ObjectMapper();
+	private final static String CONCEPT="concept";
+	private final static String TIMESPAN = "period";
+	private final static String PLACE="place";
+	private final static String AGENT = "agent";
 	
 	public InternalEnricher() {
 		SimpleModule sm = new SimpleModule("test", Version.unknownVersion());
@@ -104,7 +107,7 @@ public class InternalEnricher {
 			String originalField) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		List<EntityWrapper> concepts = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "concept");
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, CONCEPT);
 		if (terms != null) {
 
 			EntityWrapper conceptEntity = new EntityWrapper();
@@ -126,7 +129,7 @@ public class InternalEnricher {
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
 		MongoTermList parents = MongoDatabaseUtils
-				.findByCode(parent, "concept");
+				.findByCode(parent, CONCEPT);
 
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(ConceptImpl.class.getName());
@@ -143,7 +146,7 @@ public class InternalEnricher {
 			String originalField) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		List<EntityWrapper> agents = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "people");
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, AGENT);
 		if (terms != null) {
 
 			EntityWrapper agentEntity = new EntityWrapper();
@@ -163,7 +166,7 @@ public class InternalEnricher {
 	private List<? extends EntityWrapper> findAgentParents(String parent)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "people");
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, AGENT);
 
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(AgentImpl.class.getName());
@@ -180,7 +183,7 @@ public class InternalEnricher {
 			String originalField) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		List<EntityWrapper> places = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "place");
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, PLACE);
 		if (terms != null) {
 
 			EntityWrapper placeEntity = new EntityWrapper();
@@ -200,7 +203,7 @@ public class InternalEnricher {
 	private List<? extends EntityWrapper> findPlaceParents(String parent)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "place");
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, PLACE);
 
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(PlaceImpl.class.getName());
@@ -219,7 +222,7 @@ public class InternalEnricher {
 			String originalField) throws JsonGenerationException,
 			JsonMappingException, IOException {
 		List<EntityWrapper> timespans = new ArrayList<EntityWrapper>();
-		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, "period");
+		MongoTermList terms = MongoDatabaseUtils.findByLabel(value, TIMESPAN);
 		if (terms != null) {
 			EntityWrapper timeSpanEntity = new EntityWrapper();
 			timeSpanEntity.setOriginalField(originalField);
@@ -237,7 +240,7 @@ public class InternalEnricher {
 	private List<? extends EntityWrapper> findTimespanParents(String parent)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> parentEntities = new ArrayList<EntityWrapper>();
-		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, "period");
+		MongoTermList parents = MongoDatabaseUtils.findByCode(parent, TIMESPAN);
 
 		EntityWrapper entity = new EntityWrapper();
 		entity.setClassName(TimespanImpl.class.getName());
