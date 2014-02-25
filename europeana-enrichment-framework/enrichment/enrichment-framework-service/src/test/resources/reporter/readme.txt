@@ -1,1 +1,0 @@
-In this dir test suite stores tmp reports.

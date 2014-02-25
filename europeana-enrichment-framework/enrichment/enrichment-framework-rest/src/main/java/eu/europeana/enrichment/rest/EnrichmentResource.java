@@ -21,6 +21,7 @@ import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -40,16 +41,14 @@ import eu.europeana.enrichment.service.Enricher;
 @Scope("request")
 public class EnrichmentResource {
 	Logger log = Logger.getLogger(this.getClass());
-	private static Enricher enricher = new Enricher();
-	static {
-		try {
-			enricher.init("Europeana");
-		} catch (Exception e) {
-
-			e.printStackTrace();
-		}
+	
+	@Autowired
+	private Enricher enricher;
+	
+	
+	public EnrichmentResource(){
 	}
-
+	
 	@POST
 	@Path("enrich")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -57,29 +56,36 @@ public class EnrichmentResource {
 	public Response enrich(@FormParam("input") String input,
 			@FormParam("toXml") String toXML) {
 		try {
-
+			try {	
+				enricher.init("Europeana");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			ObjectMapper mapper = new ObjectMapper();
 			InputValueList values = mapper.readValue(input,
 					InputValueList.class);
 			EntityWrapperList response = new EntityWrapperList();
+			
 			List<EntityWrapper> wrapperList = enricher.tagExternal(values
 					.getInputValueList());
-		
+			
 			ObjectMapper objIdMapper = new ObjectMapper();
 			if (!Boolean.parseBoolean(toXML)) {
 				SimpleModule sm = new SimpleModule("objId",
 						Version.unknownVersion());
 				sm.addSerializer(new ObjectIdSerializer());
 				objIdMapper.registerModule(sm);
+				
 				response.setWrapperList(wrapperList);
 			} else {
 				
 				response.setWrapperList(convertToXml(wrapperList));
 			}
-			
-			log.info(objIdMapper.writeValueAsString(response));
+			String stringResponse = objIdMapper.writeValueAsString(response);
+			log.info(stringResponse);
 			return Response.ok()
-					.entity(objIdMapper.writeValueAsString(response)).build();
+					.entity(stringResponse).build();
 
 		} catch (JsonParseException e) {
 			log.error(e.getMessage());

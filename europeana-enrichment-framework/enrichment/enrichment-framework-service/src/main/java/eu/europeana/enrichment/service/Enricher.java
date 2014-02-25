@@ -138,7 +138,7 @@ public class Enricher {
 	public Enricher() {
 		Properties props = new Properties();
 		try {
-			props.load(new FileInputStream("src/main/resources/enrichment.properties"));
+			props.load(new FileInputStream("enrichment.properties"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -149,6 +149,9 @@ public class Enricher {
 		path = props.getProperty("vocabulary.path");
 	}
 
+	public Enricher(String path){
+		this.path = path;
+	}
 	private String makePlaceCoordinateQuery(String property) {
 		return "PREFIX places: <http://www.w3.org/2003/01/geo/wgs84_pos#> "
 				+ "SELECT ?code ?" + property + " " + "WHERE { ?code places:"

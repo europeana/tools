@@ -201,6 +201,12 @@
 			<artifactId>jackson-xc</artifactId>
 			<version>1.9.9</version>
 		</dependency>
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>1.42</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<properties>
 		<enrichment.version>0.1-SNAPSHOT</enrichment.version>
