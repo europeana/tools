@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -41,69 +40,44 @@ import eu.europeana.enrichment.service.Enricher;
 @Scope("request")
 public class EnrichmentResource {
 	Logger log = Logger.getLogger(this.getClass());
-	
+
 	@Autowired
 	private Enricher enricher;
-	
-	
-	public EnrichmentResource(){
+
+	public EnrichmentResource() {
 	}
-	
+
 	@POST
 	@Path("enrich")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response enrich(@FormParam("input") String input,
-			@FormParam("toXml") String toXML) {
-		try {
-			try {	
-				enricher.init("Europeana");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			@FormParam("toXml") String toXML)  throws JsonParseException, JsonMappingException, IOException,Exception {
+		
+			enricher.init("Europeana");
 			ObjectMapper mapper = new ObjectMapper();
 			InputValueList values = mapper.readValue(input,
 					InputValueList.class);
 			EntityWrapperList response = new EntityWrapperList();
-			
+
 			List<EntityWrapper> wrapperList = enricher.tagExternal(values
 					.getInputValueList());
-			
+
 			ObjectMapper objIdMapper = new ObjectMapper();
 			if (!Boolean.parseBoolean(toXML)) {
 				SimpleModule sm = new SimpleModule("objId",
 						Version.unknownVersion());
 				sm.addSerializer(new ObjectIdSerializer());
 				objIdMapper.registerModule(sm);
-				
+
 				response.setWrapperList(wrapperList);
 			} else {
-				
+
 				response.setWrapperList(convertToXml(wrapperList));
 			}
 			String stringResponse = objIdMapper.writeValueAsString(response);
 			log.info(stringResponse);
-			return Response.ok()
-					.entity(stringResponse).build();
-
-		} catch (JsonParseException e) {
-			log.error(e.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(e.getMessage()).build();
-		} catch (JsonMappingException e) {
-			log.error(e.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(e.getMessage()).build();
-		} catch (IOException e) {
-			log.error(e.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(e.getMessage()).build();
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(e.getMessage()).build();
-		}
+			return Response.ok().entity(stringResponse).build();
 
 	}
 
@@ -150,7 +124,7 @@ public class EnrichmentResource {
 		addArray(sb, ts.getOwlSameAs(), "owl:sameAs", "rdf:resource");
 		sb.append("</edm:Timespan>");
 		log.info(StringEscapeUtils.escapeXml(sb.toString()));
-		
+
 		return StringEscapeUtils.escapeHtml3(sb.toString());
 	}
 
@@ -211,7 +185,8 @@ public class EnrichmentResource {
 				true);
 		addMap(sb, place.getNote(), "skos:note", "xml:lang", false);
 		addArray(sb, place.getOwlSameAs(), "owl:sameAs", "rdf:resource");
-		if ((place.getLatitude()!=null&& place.getLatitude()!= 0) && (place.getLongitude()!=null && place.getLongitude() != 0)) {
+		if ((place.getLatitude() != null && place.getLatitude() != 0)
+				&& (place.getLongitude() != null && place.getLongitude() != 0)) {
 			sb.append("<wgs84_pos:long>");
 			sb.append(place.getLongitude());
 			sb.append("</wgs84_pos:long>\n");
@@ -219,7 +194,7 @@ public class EnrichmentResource {
 			sb.append(place.getLatitude());
 			sb.append("</wgs84_pos:lat>\n");
 		}
-		if (place.getAltitude()!=null && place.getAltitude()!= 0) {
+		if (place.getAltitude() != null && place.getAltitude() != 0) {
 			sb.append("<wgs84_pos:alt>");
 			sb.append(place.getAltitude());
 			sb.append("</wgs84_pos:alt>\n");
@@ -281,7 +256,7 @@ public class EnrichmentResource {
 					sb.append("<");
 					sb.append(element);
 					sb.append(" ");
-					if(isUri(str)){
+					if (isUri(str)) {
 						sb.append("rdf:resource=\"");
 						sb.append(str);
 						sb.append("\"/>\n");
@@ -329,7 +304,7 @@ public class EnrichmentResource {
 		addArray(sb, concept.getRelatedMatch(), "skos:relatedMatch",
 				"rdf:resource");
 		sb.append("</skos:Concept>\n");
-		
+
 		log.info(StringEscapeUtils.escapeXml(sb.toString()));
 		return StringEscapeUtils.escapeHtml3(sb.toString());
 	}

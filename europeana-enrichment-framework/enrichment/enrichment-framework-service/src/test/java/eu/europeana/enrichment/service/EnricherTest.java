@@ -34,7 +34,7 @@ public class EnricherTest {
 
 	/**
 	 * Create the database if it does not exist and start Mongo Files are
-	 * persisted for speed of execution fo consequent tests after the database
+	 * persisted for speed of execution of consequent tests after the database
 	 * is closed
 	 * 
 	 * @throws Exception

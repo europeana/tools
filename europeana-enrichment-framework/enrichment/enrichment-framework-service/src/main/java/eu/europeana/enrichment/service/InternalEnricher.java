@@ -69,7 +69,7 @@ public class InternalEnricher {
 	 * @throws Exception
 	 */
 	protected List<? extends EntityWrapper> tag(List<InputValue> values)
-			throws Exception {
+			throws JsonGenerationException, JsonMappingException, IOException {
 
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
 		for (InputValue inputValue : values) {

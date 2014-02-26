@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 
 import eu.europeana.enrichment.api.Factory;
 import eu.europeana.enrichment.api.ObjectRule;
@@ -54,10 +56,12 @@ public class Enricher {
 	 * @param values
 	 *            The values to enrich
 	 * @return The resulting enrichment List
-	 * @throws Exception
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonGenerationException
 	 */
 	public List<EntityWrapper> tagExternal(List<InputValue> values)
-			throws Exception {
+			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
 		entities.addAll(new InternalEnricher().tag(values));
 		return entities;
@@ -149,9 +153,10 @@ public class Enricher {
 		path = props.getProperty("vocabulary.path");
 	}
 
-	public Enricher(String path){
+	public Enricher(String path) {
 		this.path = path;
 	}
+
 	private String makePlaceCoordinateQuery(String property) {
 		return "PREFIX places: <http://www.w3.org/2003/01/geo/wgs84_pos#> "
 				+ "SELECT ?code ?" + property + " " + "WHERE { ?code places:"

@@ -29,6 +29,17 @@ public class EnrichmentDriverTest {
 	public void test() throws JsonGenerationException, JsonMappingException,
 			IOException {
 		EnrichmentDriver driver = new EnrichmentDriver();
+		List<InputValue> values = prepareValues();
+		Properties props = new Properties();
+		props.load(new FileInputStream("src/test/resources/test.properties"));
+		String basePath = props.getProperty("base.path");
+		List<EntityWrapper> lst = driver
+				.enrich(basePath+"/enrich",
+						values, false);
+		Assert.assertEquals(18, lst.size());
+	}
+
+	private List<InputValue> prepareValues() {
 		List<InputValue> values = new ArrayList<InputValue>();
 
 		InputValue val1 = new InputValue();
@@ -79,12 +90,7 @@ public class EnrichmentDriverTest {
 		values.add(val4);
 		values.add(val5);
 		values.add(val6);
-		Properties props = new Properties();
-		props.load(new FileInputStream("src/test/resources/test.properties"));
-		String basePath = props.getProperty("base.path");
-		List<EntityWrapper> lst = driver
-				.enrich(basePath+"/enrich",
-						values, false);
-		Assert.assertEquals(18, lst.size());
+		
+		return values;
 	}
 }
