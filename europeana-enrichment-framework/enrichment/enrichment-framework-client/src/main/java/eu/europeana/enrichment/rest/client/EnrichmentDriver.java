@@ -19,11 +19,11 @@ import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import eu.europeana.enrichment.api.exceptions.UnknownException;
-import eu.europeana.enrichment.api.external.EnrichmentError;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.EntityWrapperList;
 import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.api.external.InputValueList;
+import eu.europeana.enrichment.api.external.web.EnrichmentError;
 
 /**
  * REST API wrapper class abstracting the REST calls and providing a clean POJO
@@ -34,8 +34,11 @@ import eu.europeana.enrichment.api.external.InputValueList;
  */
 public class EnrichmentDriver {
 
-	JerseyClient client = JerseyClientBuilder.createClient();
-
+	private JerseyClient client = JerseyClientBuilder.createClient();
+	private String path;
+	public EnrichmentDriver(String path) {
+		this.path = path;
+	}
 	/**
 	 * Enrich REST call invocation
 	 * 
@@ -51,7 +54,7 @@ public class EnrichmentDriver {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public List<EntityWrapper> enrich(String path, List<InputValue> values,
+	public List<EntityWrapper> enrich(List<InputValue> values,
 			boolean toEdm) throws JsonGenerationException,
 			JsonMappingException, IOException, UnknownException {
 		InputValueList inList = new InputValueList();

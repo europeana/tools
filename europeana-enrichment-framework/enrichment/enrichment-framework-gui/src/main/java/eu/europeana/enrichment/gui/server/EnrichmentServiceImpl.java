@@ -19,16 +19,19 @@ import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 
-public class EnrichmentServiceImpl extends RemoteServiceServlet implements EnrichmentService {
+public class EnrichmentServiceImpl extends RemoteServiceServlet implements
+		EnrichmentService {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2840650647541713067L;
 	Logger log = Logger.getLogger(this.getClass());
-	EnrichmentDriver driver = new EnrichmentDriver();
+	EnrichmentDriver driver = new EnrichmentDriver(
+			"http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/");
 
 	@Override
-	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values, boolean toEdm) {
+	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values,
+			boolean toEdm) {
 		List<InputValue> inputValues = new ArrayList<InputValue>();
 		for (InputValueDTO value : values) {
 			InputValue inputValue = new InputValue();
@@ -43,39 +46,37 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements Enric
 		}
 
 		try {
-			List<EntityWrapper> reply = driver
-					.enrich("http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/",
-							inputValues, toEdm);
-			
+			List<EntityWrapper> reply = driver.enrich(inputValues, toEdm);
+
 			List<EntityWrapperDTO> replyDTO = new ArrayList<EntityWrapperDTO>();
 			for (EntityWrapper entity : reply) {
 				EntityWrapperDTO entityDTO = new EntityWrapperDTO();
 				entityDTO.setClassName(entity.getClassName());
-				if(!toEdm){
-				entityDTO.setContextualEntity(entity.getContextualEntity());
+				if (!toEdm) {
+					entityDTO.setContextualEntity(entity.getContextualEntity());
 				} else {
-					entityDTO.setContextualEntity(StringEscapeUtils.unescapeXml(entity.getContextualEntity()));
+					entityDTO.setContextualEntity(StringEscapeUtils
+							.unescapeXml(entity.getContextualEntity()));
 				}
-				if(entity.getOriginalField()!=null){
+				if (entity.getOriginalField() != null) {
 					entityDTO.setOriginalField(entity.getOriginalField());
 				} else {
 					entityDTO.setOriginalField("");
 				}
 				replyDTO.add(entityDTO);
 			}
-			
-				return replyDTO;
-			
+
+			return replyDTO;
+
 		} catch (JsonGenerationException e) {
-			log(e.getMessage(),e);
+			log(e.getMessage(), e);
 		} catch (JsonMappingException e) {
-			log(e.getMessage(),e);
+			log(e.getMessage(), e);
 		} catch (IOException e) {
-			log(e.getMessage(),e);
+			log(e.getMessage(), e);
 		}
 
 		return null;
 	}
-
 
 }

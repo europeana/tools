@@ -28,13 +28,14 @@ public class EnrichmentDriverTest {
 	@Betamax(tape = "testEnrich.yaml", mode = TapeMode.READ_WRITE)
 	public void test() throws JsonGenerationException, JsonMappingException,
 			IOException {
-		EnrichmentDriver driver = new EnrichmentDriver();
-		List<InputValue> values = prepareValues();
 		Properties props = new Properties();
 		props.load(new FileInputStream("src/test/resources/test.properties"));
 		String basePath = props.getProperty("base.path");
+		EnrichmentDriver driver = new EnrichmentDriver(basePath+"/enrich");
+		List<InputValue> values = prepareValues();
+		
 		List<EntityWrapper> lst = driver
-				.enrich(basePath+"/enrich",
+				.enrich(
 						values, false);
 		Assert.assertEquals(18, lst.size());
 	}

@@ -28,15 +28,21 @@ import org.springframework.context.ApplicationContext;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.enrichment.api.exceptions.UnknownException;
-import eu.europeana.enrichment.api.external.EnrichmentError;
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.EntityWrapperList;
 import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.api.external.InputValueList;
 import eu.europeana.enrichment.api.external.ObjectIdSerializer;
+import eu.europeana.enrichment.api.external.web.EnrichmentError;
 import eu.europeana.enrichment.service.Enricher;
 
+/**
+ * Unit tests for enrichment REST API
+ * @author Yorgos.Mamakis@ europeana.eu
+ *
+ */
+@SuppressWarnings("unchecked")
 public class EnrichmentResourceTest extends JerseyTest {
 
 	private Enricher enricher;
@@ -59,6 +65,9 @@ public class EnrichmentResourceTest extends JerseyTest {
 		Mockito.reset(enricher);
 	}
 
+	/**
+	 * Enrichment test
+	 */
 	@Test
 	public void testEnrich() {
 		try {
@@ -115,6 +124,9 @@ public class EnrichmentResourceTest extends JerseyTest {
 		}
 	}
 
+	/**
+	 * JsonGeneration Exception test
+	 */
 	@Test
 	public void testEnrichJsonException() {
 		try {
@@ -165,6 +177,9 @@ public class EnrichmentResourceTest extends JerseyTest {
 		}
 	}
 
+	/**
+	 * JsonMapping Exception test
+	 */
 	@Test
 	public void testEnrichJsonMappingException() {
 		try {
@@ -215,6 +230,9 @@ public class EnrichmentResourceTest extends JerseyTest {
 		}
 	}
 
+	/**
+	 * IOException test
+	 */
 	@Test
 	public void testEnrichIOException() {
 		try {
@@ -266,6 +284,9 @@ public class EnrichmentResourceTest extends JerseyTest {
 		}
 	}
 
+	/**
+	 * Other exception test
+	 */
 	@Test
 	public void testEnrichUnknownException() {
 		try {
