@@ -10,6 +10,11 @@ class ErrorTypes {
   static $FULL_MISFORM_EA_ABOUT;
   static $FULL_NO_EACHO;
   static $FULL_MISFORM_EA_CHO;
+  static $PROVIDER_NO_ACRONYM;
+  static $PROVIDER_NO_ALTNAME;
+  static $PROVIDER_NO_SCOPE;
+  static $PROVIDER_NO_DOMAIN;
+  static $PROVIDER_NO_GEOLEVEL;
   static $STAT_AG;
   static $STAT_CC;
   static $STAT_PL;
@@ -38,6 +43,11 @@ class ErrorTypes {
     self::$STAT_TS = new ErrorType("Statistics", "Timespan", "Statistics for Timespan fields");
     self::$STAT_WR = new ErrorType("Statistics", "WebResource", "Statistics for WebResource fields");
     self::$STAT_DY = new ErrorType("Statistics", "Dynamic fields", "Statistics for Dynamic fields");
+    self::$PROVIDER_NO_ACRONYM = new ErrorType("Provider", "No acronym in object", "No acronym in object");
+    self::$PROVIDER_NO_ALTNAME = new ErrorType("Provider", "No altname in object", "No altname in object");
+    self::$PROVIDER_NO_SCOPE = new ErrorType("Provider", "No scope in object", "No scope in object");
+    self::$PROVIDER_NO_DOMAIN = new ErrorType("Provider", "No domain in object", "No domain in object");
+    self::$PROVIDER_NO_GEOLEVEL = new ErrorType("Provider", "No geolevel in object", "No geolevel in object");
   }
 
 }

@@ -13,8 +13,9 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
   private $lastUrl;
   private $screenScrapper;
   private $countries = array(
-      'AT', 'BE', 'CH', 'CY', 'DE', 'ES', 'EU', 'FI', 'FR', 'GR', 'IT', 'LV', 'LT',
-      'LU', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'UK', 'OTHER'
+      'AT', 'BE', 'CH', 'CY', 'CZ', 'DE', 'ES', 'EU', 'FI', 'FR', 'GR', 'IT', 
+      'LV', 'LT', 'LU', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'UK', 
+      'OTHER'
   );
   private $geolevels = array('Regional', 'National', 'European');
   private $roles = array('Data Aggregator');
@@ -92,7 +93,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
 
   /// Search related tests
 
-  function testSearch() {
+  function testSearchApiSearch() {
     $api = new Api2();
     $query = "paris";
     $results = $api->search($query);
@@ -101,7 +102,22 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->_checkSearchResult($results, $hits);
   }
 
-  function testFacetRequest() {
+  function testSearchApiSearchWithCallback() {
+    $api = new Api2();
+    $query = "paris";
+    $results = $api->search($query, 1, 12, "print");
+    $hits = $this->screenScrapper->getHitsOnPortal($query);
+    $this->lastUrl = $api->getLastUrl();
+    $this->assertNotNull($results, "Result should not be null");
+    $this->assertTrue(is_string($results), "Results should be string");
+    $this->assertTrue(preg_match("/^print\(.*?\)/s", $results) == 1, "Callback should be the part of result");
+    $results = trim(preg_replace("/^print\((.*?)\);$/s", "$1", $results));
+    $resultsObject = json_decode($results);
+    $this->assertTrue(is_object($resultsObject), "Results should be object after json_decode");
+    $this->_checkSearchResult($resultsObject, $hits);
+  }
+
+  function testSearchApiFacetRequest() {
     $api = new Api2();
     $query = "*:*";
     $params = array(
@@ -116,7 +132,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertLessThanOrEqual(750, count($results->facets[0]->fields));
   }
 
-  function testFacetRequestWithLimitAndOffset() {
+  function testSearchApiFacetRequestWithLimitAndOffset() {
     $api = new Api2();
     $query = "*:*";
     $params = array(
@@ -146,22 +162,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertObjectNotHasAttribute("facets", $results);
   }
 
-  function testSearchWithCallback() {
-    $api = new Api2();
-    $query = "paris";
-    $results = $api->search($query, 1, 12, "print");
-    $hits = $this->screenScrapper->getHitsOnPortal($query);
-    $this->lastUrl = $api->getLastUrl();
-    $this->assertNotNull($results, "Result should not be null");
-    $this->assertTrue(is_string($results), "Results should be string");
-    $this->assertTrue(preg_match("/^print\(.*?\)/s", $results) == 1, "Callback should be the part of result");
-    $results = trim(preg_replace("/^print\((.*?)\);$/s", "$1", $results));
-    $resultsObject = json_decode($results);
-    $this->assertTrue(is_object($resultsObject), "Results should be object after json_decode");
-    $this->_checkSearchResult($resultsObject, $hits);
-  }
-
-  function testGeoSearch() {
+  function testSearchApiGeoSearch() {
     $api = new Api2();
     $query = "pl_wgs84_pos_lat:[1 TO 90]";
     $hits = $this->screenScrapper->getHitsOnPortal($query);
@@ -173,6 +174,75 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $start += 12;
     }
   }
+
+  /// Object related tests
+  
+  function testObjectApiObjects() {
+    $api = new Api2();
+    $query = "paris";
+    $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
+  
+    foreach ($starts as $start) {
+      $results = $api->search($query, $start);
+      $this->lastUrl = $api->getLastUrl();
+      foreach ($results->items as $item) {
+        $object = $api->object($item->id);
+        $this->lastUrl = $api->getLastUrl();
+        $this->_checkObjectResult($object, $item->id);
+      }
+    }
+  }
+  
+  function testObjectApiObjectsWithCallback() {
+    $api = new Api2();
+    $query = "paris";
+    $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
+  
+    foreach ($starts as $start) {
+      $results = $api->search($query, $start);
+      $this->lastUrl = $api->getLastUrl();
+      foreach ($results->items as $item) {
+        $object = $api->object($item->id, "print");
+        $this->lastUrl = $api->getLastUrl();
+  
+        $this->assertNotNull($object, "Result should not be null");
+        $this->assertTrue(is_string($object), "Results should be string");
+        $this->assertTrue(preg_match("/^print\(.*?\)/s", $object) == 1, "Callback should be the part of result");
+        $object = trim(preg_replace("/^print\((.*?)\);$/s", "$1", $object));
+        $resultsObject = json_decode($object);
+        $this->assertTrue(is_object($resultsObject), "Results should be object after json_decode");
+        $this->_checkObjectResult($resultsObject, $item->id);
+      }
+    }
+  }
+  
+  function testObjectApiObjectsWithSimilarProfile() {
+    $api = new Api2();
+    $query = "paris";
+    $starts = array(1, 1000, 10000);
+  
+    foreach ($starts as $start) {
+      $results = $api->search($query, $start);
+      $this->lastUrl = $api->getLastUrl();
+      foreach ($results->items as $item) {
+        $object = $api->object($item->id, "", "similar");
+        $this->lastUrl = $api->getLastUrl();
+        $this->_checkObjectResult($object, $item->id);
+        if (isset($object->similarItems)) {
+          $this->assertNotNull($object->similarItems);
+          $this->assertTrue(is_array($object->similarItems));
+          $this->assertTrue(!empty($object->similarItems));
+          foreach ($object->similarItems as $item) {
+            $this->_checkSearchItem($item);
+          }
+        } else {
+          // echo "Object without similar items: ", $api->getLastUrl(), LN;
+        }
+      }
+    }
+  }
+
+  // DATA PROVIDER API tests
 
   function testProviders() {
     $api = new Api2();
@@ -194,14 +264,18 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     }
   }
 
-  function testProvidersWithConuntryCode() {
+  function testProvidersWithCountryCode() {
     $api = new Api2();
     foreach ($this->countries as $code) {
       $results = $api->getProviders(-1, -1, $code);
       $this->lastUrl = $api->getLastUrl();
       $this->_checkProviderApiHeaders($results);
-      foreach ($results->items as $item) {
-        $this->_testProvider($item);
+      if ($results->itemsCount > 0) {
+        foreach ($results->items as $item) {
+          $this->_testProvider($item);
+        }
+      } else {
+        // echo 'No provider for ', $code, LN;
       }
     }
   }
@@ -267,9 +341,10 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertNotNull($item->provIdentifier);
     $this->assertNotEquals('', $item->provIdentifier);
 
-    $this->assertObjectHasAttribute('name', $item, 'Each dataset should have name');
-    $this->assertNotNull($item->name);
-    $this->assertNotEquals('', $item->name);
+    $this->assertObjectHasAttribute('edmDatasetName', $item, sprintf('Each dataset should have edmDatasetName, %s does not have (%s)', 
+        $item->identifier, $this->lastUrl));
+    $this->assertNotNull($item->edmDatasetName);
+    $this->assertNotEquals('', $item->edmDatasetName);
 
     $this->assertNotNull($item->status);
     $this->assertNotEquals('', $item->status);
@@ -316,13 +391,22 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
     $this->assertNotNull($item->name);
     $this->assertNotEquals('', $item->name);
 
-    $this->assertObjectHasAttribute('acronym', $item, 'Each provider should have acronym');
-    $this->assertNotNull($item->acronym);
-    $this->assertNotEquals('', $item->acronym);
+    if (isset($item->acronym)) {
+      $this->assertObjectHasAttribute('acronym', $item, sprintf('Each provider should have acronym, but "%s" does not have (%s)', 
+        $item->name, $this->lastUrl));
+      $this->assertNotNull($item->acronym);
+      $this->assertNotEquals('', $item->acronym);
+    } else {
+      $this->error(ErrorTypes::$PROVIDER_NO_ACRONYM, sprintf("Each provider should have acronym, but '%s' does not have (%s)", $item->identifier, $this->lastUrl));
+    }
 
-    $this->assertObjectHasAttribute('altname', $item, 'Each provider should have altname');
-    $this->assertNotNull($item->altname);
-    $this->assertNotEquals('', $item->altname);
+    if (isset($item->altname)) {
+      $this->assertObjectHasAttribute('altname', $item, 'Each provider should have altname');
+      $this->assertNotNull($item->altname);
+      $this->assertNotEquals('', $item->altname);
+    } else {
+      $this->error(ErrorTypes::$PROVIDER_NO_ALTNAME, sprintf("'%s' does not have altname (%s)", $item->identifier, $this->lastUrl));
+    }
 
     if (isset($item->scope)) {
       // $this->assertObjectHasAttribute('scope', $item, 'Each provider should have scope');
@@ -330,7 +414,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $this->assertNotEquals('', $item->scope);
       $this->assertTrue(in_array($item->scope, $this->scopes), 'Invalid scope: ' . $item->scope);
     } else {
-      // echo 'no scope for ', $item->name, LN;
+      $this->error(ErrorTypes::$PROVIDER_NO_SCOPE, sprintf("'%s' does not have scope (%s)", $item->identifier, $this->lastUrl));
     }
 
     if (isset($item->domain)) {
@@ -338,7 +422,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $this->assertNotEquals('', $item->domain);
       $this->assertTrue(in_array($item->domain, $this->domains), 'Invalid domain: ' . $item->domain);
     } else {
-      // echo 'no domain for ', $item->name, LN;
+      $this->error(ErrorTypes::$PROVIDER_NO_DOMAIN, sprintf("'%s' does not have domain (%s)", $item->identifier, $this->lastUrl));
     }
 
     if (isset($item->geolevel)) {
@@ -347,7 +431,7 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $this->assertNotEquals('', $item->geolevel);
       $this->assertTrue(in_array($item->geolevel, $this->geolevels), 'Invalid geolevel: ' . $item->geolevel);
     } else {
-      // echo 'no geolevel for ', $item->name, LN;
+      $this->error(ErrorTypes::$PROVIDER_NO_GEOLEVEL, sprintf("'%s' does not have geolevel (%s)", $item->identifier, $this->lastUrl));
     }
 
     $this->assertObjectHasAttribute('role', $item, 'Each provider should have role');
@@ -382,74 +466,6 @@ class Api2RegressionTest extends PHPUnit_Framework_TestCase {
       $this->assertNotNull($results->items);
       $this->assertTrue(!empty($results->items), "Items should not be empty");
       $this->assertEquals($results->itemsCount, count($results->items), "Nr of items should be the same as itemsCount");
-    }
-  }
-  
-  /// Object related tests
-
-  
-  function testObjects() {
-    $api = new Api2();
-    $query = "paris";
-    $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
-
-    foreach ($starts as $start) {
-      $results = $api->search($query, $start);
-      $this->lastUrl = $api->getLastUrl();
-      foreach ($results->items as $item) {
-        $object = $api->object($item->id);
-        $this->lastUrl = $api->getLastUrl();
-        $this->_checkObjectResult($object, $item->id);
-      }
-    }
-  }
-
-  function testObjectsWithCallback() {
-    $api = new Api2();
-    $query = "paris";
-    $starts = array(1, 1000, 10000, 100000, 200000, 300000, 400000, 500000, 1000000);
-
-    foreach ($starts as $start) {
-      $results = $api->search($query, $start);
-      $this->lastUrl = $api->getLastUrl();
-      foreach ($results->items as $item) {
-        $object = $api->object($item->id, "print");
-        $this->lastUrl = $api->getLastUrl();
-
-        $this->assertNotNull($object, "Result should not be null");
-        $this->assertTrue(is_string($object), "Results should be string");
-        $this->assertTrue(preg_match("/^print\(.*?\)/s", $object) == 1, "Callback should be the part of result");
-        $object = trim(preg_replace("/^print\((.*?)\);$/s", "$1", $object));
-        $resultsObject = json_decode($object);
-        $this->assertTrue(is_object($resultsObject), "Results should be object after json_decode");
-        $this->_checkObjectResult($resultsObject, $item->id);
-      }
-    }
-  }
-
-  function testObjectsWithSimilarProfile() {
-    $api = new Api2();
-    $query = "paris";
-    $starts = array(1, 1000, 10000);
-
-    foreach ($starts as $start) {
-      $results = $api->search($query, $start);
-      $this->lastUrl = $api->getLastUrl();
-      foreach ($results->items as $item) {
-        $object = $api->object($item->id, "", "similar");
-        $this->lastUrl = $api->getLastUrl();
-        $this->_checkObjectResult($object, $item->id);
-        if (isset($object->similarItems)) {
-          $this->assertNotNull($object->similarItems);
-          $this->assertTrue(is_array($object->similarItems));
-          $this->assertTrue(!empty($object->similarItems));
-          foreach ($object->similarItems as $item) {
-            $this->_checkSearchItem($item);
-          }
-        } else {
-          // echo "Object without similar items: ", $api->getLastUrl(), LN;
-        }
-      }
     }
   }
 
