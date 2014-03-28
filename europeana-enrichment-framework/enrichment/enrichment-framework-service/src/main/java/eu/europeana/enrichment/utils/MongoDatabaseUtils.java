@@ -399,12 +399,15 @@ public class MongoDatabaseUtils<T> {
 	//Sample conversion code from AgentImpl to AgentTermList
 	private static void agentToAgentTermList(AgentImpl agent)
 			throws IOException, JiBXException {
-		// Get all terms by code
 
 		AgentTermList termList = new AgentTermList();
 		termList.setCodeUri(agent.getAbout());
-
-		// Get the first tirm to create the searchable uri
+		//If it had parents then we should get it now from the dcterms:isPartOf of the Concept and Place or the skos:broader
+		//of the Concept and append it here like
+		/**
+		 * String broader = placeImpl.getIsPartOf().get("def").get(0);
+		 * termList.setParent(broader);
+		 */
 
 		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
 
