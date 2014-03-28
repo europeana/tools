@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -393,6 +394,50 @@ public class MongoDatabaseUtils<T> {
 			aColl.insert(termList);
 
 		}
+	}
+
+	//Sample conversion code from AgentImpl to AgentTermList
+	private static void agentToAgentTermList(AgentImpl agent)
+			throws IOException, JiBXException {
+		// Get all terms by code
+
+		AgentTermList termList = new AgentTermList();
+		termList.setCodeUri(agent.getAbout());
+
+		// Get the first tirm to create the searchable uri
+
+		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
+
+		for (Entry<String, List<String>> prefLabel : agent.getPrefLabel()
+				.entrySet()) {
+			for (String label : prefLabel.getValue()) {
+				MongoTerm pTerm = new MongoTerm();
+				pTerm.setCodeUri(agent.getAbout());
+				pTerm.setLabel(label.toLowerCase());
+				String lang = prefLabel.getKey();
+
+				pTerm.setOriginalLabel(label);
+
+				pTerm.setLang(lang);
+
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+						.wrap(db.getCollection("people"), MongoTerm.class,
+								String.class);
+				pColl.ensureIndex("codeUri");
+				pColl.ensureIndex("label");
+				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
+				DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
+						res.getSavedObject().getId(), "people");
+				pList.add(pTermRef);
+			}
+		}
+
+		termList.setTerms(pList);
+
+		termList.setRepresentation(agent);
+		termList.setEntityType(AgentImpl.class.getSimpleName());
+		aColl.insert(termList);
+
 	}
 
 	private static void saveTimespanTerms(VocabularyOfTime voc)
