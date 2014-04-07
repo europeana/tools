@@ -196,7 +196,7 @@ public class DbPediaCollector {
 			agent.setEnd(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
 			agent.setFoafName(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc));
 			
-			agent.setAltLabel(getAgentProperty("dbpedia-owl:alternativaNames", "dbpprop:alternativaNames", doc));
+			agent.setAltLabel(getAgentProperty("dbpedia-owl:alternativeNames", "dbpprop:alternativeNames", doc));
 			
 			agent.setDcIdentifier(getAgentProperty("dbpedia-owl:viaf", "dbpprop:viaf", doc));
 			
