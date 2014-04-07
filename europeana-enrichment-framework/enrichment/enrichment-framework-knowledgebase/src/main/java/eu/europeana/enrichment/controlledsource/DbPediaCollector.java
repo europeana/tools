@@ -107,49 +107,13 @@ public class DbPediaCollector {
 				
 				String subject=qs.get("subject").toString();
 				
-				//String z=qs.get("z").toString();
-				//System.out.println(subject+"; ");
-				//collectData(subject, "rdf");
 				collectAndMapControlledData(subject);
 			}
-			/*Model model=endpoint.execConstruct();
-			ByteArrayOutputStream baos= new ByteArrayOutputStream();
-			RDFWriter writer= model.getWriter("RDF/XML-ABBREV");
-			
-			
-			writer.setProperty("allowBadURIs", "true");
-			
-			writer.write(model, baos, null);
-			
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder;
-			dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(new ByteArrayInputStream((baos.toByteArray())));
-			System.out.println("Root element :" + doc.getDocumentElement().getNodeName()+"---");
-			
-			NodeList nList = doc.getElementsByTagName("res:value");
-
-			for (int temp = 0; temp < nList.getLength(); temp++){
-				Node nNode = nList.item(temp);
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-					NamedNodeMap nnm= nNode.getAttributes();
-					Node no= nnm.getNamedItem("rdf:resource");
-
-					System.out.println("----"+no.getNodeValue()+"---");
-
-					collectData(no.getNodeValue(), "rdf");
-				}
-				
-			}*/
 		 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-	 
-		//optional, but recommended
-		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
 		
 	}
 	private void test(){
@@ -204,8 +168,10 @@ public class DbPediaCollector {
 			tempsameAsattName.add("rdf:resource");
 			agent.setOwlSameAs(getAgentResource("owl:sameAs", "owl:sameAs", tempsameAsattName, doc));
 			
-			agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influenced of", "is dbprop:influenced of", doc));
-			agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influencedBy of", "is dbprop:influencedBy of", doc));
+			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influenced of", "is dbprop:influenced of", doc));
+			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influencedBy of", "is dbprop:influencedBy of", doc));
+			agent.setEdmIsRelatedTo(getAgentProperty("dbpedia-owl:influenced", "dbprop:influenced", doc));
+			agent.setEdmIsRelatedTo(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
 			
 			dm.insertAgent(agent);
 						
