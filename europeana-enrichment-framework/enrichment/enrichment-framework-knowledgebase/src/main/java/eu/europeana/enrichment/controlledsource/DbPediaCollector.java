@@ -37,6 +37,7 @@ public class DbPediaCollector {
 
 	 JenaRDFParser parser;
 	 DataManager dm = new DataManager();
+	 String agent="";
 
 	 static int qLimit=100;
 	/**
@@ -126,6 +127,7 @@ public class DbPediaCollector {
 
 		QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "describe <"+key+">");
 		System.out.println("describing "+key);
+		agent=key;
 		Model model=endpoint.execDescribe();
 		ByteArrayOutputStream baos= new ByteArrayOutputStream();
 		
@@ -198,7 +200,6 @@ public class DbPediaCollector {
 			System.out.println(logTag+" ("+ nodeList.getLength()+")");
 		for (int temp = 0; temp < nodeList.getLength(); temp++) {
 			
-
 			Node nNode = nodeList.item(temp);
 			if (nNode.getNodeType() == Node.ELEMENT_NODE && nNode.hasChildNodes()) {
 				NamedNodeMap nnm= nNode.getAttributes();
@@ -280,7 +281,16 @@ public class DbPediaCollector {
 				for (String atts:attributes){
 					Node attValue= nnm.getNamedItem(atts);
 					if (attValue!=null && attValue.hasChildNodes()){
-						result.add(attValue.getFirstChild().getNodeValue());
+						String attribStr=attValue.getFirstChild().getNodeValue();
+						if (!attribStr.trim().equalsIgnoreCase(agent))
+							result.add(attValue.getFirstChild().getNodeValue());
+						else{//check if the value is in the parent node
+							Node tmpNode=nNode.getParentNode();
+							nnm= tmpNode.getAttributes();
+							Node parentAttValue= nnm.getNamedItem("rdf:about"); //change this
+							if (parentAttValue!=null && attValue.hasChildNodes())
+								result.add(parentAttValue.getFirstChild().getNodeValue());
+						}
 					}
 						
 				
