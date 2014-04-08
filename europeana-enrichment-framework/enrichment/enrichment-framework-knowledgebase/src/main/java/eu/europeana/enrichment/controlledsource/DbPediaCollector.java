@@ -172,8 +172,11 @@ public class DbPediaCollector {
 			
 			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influenced of", "is dbprop:influenced of", doc));
 			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influencedBy of", "is dbprop:influencedBy of", doc));
-			agent.setEdmIsRelatedTo(getAgentProperty("dbpedia-owl:influenced", "dbprop:influenced", doc));
-			agent.setEdmIsRelatedTo(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
+			
+			HashMap <String,List<String>> influenced = new HashMap <String,List<String>>();
+			influenced.putAll(getAgentProperty("dbpedia-owl:influenced", "dbprop:influenced", doc));
+			influenced.putAll(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
+			agent.setEdmIsRelatedTo(influenced);
 			
 			dm.insertAgent(agent);
 						
