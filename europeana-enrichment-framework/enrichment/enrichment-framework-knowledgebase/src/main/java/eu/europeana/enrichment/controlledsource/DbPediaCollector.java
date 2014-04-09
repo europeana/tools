@@ -37,7 +37,7 @@ public class DbPediaCollector {
 
 	 JenaRDFParser parser;
 	 DataManager dm = new DataManager();
-	 String agent="";
+	 String agentKey="";
 
 	 static int qLimit=100;
 	/**
@@ -127,7 +127,7 @@ public class DbPediaCollector {
 
 		QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "describe <"+key+">");
 		System.out.println("describing "+key);
-		agent=key;
+		agentKey=key;
 		Model model=endpoint.execDescribe();
 		ByteArrayOutputStream baos= new ByteArrayOutputStream();
 		
@@ -208,13 +208,21 @@ public class DbPediaCollector {
 				NamedNodeMap nnm= nNode.getAttributes();
 				Node langAtt= nnm.getNamedItem("xml:lang");
 
-				Vector <String> date= new Vector <String>();
-				date.add(nNode.getFirstChild().getNodeValue());
+				
 				
 				if (langAtt!=null && langAtt.hasChildNodes())
 					lang=langAtt.getFirstChild().getNodeValue();
 				
-				myM.put(lang, date);
+				
+				if (!myM.containsKey(lang)){
+					Vector <String> date= new Vector <String>();
+					date.add(nNode.getFirstChild().getNodeValue());
+					myM.put(lang, date);
+				}
+				else{
+					myM.get(lang).add(nNode.getFirstChild().getNodeValue());
+				}
+				
 				System.out.println("  "+lang+", "+nNode.getFirstChild().getNodeValue());
 				//agent.setRdaGr2BiographicalInformation(myM);
 				
@@ -225,8 +233,13 @@ public class DbPediaCollector {
 					attrName.add("rdf:resource");
 					Vector <String> attrValues=getElementResourceAttribute(nNode, attrName);
 					if (attrValues.size()>0){
-						myM.put(lang, attrValues);
 						System.out.println("  "+lang+", "+attrValues.toString());
+						if (!myM.containsKey(lang)){
+							myM.put(lang, attrValues);
+						}
+						else{
+							myM.get(lang).addAll(attrValues);
+						}
 					}
 					
 				}
@@ -285,7 +298,7 @@ public class DbPediaCollector {
 					Node attValue= nnm.getNamedItem(atts);
 					if (attValue!=null && attValue.hasChildNodes()){
 						String attribStr=attValue.getFirstChild().getNodeValue();
-						if (!attribStr.trim().equalsIgnoreCase(agent))
+						if (!attribStr.trim().equalsIgnoreCase(agentKey))
 							result.add(attValue.getFirstChild().getNodeValue());
 						else{//check if the value is in the parent node
 							Node tmpNode=nNode.getParentNode();
