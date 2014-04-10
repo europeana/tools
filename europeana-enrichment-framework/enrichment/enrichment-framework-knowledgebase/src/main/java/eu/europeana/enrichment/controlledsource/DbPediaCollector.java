@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -38,8 +39,8 @@ public class DbPediaCollector {
 	 JenaRDFParser parser;
 	 DataManager dm = new DataManager();
 	 String agentKey="";
-
-	 static int qLimit=100;
+	 static boolean nolog=true; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
+	 static int qLimit=1000;
 	/**
 	 * @param args
 	 */
@@ -118,7 +119,7 @@ public class DbPediaCollector {
 		
 	}
 	private void test(){
-		this.collectAndMapControlledData("http://dbpedia.org/resource/Albert_Gleizes");
+		this.collectAndMapControlledData("http://dbpedia.org/resource/Leah_Goldberg");
 	}
 	private void collectAndMapControlledData(String key){
 
@@ -170,12 +171,21 @@ public class DbPediaCollector {
 			tempsameAsattName.add("rdf:resource");
 			agent.setOwlSameAs(getAgentResource("owl:sameAs", "owl:sameAs", tempsameAsattName, doc));
 			
-			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influenced of", "is dbprop:influenced of", doc));
-			//agent.setEdmIsRelatedTo(getAgentProperty("is dbpedia-owl:influencedBy of", "is dbprop:influencedBy of", doc));
-			
 			HashMap <String,List<String>> influenced = new HashMap <String,List<String>>();
 			influenced.putAll(getAgentProperty("dbpedia-owl:influenced", "dbprop:influenced", doc));
-			influenced.putAll(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
+			HashMap <String,List<String>> influencedBy = new HashMap <String,List<String>>();
+			influencedBy.putAll(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
+			
+			Iterator <String> ite= influencedBy.keySet().iterator();
+			
+			while (ite.hasNext()){
+				String tempLang= (String) ite.next();
+				if (influenced.containsKey(tempLang))
+					influenced.get(tempLang).addAll(influencedBy.get(tempLang));
+				else
+					influenced.put(tempLang, influencedBy.get(tempLang));
+				
+			}
 			agent.setEdmIsRelatedTo(influenced);
 			
 			dm.insertAgent(agent);
@@ -199,7 +209,7 @@ public class DbPediaCollector {
 			logTag=alternativeTag;
 		}
 		String lang="def";
-		if (nodeList.getLength()>0)
+		if (nodeList.getLength()>0 && !nolog)
 			System.out.println(logTag+" ("+ nodeList.getLength()+")");
 		for (int temp = 0; temp < nodeList.getLength(); temp++) {
 			
@@ -222,8 +232,8 @@ public class DbPediaCollector {
 				else{
 					myM.get(lang).add(nNode.getFirstChild().getNodeValue());
 				}
-				
-				System.out.println("  "+lang+", "+nNode.getFirstChild().getNodeValue());
+				if (!nolog)
+					System.out.println("  "+lang+", "+nNode.getFirstChild().getNodeValue());
 				//agent.setRdaGr2BiographicalInformation(myM);
 				
 			}
@@ -233,7 +243,8 @@ public class DbPediaCollector {
 					attrName.add("rdf:resource");
 					Vector <String> attrValues=getElementResourceAttribute(nNode, attrName);
 					if (attrValues.size()>0){
-						System.out.println("  "+lang+", "+attrValues.toString());
+						if (!nolog)
+							System.out.println("  "+lang+", "+attrValues.toString());
 						if (!myM.containsKey(lang)){
 							myM.put(lang, attrValues);
 						}
@@ -255,8 +266,8 @@ public class DbPediaCollector {
 		if (nodeList.getLength()==0 && alternativeTag!=null){
 			nodeList = doc.getElementsByTagName(alternativeTag);
 		}
-		
-		System.out.println(tag+"  ("+ nodeList.getLength()+", duplicates will be removed)");
+		if (!nolog)
+			System.out.println(tag+"  ("+ nodeList.getLength()+", duplicates will be removed)");
 		for (int temp = 0; temp < nodeList.getLength(); temp++) {
 			
 			Node nNode = nodeList.item(temp);
@@ -270,7 +281,8 @@ public class DbPediaCollector {
 					if (attValue!=null && attValue.hasChildNodes()){
 						if (!result.contains(attValue.getFirstChild().getNodeValue())){
 							result.add(attValue.getFirstChild().getNodeValue());
-							System.out.println("  "+attValue.getFirstChild().getNodeValue());
+							if (!nolog)
+								System.out.println("  "+attValue.getFirstChild().getNodeValue());
 						}
 					}
 						
