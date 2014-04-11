@@ -1,8 +1,11 @@
 package eu.europeana.enrichment.gui.server;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -26,8 +29,22 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 	 */
 	private static final long serialVersionUID = 2840650647541713067L;
 	Logger log = Logger.getLogger(this.getClass());
-	EnrichmentDriver driver = new EnrichmentDriver(
-			"http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/");
+	EnrichmentDriver driver; 
+
+	public EnrichmentServiceImpl() {
+		super();
+		Properties props = new Properties();
+		try {
+			props.load(new FileInputStream("gui.properties"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		driver = new EnrichmentDriver(props.getProperty("enrichment.rest"));
+	}
 
 	@Override
 	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values,
