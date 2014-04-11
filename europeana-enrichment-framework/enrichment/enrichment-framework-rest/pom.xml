@@ -57,13 +57,18 @@
 					<artifactId>corelib-web</artifactId>
 					<groupId>eu.europeana.corelib</groupId>
 				</exclusion>
-				<exclusion>
-					<artifactId>corelib-utils</artifactId>
-					<groupId>eu.europeana.corelib</groupId>
-				</exclusion>
+				
 				<exclusion>
 				<groupId>org.springframework</groupId>
 					<artifactId>spring-context-support</artifactId>
+				</exclusion>
+				<exclusion>
+				<groupId>org.springframework</groupId>
+					<artifactId>spring-orm</artifactId>
+				</exclusion>
+				<exclusion>
+				<groupId>org.springframework</groupId>
+					<artifactId>spring-tx</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
