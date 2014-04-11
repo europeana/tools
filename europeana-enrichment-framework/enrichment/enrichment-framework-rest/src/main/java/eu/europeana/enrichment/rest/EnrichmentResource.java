@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import eu.europeana.corelib.logging.Logger;
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.corelib.solr.entity.PlaceImpl;
@@ -39,7 +39,7 @@ import eu.europeana.enrichment.service.Enricher;
 @Component
 @Scope("request")
 public class EnrichmentResource {
-	Logger log = Logger.getLogger(this.getClass());
+	Logger log = Logger.getLogger(this.getClass().getCanonicalName());
 
 	@Autowired
 	private Enricher enricher;
