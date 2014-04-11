@@ -168,6 +168,7 @@ public class DataManager {
 		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
 
 		for (Entry<String, List<String>> prefLabel : agent.getPrefLabel().entrySet()) {
+			System.out.println(prefLabel.getValue().get(0));
 			for (String label : prefLabel.getValue()) {
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.setCodeUri(agent.getAbout());

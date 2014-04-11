@@ -88,7 +88,7 @@ public class EnrichmentClient {
 		form.param("input", obj.writeValueAsString(inList));
 		form.param("toXml", Boolean.toString(true));
 		Response res = client.target(
-				"http://localhost:8282/enrichment-framework-rest-0.1-SNAPSHOT/enrich/")
+				"http://testenv-solr.eanadev.org:9191/enrichment-framework-rest-0.1-SNAPSHOT/enrich/")
 				.request()
 				.post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), 
 						Response.class);
