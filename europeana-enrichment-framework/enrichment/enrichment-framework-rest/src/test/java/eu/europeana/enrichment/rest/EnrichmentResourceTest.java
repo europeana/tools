@@ -84,7 +84,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 			sm.addSerializer(new ObjectIdSerializer());
 			objIdMapper.registerModule(sm);
 
-			EntityWrapper wrapper = new EntityWrapper("test", "test",
+			EntityWrapper wrapper = new EntityWrapper("test", "test","test","test",
 					objIdMapper.writeValueAsString(agent));
 			wrapResp.add(wrapper);
 			InputValueList vals = new InputValueList();
@@ -143,7 +143,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 			sm.addSerializer(new ObjectIdSerializer());
 			objIdMapper.registerModule(sm);
 
-			EntityWrapper wrapper = new EntityWrapper("test", "test",
+			EntityWrapper wrapper = new EntityWrapper("test", "test","test","test",
 					objIdMapper.writeValueAsString(agent));
 			wrapResp.add(wrapper);
 			InputValueList vals = new InputValueList();
@@ -196,7 +196,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 			sm.addSerializer(new ObjectIdSerializer());
 			objIdMapper.registerModule(sm);
 
-			EntityWrapper wrapper = new EntityWrapper("test", "test",
+			EntityWrapper wrapper = new EntityWrapper("test", "test","test","test",
 					objIdMapper.writeValueAsString(agent));
 			wrapResp.add(wrapper);
 			InputValueList vals = new InputValueList();
@@ -249,7 +249,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 			sm.addSerializer(new ObjectIdSerializer());
 			objIdMapper.registerModule(sm);
 
-			EntityWrapper wrapper = new EntityWrapper("test", "test",
+			EntityWrapper wrapper = new EntityWrapper("test", "test", "test","test",
 					objIdMapper.writeValueAsString(agent));
 			wrapResp.add(wrapper);
 			InputValueList vals = new InputValueList();
@@ -303,7 +303,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 			sm.addSerializer(new ObjectIdSerializer());
 			objIdMapper.registerModule(sm);
 
-			EntityWrapper wrapper = new EntityWrapper("test", "test",
+			EntityWrapper wrapper = new EntityWrapper("test", "test", "test","test",
 					objIdMapper.writeValueAsString(agent));
 			wrapResp.add(wrapper);
 			InputValueList vals = new InputValueList();

@@ -86,7 +86,7 @@ public class EnrichmentResource {
 		List<EntityWrapper> entityWrapperList = new ArrayList<EntityWrapper>();
 		for (EntityWrapper wrapper : wrapperList) {
 			entityWrapperList.add(new EntityWrapper(wrapper.getClassName(),
-					wrapper.getOriginalField(), convertEntity(wrapper)));
+					wrapper.getOriginalField(), wrapper.getUrl(),wrapper.getOriginalValue(),convertEntity(wrapper)));
 		}
 		return entityWrapperList;
 	}
