@@ -116,7 +116,10 @@ public class InternalEnricher {
 
 			conceptEntity.setContextualEntity(getObjectMapper()
 					.writeValueAsString(terms.getRepresentation()));
+			conceptEntity.setUrl(terms.getCodeUri());
+			conceptEntity.setOriginalValue(value);
 			concepts.add(conceptEntity);
+			
 			if (terms.getParent() != null) {
 				concepts.addAll(findConceptParents(terms.getParent()));
 			}
@@ -135,6 +138,7 @@ public class InternalEnricher {
 		entity.setClassName(ConceptImpl.class.getName());
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
+		entity.setUrl(parents.getCodeUri());
 		parentEntities.add(entity);
 		if (parents.getParent() != null && !parent.equals(parents.getParent())) {
 			parentEntities.addAll(findConceptParents(parents.getParent()));
@@ -155,6 +159,8 @@ public class InternalEnricher {
 			agentEntity.setClassName(AgentImpl.class.getName());
 			agentEntity.setContextualEntity(getObjectMapper()
 					.writeValueAsString(terms.getRepresentation()));
+			agentEntity.setUrl(terms.getCodeUri());
+			agentEntity.setOriginalValue(value);
 			agents.add(agentEntity);
 			if (terms.getParent() != null) {
 				agents.addAll(findAgentParents(terms.getParent()));
@@ -172,6 +178,7 @@ public class InternalEnricher {
 		entity.setClassName(AgentImpl.class.getName());
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
+		entity.setUrl(parents.getCodeUri());
 		parentEntities.add(entity);
 		if (parents.getParent() != null&&!parent.equals(parents.getParent())) {
 			parentEntities.addAll(findAgentParents(parents.getParent()));
@@ -192,6 +199,8 @@ public class InternalEnricher {
 
 			placeEntity.setContextualEntity(getObjectMapper()
 					.writeValueAsString(terms.getRepresentation()));
+			placeEntity.setUrl(terms.getCodeUri());
+			placeEntity.setOriginalValue(value);
 			places.add(placeEntity);
 			if (terms.getParent() != null) {
 				places.addAll(findPlaceParents(terms.getParent()));
@@ -210,7 +219,9 @@ public class InternalEnricher {
 
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
+		entity.setUrl(parents.getCodeUri());
 		parentEntities.add(entity);
+		
 		if (parents.getParent() != null && !parent.equals(parents.getParent())) {
 			
 			parentEntities.addAll(findPlaceParents(parents.getParent()));
@@ -229,6 +240,8 @@ public class InternalEnricher {
 			timeSpanEntity.setClassName(TimespanImpl.class.getName());
 			timeSpanEntity.setContextualEntity(getObjectMapper()
 					.writeValueAsString(terms.getRepresentation()));
+			timeSpanEntity.setOriginalValue(value);
+			timeSpanEntity.setUrl(terms.getCodeUri());
 			timespans.add(timeSpanEntity);
 			if (terms.getParent() != null) {
 				timespans.addAll(findTimespanParents(terms.getParent()));
@@ -246,6 +259,7 @@ public class InternalEnricher {
 		entity.setClassName(TimespanImpl.class.getName());
 		entity.setContextualEntity(getObjectMapper().writeValueAsString(
 				parents.getRepresentation()));
+		entity.setUrl(parents.getCodeUri());
 		parentEntities.add(entity);
 		if (parents.getParent() != null&&!parent.equals(parents.getParent())) {
 			parentEntities.addAll(findTimespanParents(parents.getParent()));
