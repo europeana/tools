@@ -2,10 +2,9 @@ package eu.europeana.enrichment.controlledsource.util;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+
 import java.util.List;
-import java.util.Map;
+
 
 import net.vz.mongodb.jackson.DBRef;
 import net.vz.mongodb.jackson.JacksonDBCollection;
@@ -14,9 +13,10 @@ import net.vz.mongodb.jackson.WriteResult;
 import org.jibx.runtime.JiBXException;
  
 
+
+import org.mongodb.morphia.*;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
@@ -27,14 +27,12 @@ import eu.europeana.enrichment.api.internal.AgentTermList;
 import eu.europeana.enrichment.api.internal.ConceptTermList;
 import eu.europeana.enrichment.api.internal.MongoTerm;
 import eu.europeana.enrichment.api.internal.PlaceTermList;
-import eu.europeana.enrichment.api.internal.Term;
-import eu.europeana.enrichment.api.internal.TermList;
 import eu.europeana.enrichment.api.internal.TimespanTermList;
+import eu.europeana.enrichment.controlledsource.api.internal.AgentMap;
 
 import java.util.Map.Entry;
 
 
-//import eu.europeana.enrichment.api.internal.AgentTermList;
 //import eu.europeana.corelib.solr.entity.AgentImpl;
 
 
@@ -44,14 +42,21 @@ public class DataManager {
 	private static JacksonDBCollection<ConceptTermList, String> cColl;
 	private static JacksonDBCollection<PlaceTermList, String> pColl;
 	private static JacksonDBCollection<TimespanTermList, String> tColl;
-	Mongo mongo;
+	private static JacksonDBCollection<TimespanTermList, String> dbpagentsColl;
+	
+	//Mongo mongo;
 	private static DB db;
+	Datastore ds ;
 	
 	public DataManager(){
 		try{
 		//	mongo = new Mongo("127.0.0.1",27017);
 		//	db = mongo.getDB("ControlledSource");
 			dbExists("127.0.0.1",27017);
+			Mongo mongodb= new Mongo("127.0.0.1");
+			
+			ds = new Morphia().createDatastore(mongodb, "agentmap");
+			ds.ensureIndexes();
 		}
 		catch (Exception e){
 			e.printStackTrace();
@@ -64,6 +69,7 @@ public class DataManager {
 				Mongo mongo = new Mongo(host, port);
 				db = mongo.getDB("annocultor_db");
 				if (db.collectionExists("TermList")) {
+					
 					cColl = JacksonDBCollection.wrap(
 							db.getCollection("TermList"),
 							ConceptTermList.class, String.class);
@@ -75,11 +81,13 @@ public class DataManager {
 							String.class);
 
 					aColl.ensureIndex("codeUri");
+					
 					tColl = JacksonDBCollection.wrap(
 							db.getCollection("TermList"),
 							TimespanTermList.class, String.class);
 
 					tColl.ensureIndex("codeUri");
+					
 					pColl = JacksonDBCollection.wrap(
 							db.getCollection("TermList"), PlaceTermList.class,
 							String.class);
@@ -132,6 +140,11 @@ public class DataManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	public void insertAgentMap(AgentMap agentMap){
+		
+		System.out.println("Saving map for: "+ agentMap.getAgentUri());
+		ds.save(agentMap);
 	}
 	public void insertDocument(String jsonObject, String collectionName){
 		try{
