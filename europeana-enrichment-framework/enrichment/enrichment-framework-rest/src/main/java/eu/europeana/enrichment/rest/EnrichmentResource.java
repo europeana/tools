@@ -34,6 +34,8 @@ import eu.europeana.enrichment.api.external.EntityWrapperList;
 import eu.europeana.enrichment.api.external.InputValueList;
 import eu.europeana.enrichment.api.external.ObjectIdSerializer;
 import eu.europeana.enrichment.service.Enricher;
+import javax.annotation.PostConstruct;
+
 
 @Path("/")
 @Component
@@ -47,6 +49,8 @@ public class EnrichmentResource {
 	public EnrichmentResource() {
 	}
 
+      
+        
 	@POST
 	@Path("enrich")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)

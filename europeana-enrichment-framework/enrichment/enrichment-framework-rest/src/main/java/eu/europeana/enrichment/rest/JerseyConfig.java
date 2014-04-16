@@ -19,5 +19,7 @@ public class JerseyConfig extends ResourceConfig {
 		register(JsonMappingExceptionMapper.class);
 		register(UnknownExceptionMapper.class);
 		register(LoggingFilter.class);
+                
 	}
+        
 }
