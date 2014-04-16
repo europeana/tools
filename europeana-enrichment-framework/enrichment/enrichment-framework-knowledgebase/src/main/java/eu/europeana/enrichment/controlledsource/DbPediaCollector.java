@@ -3,6 +3,7 @@ package eu.europeana.enrichment.controlledsource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,8 +19,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryFactory;
+
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -27,20 +27,23 @@ import com.hp.hpl.jena.rdf.model.RDFWriter;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 
 
-import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.jena.JenaJSONLD;
 import com.github.jsonldjava.jena.JenaRDFParser;
 
 import eu.europeana.enrichment.controlledsource.util.DataManager;
 import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.enrichment.controlledsource.api.internal.AgentMap;
 
 public class DbPediaCollector {
 
 	 JenaRDFParser parser;
 	 DataManager dm = new DataManager();
 	 String agentKey="";
+	 String agentQuery="SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.}";
 	 static boolean nolog=true; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
+
 	 static int qLimit=1000;
+	 static int qOffset=0;
 	/**
 	 * @param args
 	 */
@@ -56,8 +59,8 @@ public class DbPediaCollector {
 				System.out.println ("*************WARNING in defining records limit in query answer, "+args[0]+" is not an int. Using default value: "+qLimit);
 			}
 		}
-		dbpc.loadAgentsfromDBPedia();
-		
+		//dbpc.getDBPediaAgents();
+		dbpc.getTestDBPediaAgents();
 		//JenaJSONLD.init(); 
 		//dbpc.test();
 
@@ -97,18 +100,25 @@ public class DbPediaCollector {
 	 
 	}
 	
-	private void loadAgentsfromDBPedia(){
+	private int loadAgentsfromDBPedia(String query){
+		int i=0;
 		
 		try {
-			QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT "+qLimit);//100");
-			System.out.println("getting artists from DBPedia ");
+			//QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT "+qLimit+" OFFSET 0");//100");
+			QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", query);
+			System.out.println("getting artists from DBPedia "+query);
 			ResultSet rs= endpoint.execSelect();
 			//System.out.println("exec query");
+			
 			while (rs.hasNext()){
 				QuerySolution qs=rs.next();
 				
 				String subject=qs.get("subject").toString();
 				
+				AgentMap agentMap = new AgentMap(subject, new URI(subject), "DBPedia", null, null);
+				
+				//dm.insertAgentMap(agentMap);
+
 				collectAndMapControlledData(subject);
 			}
 		 
@@ -116,6 +126,29 @@ public class DbPediaCollector {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return i++;
+		
+	}
+	
+	private void getDBPediaAgents ()
+	{
+		int resultsize=qLimit;
+		int limit=qLimit;
+		int offset=qOffset;
+		while (resultsize==limit){
+			resultsize=loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset);
+			if (resultsize == limit)
+				offset=offset+limit;
+		}
+		
+	}
+	
+	private void getTestDBPediaAgents ()
+	{
+		
+		int limit=qLimit;
+		int offset=qOffset;
+		loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset);
 		
 	}
 	private void test(){
