@@ -4,7 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,10 +42,11 @@ public class DbPediaCollector {
 	 DataManager dm = new DataManager();
 	 String agentKey="";
 	 String agentQuery="SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.}";
-	 static boolean nolog=true; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
+	 static boolean nolog=false; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
 
 	 static int qLimit=1000;
 	 static int qOffset=0;
+	 static boolean maxAgents=true;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
 	/**
 	 * @param args
 	 */
@@ -59,8 +62,11 @@ public class DbPediaCollector {
 				System.out.println ("*************WARNING in defining records limit in query answer, "+args[0]+" is not an int. Using default value: "+qLimit);
 			}
 		}
-		//dbpc.getDBPediaAgents();
-		dbpc.getTestDBPediaAgents();
+		
+		
+		dbpc.getDBPediaAgents(false); //get agents from DBpedia and stores them locally, use 'true' if content for every agent must be harvested
+		dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
+		
 		//JenaJSONLD.init(); 
 		//dbpc.test();
 
@@ -100,10 +106,29 @@ public class DbPediaCollector {
 	 
 	}
 	
-	private int loadAgentsfromDBPedia(String query){
+	public void harvestDBPedia(){
+		
+		int resultsize=1000;
+		int limit=1000;
+		int offset=0;
+		while (resultsize==limit){
+			List <AgentMap> agents= dm.extractAllAgentsFromLocalStorage(limit, offset);
+			resultsize=agents.size();
+			for (AgentMap am:agents){
+				collectAndMapControlledData(am.getAgentUri().toASCIIString());
+			}
+			if (agents.size() == limit)
+				offset=offset+limit;
+		}
+
+	}
+	private int loadAgentsfromDBPedia(String query, boolean harvestData){
 		int i=0;
 		
 		try {
+			Date todayDate = new Date();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+			System.out.println(sdf.format(todayDate));
 			//QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT "+qLimit+" OFFSET 0");//100");
 			QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", query);
 			System.out.println("getting artists from DBPedia "+query);
@@ -115,49 +140,52 @@ public class DbPediaCollector {
 				
 				String subject=qs.get("subject").toString();
 				
-				AgentMap agentMap = new AgentMap(subject, new URI(subject), "DBPedia", null, null);
+				AgentMap agentMap = new AgentMap(subject, new URI(subject), "DBPedia", todayDate, null);
 				
-				//dm.insertAgentMap(agentMap);
+				dm.insertAgentMap(agentMap);
+				
+				
+				i= rs.getRowNumber();
 
-				collectAndMapControlledData(subject);
+				
+				if (harvestData)
+					collectAndMapControlledData(subject);
+				
 			}
 		 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return i++;
 		
 	}
 	
-	private void getDBPediaAgents ()
+	public void getDBPediaAgents (boolean harvestContent)
 	{
 		int resultsize=qLimit;
 		int limit=qLimit;
 		int offset=qOffset;
+		
 		while (resultsize==limit){
-			resultsize=loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset);
+
+			resultsize=loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset, harvestContent);
 			if (resultsize == limit)
 				offset=offset+limit;
+			if (maxAgents)
+				resultsize=0;
 		}
 		
 	}
 	
-	private void getTestDBPediaAgents ()
-	{
-		
-		int limit=qLimit;
-		int offset=qOffset;
-		loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset);
-		
-	}
+	/*
 	private void test(){
 		this.collectAndMapControlledData("http://dbpedia.org/resource/Leah_Goldberg");
 	}
+	*/
+	
 	private void collectAndMapControlledData(String key){
 
-
-		
 
 		QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "describe <"+key+">");
 		System.out.println("describing "+key);

@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.Date;
 
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.mapping.Mapper;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 
 import net.vz.mongodb.jackson.Id;
@@ -24,6 +27,10 @@ public class AgentMap {
 		setControlledSourceId(sourceId);
 		setStoredDate(storedDate);
 		setHarvestedDate(harvestedDate);
+	}
+	
+	public AgentMap(){
+		
 	}
 	
 	public String getId() {

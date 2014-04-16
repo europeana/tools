@@ -2,6 +2,8 @@ package eu.europeana.enrichment.controlledsource.util;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Vector;
 
 import java.util.List;
 
@@ -15,6 +17,10 @@ import org.jibx.runtime.JiBXException;
 
 
 import org.mongodb.morphia.*;
+import org.mongodb.morphia.mapping.Mapper;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
+
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -141,11 +147,45 @@ public class DataManager {
 			e.printStackTrace();
 		}
 	}
-	public void insertAgentMap(AgentMap agentMap){
+	
+	public List <AgentMap>extractAllAgentsFromLocalStorage(int limit, int offset){
 		
-		System.out.println("Saving map for: "+ agentMap.getAgentUri());
-		ds.save(agentMap);
+		
+		Query <AgentMap> q = ds.createQuery(AgentMap.class);
+		//q.criteria("agentUri").contains("Tania");
+		q.limit(limit).offset(offset);
+		List<AgentMap> res= q.asList();
+		return res;
+		
 	}
+	
+	public boolean insertAgentMap(AgentMap agentMap){
+		
+		if (queryToFindAgent(agentMap.getId()).countAll()>0){
+			//System.out.println(agentMap.getAgentUri()+" is on board");
+			return false;
+		}
+		else{
+			System.out.println("Saving map for: "+ agentMap.getAgentUri());
+			ds.save(agentMap);
+			return true;
+		}
+		
+	}
+	
+	//test these
+	 private Query<AgentMap> queryToFindAgent(String id) {
+	      return ds.createQuery(AgentMap.class).field("id").equal(id);
+	   }
+
+	  public void harvested(String id) {
+		  Date now = new Date();
+	      UpdateOperations<AgentMap> ops = ds.createUpdateOperations(AgentMap.class).set("harvestedDate", now);
+	      ds.update(queryToFindAgent(id), ops);
+
+	   }
+	  //
+	  
 	public void insertDocument(String jsonObject, String collectionName){
 		try{
 			System.out.println("JSON parse ...");
@@ -181,7 +221,7 @@ public class DataManager {
 		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
 
 		for (Entry<String, List<String>> prefLabel : agent.getPrefLabel().entrySet()) {
-			System.out.println(prefLabel.getValue().get(0));
+			//System.out.println(prefLabel.getValue().get(0));
 			for (String label : prefLabel.getValue()) {
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.setCodeUri(agent.getAbout());
