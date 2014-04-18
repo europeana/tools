@@ -49,7 +49,7 @@ public class InternalEnricher {
 	private final static String CONCEPT="concept";
 	private final static String TIMESPAN = "period";
 	private final static String PLACE="place";
-	private final static String AGENT = "agent";
+	private final static String AGENT = "people";
 	
 	public InternalEnricher() {
 		SimpleModule sm = new SimpleModule("test", Version.unknownVersion());
