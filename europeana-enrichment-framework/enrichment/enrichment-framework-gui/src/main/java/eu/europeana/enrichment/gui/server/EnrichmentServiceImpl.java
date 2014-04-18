@@ -21,6 +21,7 @@ import eu.europeana.enrichment.gui.client.EnrichmentService;
 import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
+import java.io.File;
 
 public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 		EnrichmentService {
@@ -35,7 +36,8 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 		super();
 		Properties props = new Properties();
 		try {
-			props.load(new FileInputStream("gui.properties"));
+                    String s = new File(".").getAbsolutePath();
+			props.load(getClass().getClassLoader().getResourceAsStream("gui.properties"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -49,6 +51,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 	@Override
 	public List<EntityWrapperDTO> enrich(List<InputValueDTO> values,
 			boolean toEdm) {
+            String s = new File(".").getAbsolutePath();
 		List<InputValue> inputValues = new ArrayList<InputValue>();
 		for (InputValueDTO value : values) {
 			InputValue inputValue = new InputValue();
