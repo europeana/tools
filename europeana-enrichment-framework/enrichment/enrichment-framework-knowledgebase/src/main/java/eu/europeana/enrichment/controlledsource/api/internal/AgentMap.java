@@ -27,6 +27,10 @@ public class AgentMap {
 		setHarvestedDate(harvestedDate);
 	}
 	
+	public AgentMap(){
+		
+	}
+	
 	public String getId() {
 		return id;
 	}
