@@ -1,4 +1,6 @@
 package eu.europeana.enrichment.controlledsource.util;
+import com.google.code.morphia.Datastore;
+import com.google.code.morphia.Morphia;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import org.jibx.runtime.JiBXException;
  
 
 
-import org.mongodb.morphia.*;
+//import org.mongodb.morphia.*;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -31,13 +33,17 @@ import eu.europeana.enrichment.api.internal.TimespanTermList;
 import eu.europeana.enrichment.controlledsource.api.internal.AgentMap;
 
 import java.util.Map.Entry;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 
 //import eu.europeana.corelib.solr.entity.AgentImpl;
 
 
 public class DataManager {
-	
+	private static Logger log = Logger.getLogger("test");
+        
 	private static JacksonDBCollection<AgentTermList, String> aColl;
 	private static JacksonDBCollection<ConceptTermList, String> cColl;
 	private static JacksonDBCollection<PlaceTermList, String> pColl;
@@ -52,6 +58,9 @@ public class DataManager {
 		try{
 		//	mongo = new Mongo("127.0.0.1",27017);
 		//	db = mongo.getDB("ControlledSource");
+                    FileHandler fh = new FileHandler("/home/gmamakis/test1.log");  
+                    fh.setFormatter(new SimpleFormatter());
+        log.addHandler(fh);
 			dbExists("127.0.0.1",27017);
 			Mongo mongodb= new Mongo("127.0.0.1");
 			
@@ -181,7 +190,7 @@ public class DataManager {
 		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<DBRef<? extends MongoTerm, String>>();
 
 		for (Entry<String, List<String>> prefLabel : agent.getPrefLabel().entrySet()) {
-			System.out.println(prefLabel.getValue().get(0));
+			log.info(prefLabel.getKey()+":"+prefLabel.getValue().get(0));
 			for (String label : prefLabel.getValue()) {
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.setCodeUri(agent.getAbout());

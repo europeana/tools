@@ -1,9 +1,10 @@
 package eu.europeana.enrichment.controlledsource.api.internal;
 
+import com.google.code.morphia.annotations.Entity;
 import java.net.URI;
 import java.util.Date;
 
-import org.mongodb.morphia.annotations.Entity;
+//import org.mongodb.morphia.annotations.Entity;
 
 
 import net.vz.mongodb.jackson.Id;
