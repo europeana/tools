@@ -61,13 +61,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mongodb.morphia</groupId>
-			<artifactId>morphia</artifactId>
-			<version>0.107</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib-nodep</artifactId>
 			<version>3.1</version>
@@ -98,14 +91,14 @@
 	<repositories>
 		<repository>
 			<id>releases</id>
-			<url>http://europeanalabs.eu/artifactory/repo</url>
+			<url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
 		<repository>
 			<id>snapshots</id>
-			<url>http://europeanalabs.eu/artifactory/repo</url>
+			<url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
