@@ -4,9 +4,14 @@ import com.google.code.morphia.Morphia;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+
+import java.util.Map;
+import java.util.Vector;
+
 
 import java.util.List;
 
@@ -15,21 +20,29 @@ import net.vz.mongodb.jackson.DBRef;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import net.vz.mongodb.jackson.WriteResult;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jibx.runtime.JiBXException;
  
 
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.enrichment.api.external.EntityClass;
+import eu.europeana.enrichment.api.external.EntityWrapper;
+
 import eu.europeana.enrichment.api.internal.AgentTermList;
 import eu.europeana.enrichment.api.internal.ConceptTermList;
 import eu.europeana.enrichment.api.internal.MongoTerm;
+import eu.europeana.enrichment.api.internal.MongoTermList;
 import eu.europeana.enrichment.api.internal.PlaceTermList;
 import eu.europeana.enrichment.api.internal.TimespanTermList;
 import eu.europeana.enrichment.controlledsource.api.internal.AgentMap;
@@ -51,6 +64,8 @@ public class DataManager {
 	private static JacksonDBCollection<PlaceTermList, String> pColl;
 	private static JacksonDBCollection<TimespanTermList, String> tColl;
 	private static JacksonDBCollection<TimespanTermList, String> dbpagentsColl;
+	private final static String AGENT = "people";
+	private final static ObjectMapper obj = new ObjectMapper();
 	
 	//Mongo mongo;
 	private static DB db;
@@ -256,5 +271,73 @@ public class DataManager {
 
 	}
 	
+	private List<? extends EntityWrapper> findEntities(String lowerCase,
+			String field, EntityClass className)
+			throws JsonGenerationException, JsonMappingException, IOException {
+		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
+		switch (className) {
+		case AGENT:
+			entities.addAll(findAgentEntities(lowerCase, field));
+			break;
+		default:
+			break;
+		}
+		return entities;
+	}
+	
+	private List<? extends EntityWrapper> findAgentEntities(String value,
+			String originalField) throws JsonGenerationException,
+			JsonMappingException, IOException {
+		List<EntityWrapper> agents = new ArrayList<EntityWrapper>();
+		MongoTermList terms = findByLabel(value, AGENT);
+		if (terms != null) {
 
+			EntityWrapper agentEntity = new EntityWrapper();
+			agentEntity.setOriginalField(originalField);
+
+			agentEntity.setClassName(AgentImpl.class.getName());
+			agentEntity.setContextualEntity(getObjectMapper()
+					.writeValueAsString(terms.getRepresentation()));
+			
+			//agentEntity.setUrl(terms.getCodeUri());
+			//agentEntity.setOriginalValue(value);
+			agents.add(agentEntity);
+			//if (terms.getParent() != null) {
+			//	agents.addAll(findAgentParents(terms.getParent()));
+			//}
+		}
+		return agents;
+	}
+	private ObjectMapper getObjectMapper() {
+		return obj;
+	}
+	
+	public static MongoTermList findByLabel(String label, String dbtable)
+
+			throws MalformedURLException {
+				
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
+						.wrap(db.getCollection(dbtable), MongoTerm.class, String.class);
+				pColl.ensureIndex("label");
+
+				net.vz.mongodb.jackson.DBCursor<MongoTerm> curs = pColl.find().is("label", label.toLowerCase());
+				if (curs.hasNext()) {
+					MongoTerm mTerm = curs.next();
+					MongoTermList t = findAgentByCode(mTerm.getCodeUri());
+					//typeMap.put(label.toLowerCase(), t);
+					//memCache.put(dbtable, typeMap);
+					return t;
+				}
+				return null;
+			}
+	
+
+	private static MongoTermList findAgentByCode(String codeUri) {
+		net.vz.mongodb.jackson.DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
+		if (curs.hasNext()) {
+			AgentTermList terms = curs.next();
+			return terms;
+		}
+		return null;
+	}
 }
