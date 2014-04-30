@@ -98,7 +98,7 @@
 		</repository>
 		<repository>
 			<id>snapshots</id>
-			<url>http://artifactory.eanadev.org/artifactory/libs-release-local/</url>
+			<url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local/</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
