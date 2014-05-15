@@ -1,6 +1,7 @@
 package eu.europeana.enrichment.controlledsource.api.internal;
 
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Property;
 import java.net.URI;
 import java.util.Date;
 
@@ -9,11 +10,13 @@ import java.util.Date;
 
 import net.vz.mongodb.jackson.Id;
 
+
 @Entity
 public class AgentMap {
 	@Id
 	private String id;
 	private URI agentUri;
+	@Property
 	private String controlledSourceId;
 	private Date storedDate;
 	private Date harvestedDate;

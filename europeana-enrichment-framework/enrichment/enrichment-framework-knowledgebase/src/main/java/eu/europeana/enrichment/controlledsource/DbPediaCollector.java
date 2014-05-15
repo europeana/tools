@@ -33,6 +33,7 @@ import com.github.jsonldjava.jena.JenaJSONLD;
 import com.github.jsonldjava.jena.JenaRDFParser;
 
 import eu.europeana.enrichment.controlledsource.util.DataManager;
+
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.enrichment.controlledsource.api.internal.AgentMap;
 
@@ -42,9 +43,9 @@ public class DbPediaCollector {
 	 DataManager dm = new DataManager();
 	 String agentKey="";
 	 String agentQuery="SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.}";
-	 static boolean nolog=false; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
+	 static boolean nolog=true; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
 
-	 static int qLimit=1000;
+	 static int qLimit=1500;
 	 static int qOffset=0;
 	 static boolean maxAgents=true;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
 	/**
@@ -212,19 +213,24 @@ public class DbPediaCollector {
 			AgentImpl agent= new AgentImpl();
 			
 			agent.setAbout(key);
-
-			agent.setPrefLabel(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc ));
-			
-			
-			agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthDate", "dbpprop:birthDate", doc ));
 			agent.setRdaGr2BiographicalInformation(getAgentProperty("dbpedia-owl:abstract", "dbpprop:abstract", doc ));
+			agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthDate", "dbpprop:birthDate", doc ));
+			
+			//agent.setPrefLabel(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc ));
+			agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthPlace", "dbpprop:birthPlace", doc ));
+			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathPlace", "dbpprop:deathPlace", doc ));
+			agent.setPrefLabel(getAgentProperty("foaf:name", "foaf:name", doc ));
+			
+			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
+			
 			agent.setRdaGr2ProfessionOrOccupation(getAgentProperty("dbpedia-owl:occupation", "dbpprop:occupation", doc));
 
-			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
-			agent.setEnd(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
-			agent.setFoafName(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc));
-			
 			agent.setAltLabel(getAgentProperty("dbpedia-owl:alternativeNames", "dbpprop:alternativeNames", doc));
+			
+			agent.setEnd(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
+			//agent.setFoafName(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc));
+			
+			
 			
 			agent.setDcIdentifier(getAgentProperty("dbpedia-owl:viaf", "dbpprop:viaf", doc));
 			
