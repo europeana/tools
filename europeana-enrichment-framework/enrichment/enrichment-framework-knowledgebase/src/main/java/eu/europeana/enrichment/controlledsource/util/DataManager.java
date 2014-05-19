@@ -35,6 +35,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
+
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
@@ -75,7 +76,7 @@ public class DataManager {
 		try{
 		//	mongo = new Mongo("127.0.0.1",27017);
 		//	db = mongo.getDB("ControlledSource");
-                    FileHandler fh = new FileHandler("/home/gmamakis/test1.log");  
+                    FileHandler fh = new FileHandler("test1_harvester.log");  
                     fh.setFormatter(new SimpleFormatter());
         log.addHandler(fh);
 			dbExists("127.0.0.1",27017);
@@ -173,7 +174,7 @@ public class DataManager {
 		
 		
 		Query <AgentMap> q = ds.createQuery(AgentMap.class);
-		//q.criteria("agentUri").contains("Tania");
+		
 		q.limit(limit).offset(offset);
 		List<AgentMap> res= q.asList();
 		return res;
@@ -323,21 +324,21 @@ public class DataManager {
 				net.vz.mongodb.jackson.DBCursor<MongoTerm> curs = pColl.find().is("label", label.toLowerCase());
 				if (curs.hasNext()) {
 					MongoTerm mTerm = curs.next();
-					MongoTermList t = findAgentByCode(mTerm.getCodeUri());
+					//MongoTermList t = findAgentByCode(mTerm.getCodeUri());
 					//typeMap.put(label.toLowerCase(), t);
 					//memCache.put(dbtable, typeMap);
-					return t;
+					return null;
 				}
 				return null;
 			}
 	
 
-	private static MongoTermList findAgentByCode(String codeUri) {
+	/*private static MongoTermList findAgentByCode(String codeUri) {
 		net.vz.mongodb.jackson.DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
 		if (curs.hasNext()) {
 			AgentTermList terms = curs.next();
 			return terms;
 		}
 		return null;
-	}
+	}*/
 }

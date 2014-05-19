@@ -45,9 +45,9 @@ public class DbPediaCollector {
 	 String agentQuery="SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.}";
 	 static boolean nolog=true; //use 'false' if you want to see logs on console. WILL replace this with some log frameworks
 
-	 static int qLimit=1500;
+	 static int qLimit= 10000;
 	 static int qOffset=0;
-	 static boolean maxAgents=true;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
+	 static boolean maxAgents=false;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
 	/**
 	 * @param args
 	 */
@@ -66,16 +66,16 @@ public class DbPediaCollector {
 		
 		
 		dbpc.getDBPediaAgents(false); //get agents from DBpedia and stores them locally, use 'true' if content for every agent must be harvested
-		dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
+		//dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
 		
-		//JenaJSONLD.init(); 
+		
 		//dbpc.test();
 
 	}
 	public DbPediaCollector(){
 		parser = new JenaRDFParser();
 	}
-	
+	/*
 	private void loadAgentsfromFile(){
 		File agentsRDF = new File("/Users/cesare/git/annocultor/annocultor/src/main/resources/dbpediaselectedartists.rdf");
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -106,7 +106,7 @@ public class DbPediaCollector {
 		
 	 
 	}
-	
+	*/
 	public void harvestDBPedia(){
 		
 		int resultsize=1000;
@@ -217,8 +217,8 @@ public class DbPediaCollector {
 			agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthDate", "dbpprop:birthDate", doc ));
 			
 			//agent.setPrefLabel(getAgentProperty("dbpedia-owl:birthName", "dbpprop:birthName", doc ));
-			agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthPlace", "dbpprop:birthPlace", doc ));
-			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathPlace", "dbpprop:deathPlace", doc ));
+			agent.setRdaGr2PlaceOfBirth(getAgentProperty("dbpedia-owl:birthPlace", "dbpprop:birthPlace", doc ));
+			agent.setRdaGr2PlaceOfDeath(getAgentProperty("dbpedia-owl:deathPlace", "dbpprop:deathPlace", doc ));
 			agent.setPrefLabel(getAgentProperty("foaf:name", "foaf:name", doc ));
 			
 			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
