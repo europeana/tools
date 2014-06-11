@@ -14,8 +14,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 /**
+ * Class handling AMQP messages. Since messages for synchronous and asynchronous modes are user triggered this allows
+ * common implementation
  *
- * @author gmamakis
+ * @author Yorgos.Mamakis@ europeana.eu
  */
 public class AbstractRabbitMQClient {
 
@@ -49,5 +51,4 @@ public class AbstractRabbitMQClient {
         }
     }
 
-    
 }

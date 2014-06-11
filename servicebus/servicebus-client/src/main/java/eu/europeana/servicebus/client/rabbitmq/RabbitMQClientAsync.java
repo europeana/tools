@@ -9,41 +9,45 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
 import eu.europeana.servicebus.client.ESBClient;
 import eu.europeana.servicebus.model.Message;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 
 /**
  *
- * @author gmamakis
+ *
+ * @author Yorgos.Mamakis@ europeana.eu
  */
 public class RabbitMQClientAsync extends AbstractRabbitMQClient implements ESBClient {
 
-    public Consumer consumer;
+    private Consumer consumer;
 
-    public RabbitMQClientAsync(String host, String incomingQueue, String outgoingQueue, String username, String password)
+    /**
+     * RabbitMQ implementation of ESBClient
+     *
+     * @param host The host to connect to
+     * @param incomingQueue The incoming queue
+     * @param outgoingQueue The outgoing queue
+     * @param username Username
+     * @param password Password
+     * @param consumer The consumer implementation - It can be null. It allows asynchronous consumers as well as enables
+     * custom behaviour handling upon incoming message. The default message handling is and should be agnostic of the
+     * method semantics to be implemented
+     * @throws IOException
+     */
+    public RabbitMQClientAsync(String host, String incomingQueue, String outgoingQueue, String username, String password,
+            Consumer consumer)
             throws IOException {
         this.host = host;
         this.incomingQueue = incomingQueue;
         this.outgoingQueue = outgoingQueue;
         this.username = username;
         this.password = password;
-        consumer = new DefaultConsumer(receiveChannel) {
-
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
-                    byte[] body) throws IOException {
-                try {
-                    receive(body);
-                } catch (ClassNotFoundException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        };
+        if (consumer == null) {
+            this.consumer = new DefaultConsumer(receiveChannel);
+        } else {
+            this.consumer = consumer;
+        }
         ConnectionFactory factory = new ConnectionFactory();
         builder = new AMQP.BasicProperties.Builder();
         factory.setHost(host);
@@ -62,11 +66,6 @@ public class RabbitMQClientAsync extends AbstractRabbitMQClient implements ESBCl
     @Override
     public void send(Message message) {
         sendMessage(message, message.getJobId());
-    }
-
-    public Message receive(byte[] body) throws ClassNotFoundException, IOException {
-        ByteArrayInputStream bin = new ByteArrayInputStream(body);
-        return (Message) new ObjectInputStream(bin).readObject();
     }
 
 }

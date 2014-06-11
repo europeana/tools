@@ -7,7 +7,7 @@
 package eu.europeana.servicebus.model;
 
 /**
- *
+ * The STATUS of a job. SUCCESS or ERROR
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public enum Status {

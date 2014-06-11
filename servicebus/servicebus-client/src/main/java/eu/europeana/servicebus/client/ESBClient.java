@@ -8,11 +8,15 @@ import eu.europeana.servicebus.model.Message;
  */
 
 /**
- *
- * @author gmamakis
+ * Interface for message delivery client
+ * @author Yorgos.Mamakis@ europeanna.eu
  */
 public interface ESBClient {
     
+    /**
+     * Send a custom message to the service bus
+     * @param message 
+     */
     void send(Message message);
 
 }

@@ -12,7 +12,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- *
+ * The message delivered in the service bus
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public class Message implements Serializable {
@@ -20,6 +20,10 @@ public class Message implements Serializable {
     private Status status;
     private String jobId;
 
+    /**
+     * The status
+     * @return 
+     */
     public Status getStatus() {
         return status;
     }
@@ -28,6 +32,10 @@ public class Message implements Serializable {
         this.status = status;
     }
 
+    /**
+     * The jobId
+     * @return 
+     */
     public String getJobId() {
         return jobId;
     }
@@ -36,6 +44,11 @@ public class Message implements Serializable {
         this.jobId = jobId;
     }
     
+    /**
+     * Byte serialization of a Message
+     * @return
+     * @throws IOException 
+     */
     public byte[] getBytes() throws IOException{
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try (ObjectOutputStream out = new ObjectOutputStream(bout)) {
