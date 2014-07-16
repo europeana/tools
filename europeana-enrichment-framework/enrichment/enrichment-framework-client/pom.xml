@@ -32,17 +32,49 @@
                     <artifactId>jetty-jndi</artifactId>
                     <groupId>org.eclipse.jetty</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>jersey-core</artifactId>
+                    <groupId>com.sun.jersey</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jersey-client</artifactId>
+                    <groupId>com.sun.jersey</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jersey-multipart</artifactId>
+                    <groupId>com.sun.jersey.contribs</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jersey-server</artifactId>
+                    <groupId>com.sun.jersey</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>neo4j-community</artifactId>
+                    <groupId>org.neo4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>neo4j-cypher</artifactId>
+                    <groupId>org.neo4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>neo4j-kernel</artifactId>
+                    <groupId>org.neo4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>neo4j-rest-graphdb</artifactId>
+                    <groupId>org.neo4j</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>
-            <version>2.5.1</version>
+            <version>2.9.1</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-moxy</artifactId>
-            <version>2.5.1</version>
+            <version>2.9.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -76,8 +108,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>

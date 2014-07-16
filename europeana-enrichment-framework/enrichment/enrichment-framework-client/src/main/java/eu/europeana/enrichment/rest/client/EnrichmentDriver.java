@@ -68,6 +68,7 @@ public class EnrichmentDriver {
 				.post(Entity
 						.entity(form, MediaType.APPLICATION_FORM_URLENCODED),
 						Response.class);
+                
 		if (res.getStatus() == Status.OK.getStatusCode()) {
 			return new ObjectMapper().readValue(res.readEntity(String.class),
 					EntityWrapperList.class).getWrapperList();
