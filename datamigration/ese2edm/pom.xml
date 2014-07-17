@@ -53,7 +53,7 @@
 		<version.jibx>1.2.3</version.jibx>
 		<version.mortbayJetty>6.1.26</version.mortbayJetty>
 		<version.mongoDriver>2.7.3</version.mongoDriver>
-		<version.mongoMorphia>0.99</version.mongoMorphia>
+		<version.mongoMorphia>0.99.1-patched</version.mongoMorphia>
 		<version.woodstox>3.2.9</version.woodstox>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
