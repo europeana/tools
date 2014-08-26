@@ -75,7 +75,7 @@ public class SolrServer implements Server {
 		HttpSolrServer solrServer = new HttpSolrServer(url);
 		try {
 			solrServer.deleteByQuery("europeana_collectionName:"
-					+ collectionName + "*", 10000);
+					+ collectionName + "_*", 10000);
 			solrServer.commit();
 		} catch (SolrServerException e) {
 			// TODO Auto-generated catch block
