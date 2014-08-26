@@ -33,6 +33,8 @@ import eu.europeana.record.management.database.enums.LogEntryType;
 import eu.europeana.record.management.server.util.LogUtils;
 import eu.europeana.record.management.server.util.PasswordUtils;
 import eu.europeana.record.management.shared.dto.UserDTO;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @see LoginService.java
@@ -78,7 +80,6 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 
 	@SuppressWarnings("deprecation")
 	public UserDTO userExists(String uname, String pass) {
-
 		try {
 			Dao<Session> sessionDao = this.sessionDao == null ? (Dao<Session>) createSessionDao()
 					: this.sessionDao;
@@ -114,6 +115,7 @@ public class LoginServiceImpl extends RemoteServiceServlet implements
 					userDTO.setDate(session.getLastLogin().toGMTString());
 					userDTO.setUsername(user.getUsername());
 					userDTO.setId(user.getId());
+                                       
 					if (enableLogging) {
 						LogUtils.createLogEntry(LogEntryType.LOGIN, user, "",
 								when);

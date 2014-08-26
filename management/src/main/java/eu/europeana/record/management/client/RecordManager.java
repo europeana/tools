@@ -173,7 +173,7 @@ public class RecordManager implements EntryPoint {
 		DecoratedTabPanel panel = new DecoratedTabPanel();
 		panel.setWidth("768px");
 		panel.setHeight("1024px");
-		panel.add(new MyInfoWidget().createWidget(user),Messages.MYINFORMATION);
+                panel.add(new MyInfoWidget().createWidget(user),Messages.MYINFORMATION);
 		panel.add(new LogEntryWidget().createWidget(user),Messages.LOGS);
 		panel.add(new RecordManagementWidget().createWidget(user),Messages.RECORDMANAGEMENT);
 		panel.add(new SystemManagementWidget(user).createWidget(),Messages.SYSTEMMANAGEMENT);

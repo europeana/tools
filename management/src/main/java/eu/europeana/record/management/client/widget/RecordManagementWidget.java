@@ -96,7 +96,7 @@ public class RecordManagementWidget implements AbstractWidget {
 		vp.add(createRecordRemovalPanel());
 		vp.add(createRecordPreview());
 		vp.add(createCollectionRemovalPanel());
-		vp.add(createOptimizeSolrPanel());
+		//vp.add(createOptimizeSolrPanel());
 		return vp;
 	}
 
