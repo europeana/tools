@@ -74,7 +74,7 @@ public class Startup {
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
                     .evaluator(Evaluators.toDepth(length))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
@@ -91,7 +91,7 @@ public class Startup {
             TraversalDescription traversalBefore = db.traversalDescription();
             Traverser traverseBefore = traversalBefore
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
                     .evaluator(Evaluators.toDepth(lengthBefore))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
