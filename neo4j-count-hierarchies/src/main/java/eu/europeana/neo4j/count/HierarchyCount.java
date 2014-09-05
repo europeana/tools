@@ -64,6 +64,7 @@ public class HierarchyCount {
                 }
             }
             tx.success();
+            tx.finish();
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
         }
