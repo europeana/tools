@@ -8,18 +8,18 @@ package eu.europeana.neo4j.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlRootElement;
 import org.neo4j.graphdb.Node;
 
 /**
  *
  * @author gmamakis
  */
-@XmlRootElement
+
 public class Hierarchy {
     
     List<Node> parents = new ArrayList<>();
     List<Node> siblings = new ArrayList<>();
+    List<Node> previousSiblings = new ArrayList<>();
 
     public List<Node> getParents() {
         return parents;
@@ -36,5 +36,14 @@ public class Hierarchy {
     public void setSiblings(List<Node> siblings) {
         this.siblings = siblings;
     }
+
+    public List<Node> getPreviousSiblings() {
+        return previousSiblings;
+    }
+
+    public void setPreviousSiblings(List<Node> previousSiblings) {
+        this.previousSiblings = previousSiblings;
+    }
+    
     
 }
