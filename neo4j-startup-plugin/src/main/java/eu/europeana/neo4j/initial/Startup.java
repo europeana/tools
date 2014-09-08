@@ -8,6 +8,7 @@ package eu.europeana.neo4j.initial;
 import eu.europeana.neo4j.mapper.ObjectMapper;
 import eu.europeana.neo4j.model.Hierarchy;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.DynamicRelationshipType;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -29,6 +32,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
+import org.neo4j.kernel.impl.util.StringLogger;
 
 /**
  *
@@ -40,9 +44,11 @@ public class Startup {
     final DynamicRelationshipType ISNEXTINSEQUENCE = DynamicRelationshipType.withName("edm:isNextInSequence");
 
     private GraphDatabaseService db;
+    private ExecutionEngine engine;
 
     public Startup(@Context GraphDatabaseService db) {
         this.db = db;
+        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
     }
 
     @GET
@@ -58,13 +64,19 @@ public class Startup {
             Node node = db.index().forNodes("edmsearch2").get("rdf_about", nodeId).getSingle();
             long nodeIndex = getIndex(node.getId());
             node.setProperty("index", nodeIndex);
+            if (node.hasProperty("hasChildren")) {
+                long childrenCount = getChilrenCount(node.getProperty("rdf:about").toString());
+                node.setProperty("childrenCount", childrenCount);
+            }
             parents.add(node);
             Node testNode = node;
             while (testNode.hasProperty("hasParent")) {
                 Node newNode = db.index().forNodes("edmsearch2").get("rdf_about", testNode.getProperty("hasParent")).
                         getSingle();
                 long parentIndex = getIndex(newNode.getId());
+                long childrenCount = getChilrenCount(newNode.getProperty("rdf:about").toString());
                 newNode.setProperty("index", parentIndex);
+                newNode.setProperty("childrenCount", childrenCount);
                 parents.add(newNode);
                 testNode = newNode;
             }
@@ -82,10 +94,14 @@ public class Startup {
             for (Path path : traverse) {
                 followingIndex++;
                 Node endNode = path.endNode();
+                if (endNode.hasProperty("hasChildren")) {
+                    long childrenCount = getChilrenCount(endNode.getProperty("rdf:about").toString());
+                    endNode.setProperty("childrenCount", childrenCount);
+                }
                 endNode.setProperty("index", followingIndex);
                 children.add(path.endNode());
             }
-            
+
             hierarchy.setSiblings(children);
             List<Node> childrenBefore = new ArrayList<>();
             TraversalDescription traversalBefore = db.traversalDescription();
@@ -100,11 +116,15 @@ public class Startup {
             for (Path path : traverseBefore) {
                 previousIndex--;
                 Node endNode = path.endNode();
+                if (endNode.hasProperty("hasChildren")) {
+                    long childrenCount = getChilrenCount(endNode.getProperty("rdf:about").toString());
+                    endNode.setProperty("childrenCount", childrenCount);
+                }
                 endNode.setProperty("index", previousIndex);
                 childrenBefore.add(endNode);
             }
             hierarchy.setPreviousSiblings(childrenBefore);
-            
+
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
         }
@@ -134,5 +154,16 @@ public class Startup {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
         }
         return maxLength;
+    }
+
+    private long getChilrenCount(String id) {
+        Transaction tx = db.beginTx();
+        ExecutionResult result = engine.execute(
+                "start n = node:edmsearch2(rdf_about=\"" + id
+                + "\") match (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
+        Iterator<Long> columns = result.columnAs("children");
+        tx.success();
+        tx.finish();
+        return columns.next();
     }
 }
