@@ -24,9 +24,9 @@ public class DbPediaAgentsCollector {
 	 DataManager dm = new DataManager();
 	 String agentQuery="SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.}";
 	 
-	 static int qLimit= 100;
+	 static int qLimit= 200;
 	 static int qOffset=0;
-	 static boolean maxAgents=false;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
+	 static boolean maxAgents=false;  //used for testing purposes, if true qLimit agents are downloaded, use false to download all agents from dbpedia 
 	 
 	/**
 	 * @param args
