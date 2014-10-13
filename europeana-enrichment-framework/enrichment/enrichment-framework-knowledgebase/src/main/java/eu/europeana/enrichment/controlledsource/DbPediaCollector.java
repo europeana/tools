@@ -48,6 +48,7 @@ public class DbPediaCollector {
 	 static int qLimit= 10000;
 	 static int qOffset=0;
 	 static boolean maxAgents=false;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
+	 
 	/**
 	 * @param args
 	 */
@@ -55,21 +56,10 @@ public class DbPediaCollector {
 		
 		DbPediaCollector dbpc= new DbPediaCollector();
 		
-		if (args!=null && args.length>0){
-			try{
-			qLimit = Integer.parseInt(args[0]);
-			}
-			catch (NumberFormatException nfe){
-				System.out.println ("*************WARNING in defining records limit in query answer, "+args[0]+" is not an int. Using default value: "+qLimit);
-			}
-		}
+		dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
 		
 		
-		dbpc.getDBPediaAgents(false); //get agents from DBpedia and stores them locally, use 'true' if content for every agent must be harvested
-		//dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
-		
-		
-		//dbpc.test();
+		//dbpc.test(); //used for testing purposes
 
 	}
 	public DbPediaCollector(){
@@ -123,67 +113,7 @@ public class DbPediaCollector {
 		}
 
 	}
-	private int loadAgentsfromDBPedia(String query, boolean harvestData){
-		int i=0;
-		
-		try {
-			Date todayDate = new Date();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-			System.out.println(sdf.format(todayDate));
-			//QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT "+qLimit+" OFFSET 0");//100");
-			QueryEngineHTTP endpoint=new QueryEngineHTTP("http://dbpedia.org/sparql", query);
-			System.out.println("getting artists from DBPedia "+query);
-			ResultSet rs= endpoint.execSelect();
-			//System.out.println("exec query");
-			
-			while (rs.hasNext()){
-				QuerySolution qs=rs.next();
-				
-				String subject=qs.get("subject").toString();
-				
-				AgentMap agentMap = new AgentMap(subject, new URI(subject), "DBPedia", todayDate, null);
-				
-				dm.insertAgentMap(agentMap);
-				
-				
-				i= rs.getRowNumber();
-
-				
-				if (harvestData)
-					collectAndMapControlledData(subject);
-				
-			}
-		 
-		} catch (Exception e) {
-			
-			e.printStackTrace();
-		}
-		return i++;
-		
-	}
 	
-	public void getDBPediaAgents (boolean harvestContent)
-	{
-		int resultsize=qLimit;
-		int limit=qLimit;
-		int offset=qOffset;
-		
-		while (resultsize==limit){
-
-			resultsize=loadAgentsfromDBPedia(agentQuery+" LIMIT "+limit+" OFFSET "+offset, harvestContent);
-			if (resultsize == limit)
-				offset=offset+limit;
-			if (maxAgents)
-				resultsize=0;
-		}
-		
-	}
-	
-	/*
-	private void test(){
-		this.collectAndMapControlledData("http://dbpedia.org/resource/Leah_Goldberg");
-	}
-	*/
 	
 	private void collectAndMapControlledData(String key){
 
@@ -220,6 +150,7 @@ public class DbPediaCollector {
 			agent.setRdaGr2PlaceOfBirth(getAgentProperty("dbpedia-owl:birthPlace", "dbpprop:birthPlace", doc ));
 			agent.setRdaGr2PlaceOfDeath(getAgentProperty("dbpedia-owl:deathPlace", "dbpprop:deathPlace", doc ));
 			agent.setPrefLabel(getAgentProperty("foaf:name", "foaf:name", doc ));
+			
 			
 			agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
 			
@@ -388,15 +319,12 @@ public class DbPediaCollector {
 						}
 					}
 						
-				
-				
-				
 			}
 		}
 		return result;
 	}
 	
-	
+	/*
 	private void collectData(String key, String serializationLang){
 
 
@@ -415,53 +343,8 @@ public class DbPediaCollector {
 		//writer.setProperty("allowBadURIs", "true");
 		
 		//writer.write(model, baos, null);
-/*
-		try {
-			Object json = JsonLdProcessor.fromRDF(model, parser);
-			System.out.println(json);
-//			dm.insertDocument(json.toString(), "fava");
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		*/
-		
-		/*
-		
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder;
-		try {
-			dBuilder = dbFactory.newDocumentBuilder();
-			Document doc = dBuilder.parse(new ByteArrayInputStream((baos.toByteArray())));
-
-			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
-			NodeList nList = doc.getElementsByTagName("dcterms:subject");
-			//System.out.println("---- "+key);
-
-			for (int temp = 0; temp < nList.getLength(); temp++) {
-
-				Node nNode = nList.item(temp);
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-					NamedNodeMap nnm= nNode.getAttributes();
-					Node no= nnm.getNamedItem("rdf:resource");
-
-					//System.out.println(no.getNodeValue());
-
-					
-					//ag.addWeakCandidate(key, no.getNodeValue());
-				}
-			}
-			
-
-
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-*/
 
 	
 	}
-
+*/
 }
