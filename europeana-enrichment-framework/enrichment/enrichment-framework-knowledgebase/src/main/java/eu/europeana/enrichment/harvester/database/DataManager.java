@@ -1,21 +1,27 @@
 package eu.europeana.enrichment.harvester.database;
 
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import net.vz.mongodb.jackson.DBRef;
 import net.vz.mongodb.jackson.JacksonDBCollection;
 import net.vz.mongodb.jackson.WriteResult;
 
+import org.apache.commons.lang.StringUtils;
 import org.jibx.runtime.JiBXException;
 
+import com.google.code.morphia.Datastore;
+import com.google.code.morphia.Morphia;
+import com.google.code.morphia.query.Query;
+import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -24,19 +30,12 @@ import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
-
 import eu.europeana.enrichment.api.internal.AgentTermList;
 import eu.europeana.enrichment.api.internal.ConceptTermList;
 import eu.europeana.enrichment.api.internal.MongoTerm;
 import eu.europeana.enrichment.api.internal.PlaceTermList;
 import eu.europeana.enrichment.api.internal.TimespanTermList;
 import eu.europeana.enrichment.harvester.api.AgentMap;
-
-import java.util.Map.Entry;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 public class DataManager {
 

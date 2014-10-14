@@ -1,6 +1,7 @@
 package eu.europeana.enrichment.harvester.transform.edm.agent;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,6 +12,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
 
 import eu.europeana.corelib.definitions.solr.entity.Agent;
 import eu.europeana.corelib.solr.entity.AgentImpl;
@@ -25,11 +27,12 @@ public class AgentTransformer implements XslTransformer<Agent> {
 		try {
 			Transformer transformer = TransformerFactory
 					.newInstance().newTransformer(transformDoc);
-			StreamResult out = new StreamResult();
+			StreamResult out = new StreamResult(new StringWriter());
 			transformer.transform(doc, out);
 			return AgentTemplate.getInstance().transform(out.getWriter().toString(),resourceUri);
 		} catch (TransformerFactoryConfigurationError | TransformerException e) {
 			log.log(Level.SEVERE, e.getMessage());
+			
 		} 
 
 		return null;

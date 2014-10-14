@@ -23,9 +23,9 @@ public class DbPediaAgentsCollector {
     private static final Logger log = Logger.getLogger(DbPediaAgentsCollector.class.getCanonicalName());
     private static final DataManager dm = new DataManager();
     private static final String AGENTQUERY = "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT %d OFFSET %d";
-    private static final String DBPEDIA = "DBperia";
+    private static final String DBPEDIA = "DBPedia";
     private static int qLimit = 200;
-    private static final int QOFFSET = 0;
+    private static final int QOFFSET = 60600;
     private static final boolean MAXAGENTS = false;  //used for testing purposes, if true qLimit agents are downloaded, use false to download all agents from dbpedia 
 
     /**

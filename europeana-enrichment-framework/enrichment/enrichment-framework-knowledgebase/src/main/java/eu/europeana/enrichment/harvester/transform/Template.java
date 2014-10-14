@@ -1,4 +1,4 @@
-package eu.europeana.enrichment.harvester.transform.edm.agent;
+package eu.europeana.enrichment.harvester.transform;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -30,6 +32,8 @@ public abstract class Template<S extends ContextualClassImpl> {
 			.getCanonicalName());
 	private static final String RDF_RESOURCE = "rdf:resource";
 	private static final String XML_LANG = "xml:lang";
+	private static final String XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
+	private static final String RDF_NAMESPACE ="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
 	private void appendValue(S obj, String methodName, Object value) {
 		if (value.getClass().isAssignableFrom(String.class)) {
@@ -41,7 +45,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 			Method getter;
 			try {
 				getter = obj.getClass().getMethod(
-						StringUtils.replace(methodName, "get", "set"));
+						StringUtils.replace(methodName, "set", "get"));
 
 				for (Method method : obj.getClass().getMethods()) {
 					if (StringUtils.equals(method.getName(), methodName)) {
@@ -54,12 +58,13 @@ public abstract class Template<S extends ContextualClassImpl> {
 					if (vals == null) {
 						vals = new String[1];
 						vals[0] = ((AttributeHolder) value).getAttributeValue();
-						found.invoke(obj, vals);
+						found.invoke(obj, (Object)vals);
 
 					} else {
-						List<String> strs = Arrays.asList(vals);
+						List<String> strs = new ArrayList<>(Arrays.asList(vals));
 						strs.add(((AttributeHolder) value).getAttributeValue());
-						found.invoke(obj, strs.toArray());
+						String[] finalArray = strs.toArray(new String[strs.size()]);
+						found.invoke(obj, (Object) finalArray);
 					}
 				}
 				if (type.isAssignableFrom(Map.class)) {
@@ -69,6 +74,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 					if (attr.getAttributeName() != null
 							&& attr.getAttributeName().equals(RDF_RESOURCE)) {
 						if (vals == null) {
+							vals = new HashMap<>();
 							List<String> str = new ArrayList<>();
 							str.add(attr.attributeValue);
 							vals.put("def", str);
@@ -83,6 +89,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 					} else {
 						if (attr.getAttributeName() == null) {
 							if (vals == null) {
+								vals = new HashMap<>();
 								List<String> str = new ArrayList<>();
 								str.add(attr.elementValue);
 								vals.put("def", str);
@@ -96,6 +103,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 							}
 						} else {
 							if (vals == null) {
+								vals = new HashMap<>();
 								List<String> str = new ArrayList<>();
 								str.add(attr.elementValue);
 								vals.put(attr.attributeValue, str);
@@ -115,6 +123,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 					| IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
 				log.log(Level.SEVERE, e.getMessage());
+				e.printStackTrace();
 			}
 		}
 	}
@@ -139,13 +148,17 @@ public abstract class Template<S extends ContextualClassImpl> {
 							isRoot = !isRoot;
 							continue;
 						} else {
+							
+							Iterator attributes = startElement.getAttributes();
+							
+							
 							Attribute attr = startElement
-									.getAttributeByName(new QName("rdf",
+									.getAttributeByName(new QName(RDF_NAMESPACE,
 											"resource"));
 							Attribute langAttr = startElement
-									.getAttributeByName(new QName("xml", "lang"));
+									.getAttributeByName(new QName(XML_NAMESPACE,"lang"));
 							Attribute about = startElement
-									.getAttributeByName(new QName("rdf",
+									.getAttributeByName(new QName(RDF_NAMESPACE,
 											"about"));
 							if (attr != null) {
 								AttributeHolder attribute = new AttributeHolder();
@@ -163,8 +176,12 @@ public abstract class Template<S extends ContextualClassImpl> {
 												.getValue());
 									}
 									event = eventReader.nextEvent();
-									attribute.setElementValue(event
-											.asCharacters().getData());
+									if (!event.isEndElement()) {
+										attribute.setElementValue(event
+												.asCharacters().getData());
+										appendValue(obj, methodMapping.get(qElem),
+												attribute);
+									}
 								}
 								continue;
 							}
@@ -173,6 +190,7 @@ public abstract class Template<S extends ContextualClassImpl> {
 
 				}
 			}
+			return obj;
 		} catch (XMLStreamException | FactoryConfigurationError e) {
 			log.log(Level.SEVERE, e.getMessage());
 		}

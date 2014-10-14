@@ -25,7 +25,7 @@
             </xsl:attribute>
 			<xsl:for-each select="rdf:RDF/rdf:Description/foaf:name">
 				<xsl:element name="skos:prefLabel" namespace="http://www.w3.org/2004/02/skos/core#">
-					<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 					<xsl:value-of select="." />
@@ -33,7 +33,7 @@
 			</xsl:for-each>
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:alternativeNames">
 				<xsl:element name="skos:altLabel" namespace="http://www.w3.org/2004/02/skos/core#">
-					<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 					<xsl:value-of select="." />
@@ -41,7 +41,7 @@
 			</xsl:for-each>
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:alternativeNames">
 				<xsl:element name="skos:altLabel" namespace="http://www.w3.org/2004/02/skos/core#">
-					<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 					<xsl:value-of select="." />
@@ -50,7 +50,7 @@
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:abstract">
 				<xsl:element name="rdaGr2:biographicalInformation"
 					namespace="http://rdvocab.info/ElementsGr2/">
-					<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 					<xsl:value-of select="." />
@@ -59,7 +59,7 @@
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:abstract">
 				<xsl:element name="rdaGr2:biographicalInformation"
 					namespace="http://rdvocab.info/ElementsGr2/">
-					<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 					<xsl:value-of select="." />
@@ -96,7 +96,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -112,7 +112,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -128,7 +128,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -146,7 +146,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -162,8 +162,8 @@
                         <xsl:value-of select="./@rdf:resource" />
                     </xsl:attribute>
 					</xsl:if>
-					<xsl:if test=".">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+					<xsl:if test=".!=''">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -180,7 +180,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -236,7 +236,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -252,7 +252,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -268,7 +268,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />
@@ -284,7 +284,7 @@
                     </xsl:attribute>
 					</xsl:if>
 					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang" namespace="http://www.w3.org/xml">
+						<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
                     </xsl:attribute>
 						<xsl:value-of select="." />

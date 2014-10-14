@@ -81,8 +81,8 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.mongodb.morphia</groupId>
-            <artifactId>morphia</artifactId>
+            <groupId>com.google.code.morphia</groupId>
+			<artifactId>morphia</artifactId>
             <version>0.99.1-patched</version>
             <type>jar</type>
             <scope>compile</scope>

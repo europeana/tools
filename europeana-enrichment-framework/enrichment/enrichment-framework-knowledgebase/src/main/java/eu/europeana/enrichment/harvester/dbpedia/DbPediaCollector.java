@@ -31,9 +31,6 @@ public class DbPediaCollector {
     private final DataManager dm = new DataManager();
     private String agentKey = "";
 
-    static int qLimit = 10000;
-    static int qOffset = 0;
-    static boolean maxAgents = false;  //used for testing purposes, if true just qLimit agents are downloaded, use false to download all agents from dbpedia 
 
     /**
      * @param args
