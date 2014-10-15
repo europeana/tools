@@ -3,9 +3,13 @@ package eu.europeana.enrichment.harvester.transform.edm.agent;
 import java.util.Map;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.enrichment.harvester.transform.CsvUtils;
+import eu.europeana.enrichment.harvester.transform.util.CsvUtils;
 import eu.europeana.enrichment.harvester.transform.Template;
 
+/**
+ * Agent specific implementation of a Template. The template loads the predefined mapping between EDM/XML fields and setter methods and generates a valide 
+ * @author gmamakis
+ */
 public final class AgentTemplate extends Template<AgentImpl>{
 	
 	private static AgentTemplate instance;
@@ -14,12 +18,15 @@ public final class AgentTemplate extends Template<AgentImpl>{
 		methodMapping = CsvUtils.readFile(filePath);
 		
 	}
+        
 	public AgentImpl transform(String xml, String resourceUri) {
 		return parse(new AgentImpl(), resourceUri, xml, methodMapping);
 	}
 
-	
-	
+        /**
+         * Singleton access to the AgentTemplate 
+         * @return 
+         */
 	public static AgentTemplate getInstance(){
 		if (instance == null){
 			instance = new AgentTemplate("src/main/resources/agentMapping.csv");
