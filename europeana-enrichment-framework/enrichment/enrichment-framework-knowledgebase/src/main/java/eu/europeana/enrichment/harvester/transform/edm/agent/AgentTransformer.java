@@ -18,7 +18,7 @@ import eu.europeana.enrichment.harvester.transform.util.NormalizeUtils;
 import eu.europeana.enrichment.harvester.transform.XslTransformer;
 
 /**
- * Agent Transformer class. It will transform any Controlled Vocubulary resource to an AgentImpl by first applying the
+ * Agent Transformer class. It will transform any Controlled Vocabulary resource to an AgentImpl by first applying the
  * XSLT specified and then invoke the AgentTemplate class to generate the actual POJO. By definition, this class can be
  * reused for any transformation between a Controlled Vocabulary Resource that comes in RDF/XML to an AgentImpl just by
  * modifying the XSLT to apply
