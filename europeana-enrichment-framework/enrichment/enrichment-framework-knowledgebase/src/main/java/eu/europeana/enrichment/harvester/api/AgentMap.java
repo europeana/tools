@@ -1,12 +1,9 @@
-package eu.europeana.enrichment.controlledsource.api.internal;
+package eu.europeana.enrichment.harvester.api;
 
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Property;
 import java.net.URI;
 import java.util.Date;
-
-//import org.mongodb.morphia.annotations.Entity;
-
 
 import net.vz.mongodb.jackson.Id;
 
@@ -23,11 +20,11 @@ public class AgentMap {
 	
 	public  AgentMap(String id, URI uri, String sourceId, Date storedDate, Date harvestedDate){
 
-		setId(id);
-		setAgentUri(uri);
-		setControlledSourceId(sourceId);
-		setStoredDate(storedDate);
-		setHarvestedDate(harvestedDate);
+		this.id = id;
+		this.agentUri =uri;
+		this.controlledSourceId = sourceId;
+		this.storedDate = storedDate;
+		this.harvestedDate = harvestedDate;
 	}
 	
 	public AgentMap(){
