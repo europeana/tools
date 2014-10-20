@@ -117,8 +117,22 @@
             </snapshots>
         </repository>
         <repository>
+            <id>external-releases</id>
+            <url>http://artifactory.eanadev.org/artifactory/ext-release-local/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>snapshots</id>
             <url>http://artifactory.eanadev.org/artifactory/libs-snapshot-local/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>external-snapshots</id>
+            <url>http://artifactory.eanadev.org/artifactory/ext-snapshot-local/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
