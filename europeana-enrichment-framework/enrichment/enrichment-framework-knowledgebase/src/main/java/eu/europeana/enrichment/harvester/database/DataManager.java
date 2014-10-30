@@ -191,7 +191,12 @@ public class DataManager {
 
     private void agentToAgentTermList(AgentImpl agent) throws IOException, JiBXException {
 
-        AgentTermList termList = new AgentTermList();
+    	
+        
+    	AgentTermList termList = new AgentTermList();
+    	log.info("*********agent prefl "+agent.getPrefLabel());
+    	if (agent.getPrefLabel() == null || agent.getPrefLabel().entrySet().size()==0)
+    		return;
         termList.setCodeUri(agent.getAbout());
         List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<>();
         for (Entry<String, List<String>> prefLabel : agent.getPrefLabel().entrySet()) {
