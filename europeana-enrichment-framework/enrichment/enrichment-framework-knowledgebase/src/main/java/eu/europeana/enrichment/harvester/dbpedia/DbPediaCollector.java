@@ -17,6 +17,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFWriter;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 
@@ -31,6 +32,7 @@ public class DbPediaCollector {
     private final DataManager dm = new DataManager();
     private String agentKey = "";
 
+    private int gloffset = 0;
 
     /**
      * @param args
@@ -39,8 +41,9 @@ public class DbPediaCollector {
 
         DbPediaCollector dbpc = new DbPediaCollector();
 
-        dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
+       dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
 
+        //dbpc.testHarvesting();
     }
 
     public void harvestDBPedia() {
@@ -49,6 +52,7 @@ public class DbPediaCollector {
         int limit = 1000;
         int offset = 0;
         while (resultsize == limit) {
+
             List<AgentMap> agents = dm.extractAllAgentsFromLocalStorage(limit, offset);
             resultsize = agents.size();
             for (AgentMap am : agents) {
@@ -56,17 +60,33 @@ public class DbPediaCollector {
             }
             if (agents.size() == limit) {
                 offset = offset + limit;
+                gloffset=offset;
             }
         }
 
     }
+    
+    private void testHarvesting() {
+
+        
+                collectAndMapControlledData("http://dbpedia.org/resource/Charles_Hamilton_(rapper)");
+           
+
+    }
 
     private void collectAndMapControlledData(String key) {
+    	
+    	if (key.endsWith("Charles_Hamilton_(rapper)"))
+    		return;
 
         QueryEngineHTTP endpoint = new QueryEngineHTTP("http://dbpedia.org/sparql", "describe <" + key + ">");
-        log.log(Level.INFO, "describing " + key);
+        log.log(Level.INFO, "describing " + key+" offset: "+gloffset);
         agentKey = key;
-        Model model = endpoint.execDescribe();
+        
+        Model model=ModelFactory.createDefaultModel();
+        
+       
+        model = endpoint.execDescribe();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         RDFWriter writer = model.getWriter("RDF/XML");
