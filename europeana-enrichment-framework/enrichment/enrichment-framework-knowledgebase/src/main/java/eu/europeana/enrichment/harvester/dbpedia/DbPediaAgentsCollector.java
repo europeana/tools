@@ -22,10 +22,15 @@ public class DbPediaAgentsCollector {
 
     private static final Logger log = Logger.getLogger(DbPediaAgentsCollector.class.getCanonicalName());
     private static final DataManager dm = new DataManager();
-    private static final String AGENTQUERY = "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT %d OFFSET %d";
+    //http://dbpedia.org/class/yago/Artist109812338
+    private static final String AGENTQUERY = "SELECT DISTINCT * WHERE {{?subject ?y <http://dbpedia.org/ontology/Artist>.} "+
+    											"UNION " +
+    											"{?subject ?y <http://dbpedia.org/class/yago/Artist109812338>.}} LIMIT %d OFFSET %d";
+    
+   // private static final String AGENTQUERY = "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT %d OFFSET %d";
     private static final String DBPEDIA = "DBPedia";
     private static int qLimit = 200;
-    private static final int QOFFSET = 60600;
+    private static final int QOFFSET = 45000;
     private static final boolean MAXAGENTS = false;  //used for testing purposes, if true qLimit agents are downloaded, use false to download all agents from dbpedia 
 
     /**
@@ -59,7 +64,7 @@ public class DbPediaAgentsCollector {
                 QuerySolution qs = rs.next();
 
                 String subject = qs.get("subject").toString();
-
+                
                 AgentMap agentMap = new AgentMap(subject, new URI(subject), DBPEDIA, todayDate, null);
 
                 dm.insertAgentMap(agentMap);
@@ -67,7 +72,7 @@ public class DbPediaAgentsCollector {
 
             }
 
-        } catch (URISyntaxException e) {
+        } catch (Exception e) {
 
             log.log(Level.SEVERE, e.getMessage());
         }
