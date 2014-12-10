@@ -168,6 +168,7 @@ public abstract class Template<S extends ContextualClassImpl> {
     	xml=xml.replace("&#56648;", "");
     	xml=xml.replace("&#56657;", "");
     	xml=xml.replace("&#56786;", "");
+    	xml=xml.replace("&#56855;", "");
     	xml=xml.replace("&#57086;", "");
     	xml=xml.replace("&#57113;", "");
     	xml=xml.replace("&#57121;", "");
@@ -178,6 +179,7 @@ public abstract class Template<S extends ContextualClassImpl> {
     	xml=xml.replace("&#57140;", "");
     	xml=xml.replace("&#57142;", "");
     	xml=xml.replace("&#57143;", "");
+    	xml=xml.replace("&#57144;", "");
     	xml=xml.replace("&#57145;", "");
     	xml=xml.replace("&#57146;", "");
     	xml=xml.replace("&#57147;", "");
@@ -193,7 +195,9 @@ public abstract class Template<S extends ContextualClassImpl> {
     	xml=xml.replace("&#57158;", "");
     	xml=xml.replace("&#57159;", "");
     	xml=xml.replace("&#57161;", "");
+    	xml=xml.replace("&#57271;", "");
     	xml=xml.replace("&#57279;", "");
+
     	//
     	
     	XMLInputFactory inputFactory = XMLInputFactory.newInstance();
