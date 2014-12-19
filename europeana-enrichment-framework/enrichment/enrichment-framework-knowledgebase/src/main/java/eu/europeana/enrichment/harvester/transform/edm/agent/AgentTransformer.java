@@ -38,6 +38,7 @@ public class AgentTransformer implements XslTransformer<AgentImpl> {
                     .newInstance().newTransformer(transformDoc);
             StreamResult out = new StreamResult(new StringWriter());
             transformer.transform(doc, out);
+           // System.out.println(out.getWriter().toString());
             return normalize(AgentTemplate.getInstance().transform(out.getWriter().toString(), resourceUri));
         } catch (TransformerFactoryConfigurationError | TransformerException e) {
             log.log(Level.SEVERE, e.getMessage());

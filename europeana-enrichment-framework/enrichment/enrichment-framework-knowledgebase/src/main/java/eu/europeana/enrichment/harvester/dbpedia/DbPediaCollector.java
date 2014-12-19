@@ -50,7 +50,7 @@ public class DbPediaCollector {
 
         int resultsize = 1000;
         int limit = 1000;
-        int offset = 0;
+        int offset = 168000;
         while (resultsize == limit) {
 
             List<AgentMap> agents = dm.extractAllAgentsFromLocalStorage(limit, offset);
@@ -77,6 +77,8 @@ public class DbPediaCollector {
     private void collectAndMapControlledData(String key) {
     	
     	if (key.endsWith("Charles_Hamilton_(rapper)"))
+    		return;
+    	if (key.endsWith("Johannes_Liechtenauer"))
     		return;
 
         QueryEngineHTTP endpoint = new QueryEngineHTTP("http://dbpedia.org/sparql", "describe <" + key + ">");

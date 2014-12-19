@@ -156,12 +156,14 @@ public abstract class Template<S extends ContextualClassImpl> {
     	xml=xml.replace("&#55363;", "");
     	xml=xml.replace("&#55364;", "");
     	xml=xml.replace("&#55378;", "");
+    	xml=xml.replace("&#55381;", "");
     	xml=xml.replace("&#55384;", "");
     	xml=xml.replace("&#55391;", "");
     	xml=xml.replace("&#55394;", "");
     	xml=xml.replace("&#55629;", "");
     	xml=xml.replace("&#56256;", "");
     	xml=xml.replace("&#56322;", "");
+    	xml=xml.replace("&#56351;", "");
     	xml=xml.replace("&#56384;", "");
     	xml=xml.replace("&#56394;", "");
     	xml=xml.replace("&#56513;", "");

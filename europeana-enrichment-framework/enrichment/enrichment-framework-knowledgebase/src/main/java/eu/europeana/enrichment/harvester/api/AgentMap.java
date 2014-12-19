@@ -3,7 +3,9 @@ package eu.europeana.enrichment.harvester.api;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Property;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import net.vz.mongodb.jackson.Id;
 
@@ -17,6 +19,7 @@ public class AgentMap {
 	private String controlledSourceId;
 	private Date storedDate;
 	private Date harvestedDate;
+	private ArrayList <String> sameAs;
 	
 	public  AgentMap(String id, URI uri, String sourceId, Date storedDate, Date harvestedDate){
 
@@ -25,6 +28,7 @@ public class AgentMap {
 		this.controlledSourceId = sourceId;
 		this.storedDate = storedDate;
 		this.harvestedDate = harvestedDate;
+		this.sameAs=new ArrayList <String>();
 	}
 	
 	public AgentMap(){
@@ -60,6 +64,14 @@ public class AgentMap {
 	}
 	public void setHarvestedDate(Date harvestedDate) {
 		this.harvestedDate = harvestedDate;
+	}
+	public List <String> getSameAs(){
+		return sameAs;
+	}
+	
+	public void setSameAs(String id){
+		if (!sameAs.contains(id))
+			this.sameAs.add(id);
 	}
 	
 }
