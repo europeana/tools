@@ -29,7 +29,19 @@ public class FreebaseAgentsCollector {
 
     private static final Logger log = Logger.getLogger(FreebaseAgentsCollector.class.getCanonicalName());
     private static final DataManager dm = new DataManager();
-    private static final String AGENTQUERY = "PREFIX ns:<http://rdf.freebase.com/ns/>  SELECT * WHERE {?x ns:people.person.profession ns:m.0b7b55p . ?x ns:type.object.name ?subject .}";
+    private static final String AGENTQUERY = "PREFIX ns:<http://rdf.freebase.com/ns/>  SELECT * WHERE "+
+    										  "{ ?x ns:type.object.type ns:visual_art.visual_artist } "+
+    										  " UNION { ?x ns:type.object.type ns:book.author } "+
+    										  "UNION { ?x ns:type.object.type ns:music.composer } "+
+    										  "UNION { ?x ns:people.person.profession ns:m.0kyk } "+
+    										  "UNION { ?x ns:people.person.profession ns:m.0n1h } "+
+    										  "UNION { #support for subclasses of Artist Profession "+
+    										  "?x ns:people.person.profession ?role . "+
+    										  "?role ns:person.profession.specialization_of_transitive ns:m.0n1h "+
+											   "} "+
+											   " UNION { ?x ns:people.person.profession ns:m.0mn6 } "+
+											   
+												"UNION { ?x ns:people.person.profession ns:m.0b7b55p }";
     
     private static final String FREEBASE = "Freebase";
     private static int qLimit = 200;
@@ -54,8 +66,12 @@ public class FreebaseAgentsCollector {
 		System.out.println("counting "+directory);
          dataset = TDBFactory.createDataset(directory);
 		 tdbModel= dataset.getDefaultModel();
-        dbpc.getDBPediaAgents(false); //get agents from dbpedia and store them locally, (parameter must always have false value, will fix it) ;
+        dbpc.getFreeBaseAgents(false); //get agents from dbpedia and store them locally, (parameter must always have false value, will fix it) ;
 
+    }
+    
+    private void loadAgentsFromFreebase(){
+    	
     }
 
     private int loadAgentsfromDBPedia(String queryString, boolean harvestData) {
@@ -69,7 +85,7 @@ public class FreebaseAgentsCollector {
             
     		
             
-            log.log(Level.INFO, "getting artists from DBPedia " + queryString);
+            log.log(Level.INFO, "getting artists from Freebase " + queryString);
             Query query = QueryFactory.create(queryString);
     		QueryExecution qexec= QueryExecutionFactory.create(query, dataset);
     		ResultSet rs= qexec.execSelect();
@@ -103,7 +119,7 @@ public class FreebaseAgentsCollector {
      * Harvests agents from DBPedia. Related content can be also harvested if the parameter is true.
      */
 
-    public void getDBPediaAgents(boolean harvestContent) {
+    public void getFreeBaseAgents(boolean harvestContent) {
         int resultsize = qLimit;
         int limit = qLimit;
         int offset = QOFFSET;

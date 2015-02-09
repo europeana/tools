@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Document : dbpedia.xsl Created on : October 13, 2014, 11:33 AM Author 
-	: gmamakis, cesare Description: Map DBPedia to EDM-Agent -->
+	: gmamakis Description: Map DBPedia to EDM-Agent -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	version="1.0" xmlns:edm="http://www.europeana.eu/schemas/edm/"
@@ -9,7 +9,8 @@
 	xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:skos="http://www.w3.org/2004/02/skos/core#"
 	xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:dbpedia-owl="http://dbpedia.org/ontology/"
-	xmlns:dbpprop="http://dbpedia.org/property/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+	xmlns:dbpprop="http://dbpedia.org/property/" xmlns:j.0="http://rdf.freebase.com/ns/"
+    xmlns:j.1="http://rdf.freebase.com/key/">
 	<xsl:output indent="yes" />
 	<xsl:param name="rdf_about">
 		<xsl:text>test</xsl:text>
@@ -23,7 +24,7 @@
 				namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
                 <xsl:value-of select="$rdf_about" />
             </xsl:attribute>
-			<xsl:for-each select="rdf:RDF/rdf:Description/foaf:name">
+			<xsl:for-each select="rdf:RDF/*/j.0:type.object.name">
 				<xsl:element name="skos:prefLabel" namespace="http://www.w3.org/2004/02/skos/core#">
 					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
@@ -31,29 +32,7 @@
 					<xsl:value-of select="." />
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/rdfs:label">
-				<xsl:element name="skos:prefLabel" namespace="http://www.w3.org/2004/02/skos/core#">
-					<xsl:attribute name="xml:lang">
-                        <xsl:value-of select="./@xml:lang" />
-                    </xsl:attribute>
-					<xsl:value-of select="." />
-				</xsl:element>
-			</xsl:for-each>
-			
-			<xsl:for-each select="rdf:RDF/rdf:Description/dcterms:subject">
-				<xsl:element name="skos:related" namespace="http://www.w3.org/2004/02/skos/core#">
-                    <xsl:if test="./@rdf:resource">
-						<xsl:attribute name="rdf:resource"
-							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                        <xsl:value-of select="./@rdf:resource" />
-                    </xsl:attribute>
-					</xsl:if>
-                    
-					<xsl:value-of select="." />
-				</xsl:element>
-			</xsl:for-each>
-			
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:alternativeNames">
+			<xsl:for-each select="rdf:RDF/*/j.0:common.topic.alias">
 				<xsl:element name="skos:altLabel" namespace="http://www.w3.org/2004/02/skos/core#">
 					<xsl:attribute name="xml:lang">
                         <xsl:value-of select="./@xml:lang" />
@@ -69,7 +48,7 @@
 					<xsl:value-of select="." />
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:abstract">
+			<xsl:for-each select="rdf:RDF/*/j.0:common.topic.description">
 				<xsl:element name="rdaGr2:biographicalInformation"
 					namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:attribute name="xml:lang">
@@ -88,7 +67,7 @@
 				</xsl:element>
 			</xsl:for-each>
 
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:birthDate">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.person.date_of_birth">
 				<xsl:element name="rdaGr2:dateOfBirth" namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:value-of select="." />
 				</xsl:element>
@@ -99,7 +78,7 @@
 				</xsl:element>
 			</xsl:for-each>
 
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:deathDate">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.deceased_person.date_of_death">
 				<xsl:element name="rdaGr2:dateOfDeath" namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:value-of select="." />
 				</xsl:element>
@@ -109,7 +88,7 @@
 					<xsl:value-of select="." />
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:birthPlace">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.person.place_of_birth">
 				<xsl:element name="rdaGr2:placeOfBirth" namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
@@ -141,7 +120,7 @@
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:deathPlace">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.deceased_person.place_of_death">
 				<xsl:element name="rdaGr2:placeOfDeath" namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
@@ -175,7 +154,7 @@
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:occupation">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.person.profession">
 				<xsl:element name="rdaGr2:professionOrOccupation"
 					namespace="http://rdvocab.info/ElementsGr2/">
 					<xsl:if test="./@rdf:resource">
@@ -192,39 +171,13 @@
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:occupation">
-				<xsl:element name="rdaGr2:professionOrOccupation"
-					namespace="http://rdvocab.info/ElementsGr2/">
-					<xsl:if test="./@rdf:resource">
-						<xsl:attribute name="rdf:resource"
-							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                        <xsl:value-of select="./@rdf:resource" />
-                    </xsl:attribute>
-					</xsl:if>
-					<xsl:if test=".!=''">
-						<xsl:attribute name="xml:lang">
-                        <xsl:value-of select="./@xml:lang" />
-                    </xsl:attribute>
-						<xsl:value-of select="." />
-					</xsl:if>
-				</xsl:element>
-			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:birthDate">
+			
+			<xsl:for-each select="rdf:RDF/*/j.0:people.person.date_of_birth">
 				<xsl:element name="edm:begin" namespace="http://www.europeana.eu/schemas/edm/">
 					<xsl:value-of select="." />
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:birthDate">
-				<xsl:element name="edm:begin" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:value-of select="." />
-				</xsl:element>
-			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:deathDate">
-				<xsl:element name="edm:end" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:value-of select="." />
-				</xsl:element>
-			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:deathDate">
+			<xsl:for-each select="rdf:RDF/*/j.0:people.deceased_person.date_of_death">
 				<xsl:element name="edm:end" namespace="http://www.europeana.eu/schemas/edm/">
 					<xsl:value-of select="." />
 				</xsl:element>
@@ -239,7 +192,7 @@
 					<xsl:value-of select="." />
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/owl:sameAs">
+			<xsl:for-each select="rdf:RDF/*/j.0:common.topic.topic_equivalent_webpage">
 				<xsl:element name="owl:sameAs" namespace="http://www.w3.org/2002/07/owl#">
 					<xsl:attribute name="rdf:resource"
 						namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -249,43 +202,67 @@
 				</xsl:element>
 			</xsl:for-each>
 
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:influenced">
+			<xsl:for-each select="rdf:RDF/*/j.0:influence.influence_node">
 				<xsl:element name="edm:isRelatedTo" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:if test="../@rdf:about">
+					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
 							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                            <xsl:value-of select="../@rdf:about" />
-                        </xsl:attribute>
+                        <xsl:value-of select="./@rdf:resource" />
+                    </xsl:attribute>
+					</xsl:if>
+					<xsl:if test=".!=''">
+						<xsl:attribute name="xml:lang">
+                        <xsl:value-of select="./@xml:lang" />
+                    </xsl:attribute>
+						<xsl:value-of select="." />
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:influenced">
+			<xsl:for-each select="rdf:RDF/*/j.0:influence.influence_node.influenced_by">
 				<xsl:element name="edm:isRelatedTo" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:if test="../@rdf:about">
+					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
 							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                            <xsl:value-of select="../@rdf:about" />
-                        </xsl:attribute>
+                        <xsl:value-of select="./@rdf:resource" />
+                    </xsl:attribute>
+					</xsl:if>
+					<xsl:if test=".!=''">
+						<xsl:attribute name="xml:lang">
+                        <xsl:value-of select="./@xml:lang" />
+                    </xsl:attribute>
+						<xsl:value-of select="." />
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
-			<xsl:for-each select="rdf:RDF/rdf:Description/dbpedia-owl:influencedBy">
+			<xsl:for-each select="rdf:RDF/*/j.0:influence.influence_node.influenced_by">
 				<xsl:element name="edm:isRelatedTo" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:if test="../@rdf:about">
+					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
 							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                            <xsl:value-of select="../@rdf:about" />
-                        </xsl:attribute>
+                        <xsl:value-of select="./@rdf:resource" />
+                    </xsl:attribute>
+					</xsl:if>
+					<xsl:if test=".!=''">
+						<xsl:attribute name="xml:lang">
+                        <xsl:value-of select="./@xml:lang" />
+                    </xsl:attribute>
+						<xsl:value-of select="." />
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:influencedBy">
 				<xsl:element name="edm:isRelatedTo" namespace="http://www.europeana.eu/schemas/edm/">
-					<xsl:if test="../@rdf:about">
+					<xsl:if test="./@rdf:resource">
 						<xsl:attribute name="rdf:resource"
 							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                            <xsl:value-of select="../@rdf:about" />
-                        </xsl:attribute>
+                        <xsl:value-of select="./@rdf:resource" />
+                    </xsl:attribute>
+					</xsl:if>
+					<xsl:if test=".!=''">
+						<xsl:attribute name="xml:lang">
+                        <xsl:value-of select="./@xml:lang" />
+                    </xsl:attribute>
+						<xsl:value-of select="." />
 					</xsl:if>
 				</xsl:element>
 			</xsl:for-each>

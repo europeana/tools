@@ -1,7 +1,11 @@
 package eu.europeana.enrichment.harvester.dbpedia;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,11 +28,14 @@ import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 import eu.europeana.enrichment.harvester.api.AgentMap;
 import eu.europeana.enrichment.harvester.database.DataManager;
 import eu.europeana.enrichment.harvester.transform.edm.agent.AgentTransformer;
+import eu.europeana.enrichment.harvester.transform.edm.concept.ConceptTransformer;
 
 public class DbPediaCollector {
 
     private static final Logger log = Logger.getLogger(DbPediaCollector.class.getName());
 
+    private static final String AGENT = "Agent";
+	private static final String CONCEPT = "Concept";
     private final DataManager dm = new DataManager();
     private String agentKey = "";
 
@@ -41,22 +48,28 @@ public class DbPediaCollector {
 
         DbPediaCollector dbpc = new DbPediaCollector();
 
-       dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
-
+       //dbpc.harvestDBPedia(); //fetch agents from local storage and harvests rdf description
+      //dbpc.deleteDBPediaConcepts();
+       //dbpc.harvestDBPediaConcepts();
+        //dbpc.getDBPediaConcepts();
+       
         //dbpc.testHarvesting();
+        dbpc.getLocalAgents();
+        
     }
 
     public void harvestDBPedia() {
 
         int resultsize = 1000;
         int limit = 1000;
-        int offset = 168000;
+        int offset = 16000;
         while (resultsize == limit) {
 
             List<AgentMap> agents = dm.extractAllAgentsFromLocalStorage(limit, offset);
             resultsize = agents.size();
             for (AgentMap am : agents) {
-                collectAndMapControlledData(am.getAgentUri().toASCIIString());
+            	if (am.getAgentUri().toASCIIString().contains("dbpedia.org"))
+            		collectAndMapControlledData(am.getAgentUri().toASCIIString(), AGENT);
             }
             if (agents.size() == limit) {
                 offset = offset + limit;
@@ -66,15 +79,87 @@ public class DbPediaCollector {
 
     }
     
+    
+    public void harvestDBPediaConcepts() {
+    	File file = new File("src/main/resources/dbpedia_concept_list.txt");
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+    	    for(String line; (line = br.readLine()) != null; ) {
+    	        if (line.startsWith("http://dbpedia"))
+    	        	collectAndMapControlledData(line, CONCEPT);
+    	    }
+    	    
+    	} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+}
+    public void deleteDBPediaConcepts() {
+    	File file = new File("src/main/resources/dbpedia_concept_list.txt");
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+    	    for(String line; (line = br.readLine()) != null; ) {
+    	        if (line.startsWith("http://dbpedia"))
+    	        	dm.deleteConcept(line);
+    	    }
+    	    
+    	} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+}
+    
+    public void getDBPediaConcepts() {
+    	File file = new File("src/main/resources/dbpedia_concept_list.txt");
+    	String id="";
+		try(BufferedReader br = new BufferedReader(new FileReader(file))) {
+    	    for(String line; (line = br.readLine()) != null; ) {
+    	        if (line.startsWith("http://dbpedia")){
+    	        	id=line;
+    	        	if (line!=null && ! line.isEmpty())
+    	        		//System.out.println(dm.getConcept(line));
+    	        		dm.getConcept(line);
+    	        }
+    	        	
+    	    }
+    	    
+    	} catch (Exception e) {
+			System.out.println (id);
+			e.printStackTrace();
+		}
+}
     private void testHarvesting() {
 
-        
-                collectAndMapControlledData("http://dbpedia.org/resource/Charles_Hamilton_(rapper)");
+                
+                //collectAndMapControlledData("http://dbpedia.org/resource/Expressionism", CONCEPT);
+    	collectAndMapLocalControlledData("de", "http://de.dbpedia.org/resource/Ian_Siegal", AGENT);
            
 
     }
 
-    private void collectAndMapControlledData(String key) {
+    
+    public void getLocalAgents() {
+
+		int resultsize = 1000;
+		int limit = 1000;
+		int offset = 0;
+
+		while (resultsize >0) {
+
+			List<String> agents = dm.ecxtractLocalizedDbPediaAgentsFromLocalStorage("pt", limit, offset);
+			
+			for (String am:agents){
+				collectAndMapLocalControlledData("de", am, AGENT);
+			}
+				
+			resultsize = agents.size();
+			if (agents.size() >0) {
+				offset = offset + limit;
+				gloffset=offset;
+			}
+		}
+
+	}
+
+    private void collectAndMapControlledData(String key, String entity) {
     	
     	if (key.endsWith("Charles_Hamilton_(rapper)"))
     		return;
@@ -96,48 +181,45 @@ public class DbPediaCollector {
 
         writer.write(model, baos, null);
         Source inputDoc = new StreamSource(new ByteArrayInputStream((baos.toByteArray())));
-        dm.insertAgent(new AgentTransformer().transform("src/main/resources/dbpedia.xsl", key, inputDoc));
-//        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-//        DocumentBuilder dBuilder;
-//        try {
-//            dBuilder = dbFactory.newDocumentBuilder();
-//            Document doc = dBuilder.parse(new ByteArrayInputStream((baos.toByteArray())));
-//
-//            AgentImpl agent = new AgentImpl();
-//            agent.setAbout(key);
-//            agent.setRdaGr2BiographicalInformation(getAgentProperty("dbpedia-owl:abstract", "dbpprop:abstract", doc));
-//            agent.setRdaGr2DateOfBirth(getAgentProperty("dbpedia-owl:birthDate", "dbpprop:birthDate", doc));
-//            agent.setRdaGr2PlaceOfBirth(getAgentProperty("dbpedia-owl:birthPlace", "dbpprop:birthPlace", doc));
-//            agent.setRdaGr2PlaceOfDeath(getAgentProperty("dbpedia-owl:deathPlace", "dbpprop:deathPlace", doc));
-//            agent.setPrefLabel(getAgentProperty("foaf:name", "foaf:name", doc));
-//            agent.setRdaGr2DateOfDeath(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
-//            agent.setRdaGr2ProfessionOrOccupation(getAgentProperty("dbpedia-owl:occupation", "dbpprop:occupation", doc));
-//            agent.setAltLabel(getAgentProperty("dbpedia-owl:alternativeNames", "dbpprop:alternativeNames", doc));
-//            agent.setEnd(getAgentProperty("dbpedia-owl:deathDate", "dbpprop:deathDate", doc));
-//            agent.setDcIdentifier(getAgentProperty("dbpedia-owl:viaf", "dbpprop:viaf", doc));
-//            List<String> tempsameAsattName = new ArrayList<>();
-//            tempsameAsattName.add("rdf:resource");
-//            agent.setOwlSameAs(getAgentResource("owl:sameAs", "owl:sameAs", tempsameAsattName, doc));
-//            HashMap<String, List<String>> influenced = new HashMap<>();
-//            influenced.putAll(getAgentProperty("dbpedia-owl:influenced", "dbprop:influenced", doc));
-//            HashMap<String, List<String>> influencedBy = new HashMap<>();
-//            influencedBy.putAll(getAgentProperty("dbpedia-owl:influencedBy", "dbprop:influencedBy", doc));
-//            Iterator<String> ite = influencedBy.keySet().iterator();
-//            while (ite.hasNext()) {
-//                String tempLang = (String) ite.next();
-//                if (influenced.containsKey(tempLang)) {
-//                    influenced.get(tempLang).addAll(influencedBy.get(tempLang));
-//                } else {
-//                    influenced.put(tempLang, influencedBy.get(tempLang));
-//                }
-//            }
-//            agent.setEdmIsRelatedTo(influenced);
-//            dm.insertAgent(agent);
-//
-//        } catch (IOException | ParserConfigurationException | SAXException e) {
-//            log.log(Level.SEVERE, e.getMessage());
-//        }
+        if (entity.equals(AGENT))
+        	dm.insertAgent(new AgentTransformer().transform("src/main/resources/dbpedia.xsl", key, inputDoc));
+
+        if (entity.equals(CONCEPT))
+        	dm.insertConcept(new ConceptTransformer().transform("src/main/resources/dbpedia_skos_concepts.xsl", key, inputDoc));
+       // dm.updateAgent(new AgentTransformer().transform("src/main/resources/dbpedia.xsl", key, inputDoc));
+    }
+    
+    private void collectAndMapLocalControlledData(String localPrefix, String key, String entity){
+
+    	
+    	if (key.endsWith("Charles_Hamilton_(rapper)"))
+    		return;
+    	if (key.endsWith("Johannes_Liechtenauer"))
+    		return;
+
+    	String sparqlEndPoint="http://"+localPrefix+".dbpedia.org/sparql";
+        QueryEngineHTTP endpoint = new QueryEngineHTTP(sparqlEndPoint, "describe <" + key + ">");
+        log.log(Level.INFO, "describing " + key+" offset: "+gloffset);
+        agentKey = key;
         
+        Model model=ModelFactory.createDefaultModel();
+        
+       
+        model = endpoint.execDescribe();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        RDFWriter writer = model.getWriter("RDF/XML");
+        writer.setProperty("allowBadURIs", "true");
+
+        writer.write(model, baos, null);
+        Source inputDoc = new StreamSource(new ByteArrayInputStream((baos.toByteArray())));
+        if (entity.equals(AGENT))
+        	dm.insertAgent(new AgentTransformer().transform("src/main/resources/dbpedia.xsl", key, inputDoc));
+
+        if (entity.equals(CONCEPT))
+        	dm.insertConcept(new ConceptTransformer().transform("src/main/resources/dbpedia_skos_concepts.xsl", key, inputDoc));
+       // dm.updateAgent(new AgentTransformer().transform("src/main/resources/dbpedia.xsl", key, inputDoc));
+    
     }
 
     private HashMap<String, List<String>> getAgentProperty(String tag, String alternativeTag, Document doc) {

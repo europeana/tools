@@ -69,7 +69,7 @@ public class AgentMap {
 		return sameAs;
 	}
 	
-	public void setSameAs(String id){
+	public void addSameAs(String id){
 		if (!sameAs.contains(id))
 			this.sameAs.add(id);
 	}

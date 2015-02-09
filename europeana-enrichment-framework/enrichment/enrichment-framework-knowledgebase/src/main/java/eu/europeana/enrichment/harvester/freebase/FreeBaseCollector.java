@@ -67,7 +67,7 @@ public class FreeBaseCollector {
 		
 
 		// dbpc.collectAndMapControlledData("fava");
-		//dbpc.checkDumpDB();
+		//dbpc.testHarvesting();
 		dbpc.getAgents();
 		
 	}
@@ -76,7 +76,7 @@ public class FreeBaseCollector {
 
 		int resultsize = 1000;
 		int limit = 1000;
-		int offset = 127000;
+		int offset = 0;
 		//dm.extractFreebaseAgentsFromLocalStorage(limit, offset);
 		while (resultsize >0) {
 
@@ -84,7 +84,7 @@ public class FreeBaseCollector {
 			
 			resultsize = agents.size();
 			for (String am : agents) {
-				collectAndMapControlledData(am);
+				//collectAndMapControlledData(am);
 			}
 			if (agents.size() >0) {
 				offset = offset + limit;
@@ -97,7 +97,9 @@ public class FreeBaseCollector {
 	private void testHarvesting() {
 
 
-		collectAndMapControlledData("http://rdf.freebase.com/ns/m.0fp_5cj");
+		//collectAndMapControlledData("http://rdf.freebase.com/ns/m.0fp_5cj");
+		//http://rdf.freebase.com/ns/m.07xs92
+		dm.addSameAs("http://dbpedia.org/resource/Giovanni_Fattori", "http://de.dbpedia.org/resource/Giovanni_Fattori");
 
 
 	}
