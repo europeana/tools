@@ -1,0 +1,286 @@
+package eu.europeana.enrichment.harvester.util;
+
+import java.awt.List;
+import java.io.IOException;
+import java.util.Map;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+public class MongoDataSerializer {
+
+	public MongoDataSerializer() {
+		// TODO Auto-generated constructor stub
+	}
+
+
+	public Node serializeAgent(Document doc, AgentImpl agent){
+
+		
+
+		Element agentElement = doc.createElement("edm:Agent");
+		agentElement.setAttribute("rdf:about", agent.getAbout());
+		if(agent.getPrefLabel()!=null){
+			for (String attrVal:agent.getPrefLabel().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "skos:prefLabel", "xml:lang", attrVal, agent.getPrefLabel().get(attrVal) ));
+		}
+		if(agent.getAltLabel()!=null){
+			for (String attrVal:agent.getAltLabel().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "skos:altLabel", "xml:lang", attrVal, agent.getAltLabel().get(attrVal) ));
+		}
+
+		if(agent.getHiddenLabel()!=null){
+			for (String attrVal:agent.getHiddenLabel().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "skos:hiddenLabel", "xml:lang", attrVal, agent.getHiddenLabel().get(attrVal) ));
+		}
+		if(agent.getFoafName()!=null){
+			for (String attrVal:agent.getFoafName().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "foaf:name", "xml:lang", attrVal, agent.getFoafName().get(attrVal) ));
+		}
+		if(agent.getNote()!=null){
+			for (String attrVal:agent.getNote().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "skos:note", "xml:lang", attrVal, agent.getNote().get(attrVal) ));
+		}
+
+		if(agent.getBegin()!=null){
+			for (String attrVal:agent.getBegin().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "edm:begin", "xml:lang", attrVal, agent.getBegin().get(attrVal) ));
+		}
+		if(agent.getEnd()!=null){
+			for (String attrVal:agent.getEnd().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "edm:end", "xml:lang", attrVal, agent.getEnd().get(attrVal) ));
+		}
+		
+		if(agent.getDcIdentifier()!=null){
+			for (String attrVal:agent.getDcIdentifier().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "dc:identifier", "xml:lang", attrVal, agent.getDcIdentifier().get(attrVal) ));
+		}
+		
+		if(agent.getEdmHasMet()!=null){
+			for (String attrVal:agent.getEdmHasMet().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "edm:hasMet", "xml:lang", attrVal, agent.getEdmHasMet().get(attrVal) ));
+		}
+		
+		if(agent.getRdaGr2BiographicalInformation()!=null){
+			for (String attrVal:agent.getRdaGr2BiographicalInformation().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:biographicalInformation", "xml:lang", attrVal, agent.getRdaGr2BiographicalInformation().get(attrVal) ));
+		}
+		if(agent.getRdaGr2DateOfBirth()!=null){
+			for (String attrVal:agent.getRdaGr2DateOfBirth().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:dateOfBirth", "xml:lang", attrVal, agent.getRdaGr2DateOfBirth().get(attrVal) ));
+		}
+		
+		if(agent.getRdaGr2DateOfDeath()!=null){
+			for (String attrVal:agent.getRdaGr2DateOfDeath().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:dateOfDeath", "xml:lang", attrVal, agent.getRdaGr2DateOfDeath().get(attrVal) ));
+		}
+		if(agent.getRdaGr2DateOfEstablishment()!=null){
+			for (String attrVal:agent.getRdaGr2DateOfEstablishment().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:dateOfEstablishment", "xml:lang", attrVal, agent.getRdaGr2DateOfEstablishment().get(attrVal) ));
+		}
+		
+		if(agent.getRdaGr2DateOfTermination()!=null){
+			for (String attrVal:agent.getRdaGr2DateOfTermination().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:dateOfTermination", "xml:lang", attrVal, agent.getRdaGr2DateOfTermination().get(attrVal) ));
+		}
+		
+		if(agent.getRdaGr2Gender()!=null){
+			for (String attrVal:agent.getRdaGr2Gender().keySet())
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:gender", "xml:lang", attrVal, agent.getRdaGr2Gender().get(attrVal) ));
+		}
+		
+		if(agent.getEdmWasPresentAt()!=null){
+			for (String attrVal:agent.getEdmWasPresentAt())
+				agentElement.appendChild(getElements(doc, agentElement, "edm:wasPresentAt", "rdf:resource", attrVal, attrVal ));
+		}
+		
+		if(agent.getOwlSameAs()!=null){
+			for (String attrVal:agent.getOwlSameAs())
+				agentElement.appendChild(getElements(doc, agentElement, "owl:sameAs", "rdf:resource", attrVal, attrVal ));
+		}
+		
+		if (agent.getEdmIsRelatedTo()!=null){
+			for (String attrVal:agent.getEdmIsRelatedTo().keySet()){
+				agentElement.appendChild(getElements(doc, agentElement, "edm:isRelatedTo", attrVal, agent.getEdmIsRelatedTo().get(attrVal) ));
+			}
+			
+		}
+		
+		if (agent.getDcDate()!=null){
+			for (String attrVal:agent.getDcDate().keySet()){
+				agentElement.appendChild(getElements(doc, agentElement, "dc:date", attrVal, agent.getDcDate().get(attrVal) ));
+			}
+			
+		}
+		
+		if (agent.getRdaGr2ProfessionOrOccupation()!=null){
+			for (String attrVal:agent.getRdaGr2ProfessionOrOccupation().keySet()){
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:professionOrOccupation", attrVal, agent.getRdaGr2ProfessionOrOccupation().get(attrVal) ));
+			}
+			
+		}
+		/*try {
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+			DOMSource source = new DOMSource(doc);
+			DOMSource source1 = new DOMSource(conceptElement);
+			//StreamResult result = new StreamResult(new File("C:\\file.xml"));
+
+			// Output to console for testing
+			StreamResult result = new StreamResult(System.out);
+
+			transformer.transform(source1, result);
+			
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+
+		return agentElement;
+	
+	}
+
+	public Node serializeConcept(Document doc, ConceptImpl concept)
+			throws JsonParseException, JsonMappingException, IOException {
+
+		Element conceptElement = doc.createElement("skos:Concept");
+		conceptElement.setAttribute("rdf:about", concept.getAbout());
+		if(concept.getPrefLabel()!=null){
+			for (String attrVal:concept.getPrefLabel().keySet())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:prefLabel", "xml:lang", attrVal, concept.getPrefLabel().get(attrVal) ));
+		}
+		if(concept.getAltLabel()!=null){
+			for (String attrVal:concept.getAltLabel().keySet())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:altLabel", "xml:lang", attrVal, concept.getAltLabel().get(attrVal) ));
+		}
+
+		if(concept.getHiddenLabel()!=null){
+			for (String attrVal:concept.getHiddenLabel().keySet())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:hiddenLabel", "xml:lang", attrVal, concept.getHiddenLabel().get(attrVal) ));
+		}
+		if(concept.getNotation()!=null){
+			for (String attrVal:concept.getNotation().keySet())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:notation", "xml:lang", attrVal, concept.getNotation().get(attrVal) ));
+		}
+		if(concept.getNote()!=null){
+			for (String attrVal:concept.getNote().keySet())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:note", "xml:lang", attrVal, concept.getNote().get(attrVal) ));
+		}
+
+		if(concept.getBroader()!=null){
+			for (String attrVal:concept.getBroader())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:broader", "rdf:resource", attrVal, attrVal ));
+		}
+		
+		if(concept.getBroadMatch()!=null){
+			for (String attrVal:concept.getBroadMatch())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:broadMatch", "rdf:resource", attrVal, attrVal ));
+		}
+		
+		if(concept.getCloseMatch()!=null){
+			for (String attrVal:concept.getCloseMatch())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:closeMatch", "rdf:resource", attrVal, attrVal));
+		}
+		if(concept.getExactMatch()!=null){
+			for (String attrVal:concept.getExactMatch())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:exactMatch", "rdf:resource", attrVal, attrVal));
+		}
+		if(concept.getInScheme()!=null){
+			for (String attrVal:concept.getInScheme())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:inScheme", "rdf:resource", attrVal, attrVal));
+		}
+		
+		if(concept.getNarrower()!=null){
+			for (String attrVal:concept.getNarrower())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:narrower", "rdf:resource", attrVal, attrVal));
+		}
+		
+		if(concept.getNarrowMatch()!=null){
+			for (String attrVal:concept.getNarrowMatch())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:narrowMatch", "rdf:resource", attrVal, attrVal));
+		}
+		if(concept.getRelated()!=null){
+			for (String attrVal:concept.getRelated())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:related", "rdf:resource", attrVal, attrVal));
+		}
+		if(concept.getRelatedMatch()!=null){
+			for (String attrVal:concept.getRelatedMatch())
+				conceptElement.appendChild(getElements(doc, conceptElement, "skos:relatedMatch", "rdf:resource", attrVal, attrVal));
+		}
+		/*try {
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+			DOMSource source = new DOMSource(doc);
+			DOMSource source1 = new DOMSource(conceptElement);
+			//StreamResult result = new StreamResult(new File("C:\\file.xml"));
+
+			// Output to console for testing
+			StreamResult result = new StreamResult(System.out);
+
+			transformer.transform(source1, result);
+			
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+
+		return conceptElement;
+	}
+
+	private Node getElements(Document doc, Element conceptElement,
+			String name, String attribute, String attributeValue, java.util.List<String> textValue) {
+
+		Element node = doc.createElement(name);
+
+		node.setAttribute(attribute, attributeValue);
+		for (String value:textValue)
+			node.appendChild(doc.createTextNode(value));
+
+		return node;
+	}
+
+	private Node getElements(Document doc, Element conceptElement,
+			String name, String attribute, String attributeValue, String textValue) {
+
+		Element node = doc.createElement(name);
+        node.setAttribute(attribute, textValue);
+
+		return node;
+	}
+	
+
+	private Node getElements(Document doc, Element conceptElement, String name,  String attributeValue, java.util.List<String> textValue) {
+
+		Element node = doc.createElement(name);
+		for (String value:textValue){
+			if (value.startsWith("http://")){
+				node.setAttribute("rdf:resource", value);
+			}
+			else{
+				node.setAttribute("xml:lang", attributeValue);
+				node.appendChild(doc.createTextNode(value));
+			}
+		}
+
+		return node;
+	}
+}
