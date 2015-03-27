@@ -41,7 +41,7 @@ http://dbpedia.org/resource/Ceramic
 http://dbpedia.org/resource/Collotype
 http://dbpedia.org/resource/Costume
 http://dbpedia.org/resource/Cultural_property
-http://dbpedia.org/resource/Daguerreotype
+#http://dbpedia.org/resource/Daguerreot
 http://dbpedia.org/resource/Digital_image
 http://dbpedia.org/resource/Drawing
 http://dbpedia.org/resource/Engraving

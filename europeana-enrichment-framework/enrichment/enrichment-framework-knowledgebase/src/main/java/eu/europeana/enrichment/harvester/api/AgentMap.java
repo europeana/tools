@@ -20,7 +20,14 @@ public class AgentMap {
 	private Date storedDate;
 	private Date harvestedDate;
 	private ArrayList <String> sameAs;
-	
+	/**
+	 * 
+	 * @param id
+	 * @param uri
+	 * @param sourceId
+	 * @param storedDate
+	 * @param harvestedDate
+	 */
 	public  AgentMap(String id, URI uri, String sourceId, Date storedDate, Date harvestedDate){
 
 		this.id = id;
@@ -34,7 +41,10 @@ public class AgentMap {
 	public AgentMap(){
 		
 	}
-	
+	/**
+	 * 
+	 * @return
+	 */
 	public String getId() {
 		return id;
 	}

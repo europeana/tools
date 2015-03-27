@@ -17,7 +17,7 @@
 
 	<xsl:template match="/">
 
-		<xsl:element name="edm:Agent" namespace="http://www.europeana.eu/schemas/edm/">
+		<xsl:element name="skos:Concept">
 
 			<xsl:attribute name="rdf:about"
 				namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -75,7 +75,7 @@
 			</xsl:for-each>
 
 			<xsl:for-each select="rdf:RDF/rdf:Description/dbpprop:subgenres">
-				<xsl:element name="skos:narrower" namespace="http://www.w3.org/2004/02/skos/core#">
+				<xsl:element name="skos:broader" namespace="http://www.w3.org/2004/02/skos/core#">
 					<xsl:if test="../@rdf:about">
 						<xsl:attribute name="rdf:resource"
 							namespace="http://www.w3.org/1999/02/22-rdf-syntax-ns#">

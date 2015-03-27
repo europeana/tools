@@ -40,10 +40,10 @@ import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.enrichment.api.internal.AgentTermList;
 import eu.europeana.enrichment.api.internal.ConceptTermList;
 import eu.europeana.enrichment.api.internal.MongoTerm;
-import eu.europeana.enrichment.api.internal.MongoTermList;
 import eu.europeana.enrichment.api.internal.PlaceTermList;
 import eu.europeana.enrichment.api.internal.TimespanTermList;
 import eu.europeana.enrichment.harvester.api.AgentMap;
+import eu.europeana.enrichment.converters.*;
 
 public class DataManager {
 
@@ -224,8 +224,8 @@ public class DataManager {
 	public List <String> ecxtractLocalizedDbPediaAgentsFromLocalStorage (String local, int limit, int offset) {
 		List <String> dbpLocalAgent=new  ArrayList<String>();
 		String stringPattern=local+".dbpedia.org/";
-		Pattern freebaseUrl = Pattern.compile("/.*"+stringPattern+".*/", Pattern.CASE_INSENSITIVE);
-		BasicDBObject query=new BasicDBObject("representation.owlSameAs",freebaseUrl);// "http://rdf.freebase.com/ns/m.064qqly");
+		Pattern localizedUrl = Pattern.compile("/.*"+stringPattern+".*/", Pattern.CASE_INSENSITIVE);
+		BasicDBObject query=new BasicDBObject("representation.owlSameAs",localizedUrl);
 		DBCursor cursor = null;
 		cursor = coll.find(query).limit(limit).skip(offset);
 		System.out.println(cursor.size()+", "+offset);
@@ -329,13 +329,23 @@ public class DataManager {
 	}
 	
 	public AgentImpl getAgent(String id){
-		BasicDBObject query=new BasicDBObject("codeUri",id);// "http://rdf.freebase.com/ns/m.064qqly");
+		System.out.println ("****************************************************************************** "+id);
+		
+		try
+		{
+			BasicDBObject query=new BasicDBObject("codeUri",id);// "http://rdf.freebase.com/ns/m.064qqly");
+		
+		
 		if (aColl.find(query).hasNext()){
 			AgentTermList aTL=(AgentTermList)aColl.find(query).next();
 			AgentImpl rAi =  aTL.getRepresentation();
 			return (rAi);
 		}
-		else return null;
+		}
+		catch(Exception e){
+			return null;
+		}
+		return null;
 
 	}
 	

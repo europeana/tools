@@ -37,9 +37,10 @@ public class ConceptTransformer implements XslTransformer<ConceptImpl> {
             Transformer transformer = TransformerFactory
                     .newInstance().newTransformer(transformDoc);
             StreamResult out = new StreamResult(new StringWriter());
+            transformer.setParameter("rdf_about", resourceUri);
             transformer.transform(doc, out);
             System.out.println(out.getWriter().toString());
-            System.out.println("<!-- -->");
+           // System.out.println("<!-- -->");
             return normalize(ConceptTemplate.getInstance().transform(out.getWriter().toString(), resourceUri));
         } catch (TransformerFactoryConfigurationError | TransformerException e) {
             log.log(Level.SEVERE, e.getMessage());
@@ -54,11 +55,11 @@ public class ConceptTransformer implements XslTransformer<ConceptImpl> {
     	
 
     	
-        concept.setAltLabel(NormalizeUtils.normalizeMap(concept.getAltLabel()));
+       // concept.setAltLabel(NormalizeUtils.normalizeMap(concept.getAltLabel()));
         concept.setNote(NormalizeUtils.normalizeMap(concept.getNote()));
         concept.setExactMatch(NormalizeUtils.normalizeArray(concept.getExactMatch()));
         concept.setPrefLabel(NormalizeUtils.normalizeMap(concept.getPrefLabel()));
-        concept.setNarrower(NormalizeUtils.normalizeArray(concept.getNarrower()));
+        concept.setBroader(NormalizeUtils.normalizeArray(concept.getBroader()));
         concept.setRelated(NormalizeUtils.normalizeArray(concept.getRelated()));
         return concept;
     }
