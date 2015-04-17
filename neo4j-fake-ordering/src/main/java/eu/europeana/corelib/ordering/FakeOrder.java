@@ -186,6 +186,7 @@ public class FakeOrder {
 	private List<NaturalOrderNode> order(List<Node> unordered) {
 		List<NaturalOrderNode> unorderedNodes = new ArrayList<NaturalOrderNode>();
 		for (Node unorderedNode : unordered) {
+                    Transaction tx = db.beginTx();
 			NaturalOrderNode node = new NaturalOrderNode();
 			node.setId(unorderedNode.getProperty("rdf:about").toString());
 			node.setNodeId(unorderedNode.getId());
@@ -209,6 +210,8 @@ public class FakeOrder {
 				node.setIssued(unorderedNode.getProperty(
 						"dcterms:issued_xml:lang_def").toString());
 			}
+                        tx.success();
+                        tx.finish();
 			unorderedNodes.add(node);
 		}
 		Collections.sort(unorderedNodes);
