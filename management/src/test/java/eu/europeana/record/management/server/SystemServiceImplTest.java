@@ -31,6 +31,7 @@ import eu.europeana.record.management.database.enums.Role;
 import eu.europeana.record.management.database.enums.SystemType;
 import eu.europeana.record.management.shared.dto.SystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
+import org.junit.Ignore;
 
 /**
  * Unit tests for SystemService
@@ -38,6 +39,7 @@ import eu.europeana.record.management.shared.dto.UserDTO;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
+@Ignore
 public class SystemServiceImplTest {
 
 	Dao<SystemObj> systemDao;

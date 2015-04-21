@@ -34,12 +34,14 @@ import eu.europeana.record.management.database.enums.Role;
 import eu.europeana.record.management.server.util.LogUtils;
 import eu.europeana.record.management.shared.dto.LogEntryDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
+import org.junit.Ignore;
 
 /**
  * Unit tests for Log Entries
  * @author Yorgos.Mamakis@ kb.nl
  *
  */
+@Ignore
 public class LogEntryServiceImplTest {
 
 	private Dao<UserObj> userDao;
