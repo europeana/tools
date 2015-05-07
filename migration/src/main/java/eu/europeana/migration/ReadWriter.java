@@ -13,7 +13,6 @@ import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
@@ -24,8 +23,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
 /**
- *
- * @author gmamakis
+ *  Read from a Mongo and a Solr and Write to a Mongo and Solr
+ * @author Yorgos.Mamakis@ europeana.eu
  */
 public class ReadWriter implements Runnable {
 
@@ -92,23 +91,24 @@ public class ReadWriter implements Runnable {
     @Override
     public void run() {
          List<SolrInputDocument> docList = new ArrayList<>();
-        for (SolrDocument doc : segment) {
+         //For every document
+         for (SolrDocument doc : segment) {
+            //Fix bug with double slashes
             String id = doc.getFieldValue("europeana_id").toString();
             if (id.startsWith("//")) {
                 id = id.replace("//", "/");
             }
             try {
-
-                long read = new Date().getTime();
+                //Find the bean
                 FullBeanImpl fBean = (FullBeanImpl) sourceMongo.getFullBean(id);
-
-             //    Logger.getLogger(Migration.class.getName()).log(Level.INFO, "Reading took "+ (new Date().getTime()-read) + " ms");
+                //Generate Solr document from bean
                 SolrInputDocument inputDoc = solrHandler.generate(fBean);
+                //Add to list for saving later
                 docList.add(inputDoc);
-                long write = new Date().getTime();
+                //Save the individual classes in the Mongo cluster
                 fBeanHandler.saveEdmClasses(fBean, true);
+                //and then save the records themselves (this does not happen in one go, because of UIM)
                 targetMongo.getDatastore().save(fBean);
-                  //  Logger.getLogger(Migration.class.getName()).log(Level.INFO, "Writing took "+ (new Date().getTime()-write) + " ms");
             } catch (MongoDBException | SolrServerException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -116,12 +116,13 @@ public class ReadWriter implements Runnable {
         }
 
         try {
+            //add the documents in Solr..they will become available..no need to commit.. PATIENZA
             cloudServer.add(docList);
         } catch (SolrServerException | IOException ex) {
             Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
         }
+        //Notify the main thread that you finished and that it does not have to wait for you now
         latch.countDown();
-       Logger.getLogger(Migration.class.getName()).log(Level.INFO, "Added 200 documents");
     }
 
 }
