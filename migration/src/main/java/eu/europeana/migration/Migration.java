@@ -185,7 +185,7 @@ public class Migration {
         int k = 200;
         int iter = 50;
         while (i < iter * k) {
-            List<SolrDocument> segment = results.subList(i, i + k - 1);
+            List<SolrDocument> segment = results.subList(i, i + k);
             segments.add(segment);
             i += k;
         }
