@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>eu.europeana</groupId>
+        <artifactId>reindexing</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <groupId>eu.europeana.reindexing</groupId>
+    <artifactId>enrichment-topology</artifactId>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <version>1.0-SNAPSHOT</version>
+            <groupId>eu.europeana.reindexing</groupId>
+            <artifactId>enrichment-bolt</artifactId>
+        </dependency>
+        <dependency>
+            <version>1.0-SNAPSHOT</version>
+            <groupId>eu.europeana.reindexing</groupId>
+            <artifactId>recordread</artifactId>
+        </dependency>
+        <dependency>
+            <version>1.0-SNAPSHOT</version>
+            <groupId>eu.europeana.reindexing</groupId>
+            <artifactId>recordwrite-bolt</artifactId>
+        </dependency>
+    </dependencies>
+</project>
