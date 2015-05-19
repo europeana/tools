@@ -3,26 +3,67 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package eu.europeana.reindexing.recordwrite.reporting;
+package eu.europeana.reindexing.common;
 
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
+import java.io.Serializable;
+import org.bson.types.ObjectId;
 
 /**
  *
  * @author ymamakis
  */
 @Entity("TaskReport")
-public class TaskReport {
+public class TaskReport implements Serializable {
+    
+    @Id
+    private ObjectId id;
     
     @Indexed
     private long taskId;
     private String query;
     private long processed;
     private long total;
+    private long dateCreated;
+    private long dateUpdated;
+    private String topology;
 
     public long getTaskId() {
         return taskId;
+    }
+
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    public long getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(long dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public long getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(long dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+
+    public String getTopology() {
+        return topology;
+    }
+
+    public void setTopology(String topology) {
+        this.topology = topology;
     }
 
     public void setTaskId(long taskId) {

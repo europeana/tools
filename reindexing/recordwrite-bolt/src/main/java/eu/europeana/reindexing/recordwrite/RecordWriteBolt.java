@@ -15,24 +15,33 @@ import com.google.code.morphia.Morphia;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.Mongo;
+import com.mongodb.ServerAddress;
+import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
+import eu.europeana.corelib.solr.entity.ProxyImpl;
+import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.reindexing.common.ReindexingFields;
-import eu.europeana.reindexing.common.ReindexingTuple;
-import eu.europeana.reindexing.recordwrite.reporting.TaskReport;
-import java.io.ByteArrayInputStream;
+import eu.europeana.reindexing.common.TaskReport;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.springframework.beans.factory.annotation.Autowired;
-import redis.clients.jedis.Jedis;
+import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
@@ -44,22 +53,26 @@ public class RecordWriteBolt extends BaseRichBolt {
 
     private EdmMongoServer mongoServer;
     private CloudSolrServer solrServer;
-    private Jedis jedis;
-    private Mongo mongo;
-
+    private static List<Tuple> tuples = new ArrayList<>();
     private Datastore datastore;
 
-    private int i = 0;
+    private int i;
 
     private FullBeanHandler mongoHandler;
     private SolrDocumentHandler solrHandler;
 
-    public RecordWriteBolt(EdmMongoServer mongoServer, CloudSolrServer solrServer, Jedis jedis, Mongo mongo){
-        this.mongo = mongo;
-        this.mongoServer = mongoServer;
-        this.solrServer = solrServer;
-        this.jedis = jedis;
+    private String zkHost;
+    private String[] mongoAddresses;
+    private String[] solrAddresses;
+    private String solrCollection;
+
+    public RecordWriteBolt(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection) {
+        this.zkHost = zkHost;
+        this.mongoAddresses = mongoAddresses;
+        this.solrAddresses = solrAddresses;
+        this.solrCollection = solrCollection;
     }
+
     @Override
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
 
@@ -67,49 +80,94 @@ public class RecordWriteBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map map, TopologyContext tc, OutputCollector oc) {
-        this.collector = oc;
-        mongoHandler = new FullBeanHandler(mongoServer);
-        solrHandler = new SolrDocumentHandler(null);
-        Morphia morphia = new Morphia().map(TaskReport.class);
-        datastore = morphia.createDatastore(mongo, "taskreports");
-        datastore.ensureIndexes();
+        try {
+            this.collector = oc;
+            LBHttpSolrServer lbTarget = new LBHttpSolrServer(solrAddresses);
+            solrServer = new CloudSolrServer(zkHost, lbTarget);
+            solrServer.setDefaultCollection(solrCollection);
+            solrServer.connect();
+            List<ServerAddress> addresses = new ArrayList<>();
+            for (String mongoStr : mongoAddresses) {
+                ServerAddress address;
+
+                address = new ServerAddress(mongoStr, 27017);
+                addresses.add(address);
+            }
+            i=0;
+            Mongo mongo = new Mongo(addresses);
+            mongoServer = new EdmMongoServerImpl(mongo, "europeana", null, null);
+            mongoHandler = new FullBeanHandler(mongoServer);
+            solrHandler = new SolrDocumentHandler(null);
+            Morphia morphia = new Morphia().map(TaskReport.class);
+            datastore = morphia.createDatastore(mongoServer.getDatastore().getMongo(), "taskreports");
+            datastore.ensureIndexes();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MongoDBException ex) {
+            Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void execute(Tuple tuple) {
 
-        processTuples(tuple);
-
+        tuples.add(tuple);
         i++;
 
         Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
-        TaskReport ts = query.get();
-        if (ts != null) {
+       
+        Logger.getGlobal().log(Level.INFO,"Got " + i +"records");
+        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 10000) {
+            processTuples(tuples);
+            Logger.getGlobal().log(Level.INFO,"processing " + i +"records");
             UpdateOperations<TaskReport> ops = datastore.createUpdateOperations(TaskReport.class);
             ops.set("processed", i);
+            ops.set("dateUpdated", new Date().getTime());
             datastore.update(query, ops);
+
+        }
+
+        tuples.clear();
+    }
+
+    private void processTuples(List<Tuple> tuples) {
+        if (tuples.size() == 10000) {
+            List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
+            CountDownLatch latch = new CountDownLatch(50);
+            for (List<Tuple> batch : batches) {
+                Thread t = new Thread(new TuplePersistence(mongoHandler, mongoServer, solrServer, solrHandler, batch, latch));
+                t.start();
+            }
+            try {
+                latch.await();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else {
-            datastore.save(ts);
-        }
-    }
-
-    private void processTuples(Tuple tuple) {
-
-        ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
-
-        byte[] serialized = jedis.get(task.getIdentifier().getBytes());
-        try {
-            ObjectInputStream oIn = new ObjectInputStream(new ByteArrayInputStream(serialized));
-            FullBeanImpl fBean = (FullBeanImpl) oIn.readObject();
-            mongoHandler.saveEdmClasses(fBean, true);
-            mongoServer.getDatastore().save(fBean);
-            solrServer.add(solrHandler.generate(fBean));
-
-        } catch (IOException | ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SolrServerException ex) {
-            Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+            CountDownLatch latch = new CountDownLatch(1);
+            Thread t = new Thread(new TuplePersistence(mongoHandler, mongoServer, solrServer, solrHandler, tuples, latch));
+            t.start();
+            try {
+                latch.await();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
     }
+
+    private List<List<Tuple>> splitTuplesIntoBatches(List<Tuple> tuples) {
+        List<List<Tuple>> batches = new ArrayList<>();
+        int i = 0;
+        int k = 200;
+        while (i < tuples.size()) {
+            batches.add(tuples.subList(i, k));
+            i = i + k;
+        }
+        return batches;
+    }
+    
+    
 }

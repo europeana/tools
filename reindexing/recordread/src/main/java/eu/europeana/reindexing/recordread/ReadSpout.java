@@ -14,26 +14,30 @@ import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichSpout;
 import backtype.storm.tuple.Fields;
-import eu.europeana.corelib.definitions.edm.beans.FullBean;
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import com.google.code.morphia.Datastore;
+import com.google.code.morphia.Morphia;
+import com.mongodb.Mongo;
+import com.mongodb.ServerAddress;
 import eu.europeana.reindexing.common.ReindexingFields;
 import eu.europeana.reindexing.common.ReindexingTuple;
-import java.io.ByteArrayOutputStream;
+import eu.europeana.reindexing.common.TaskReport;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
-import redis.clients.jedis.Jedis;
 
 /**
  * Spout reading from Mongo and Solr for further processing
@@ -44,23 +48,26 @@ public class ReadSpout extends BaseRichSpout {
 
     private CloudSolrServer solrServer;
 
-    private EdmMongoServer mongoServer;
 
-    private Jedis jedis;
+    private Datastore datastore;
 
     private SpoutOutputCollector collector;
 
     private String query;
-    
+
     private long taskId;
-    
-    public ReadSpout(CloudSolrServer solrServer, EdmMongoServer mongoServer, Jedis jedis){
-        super();
-        this.solrServer=solrServer;
-        this.jedis = jedis;
-        this.mongoServer = mongoServer;
+    private String zkHost;
+    private String[] mongoAddresses;
+    private String[] solrAddresses;
+    private String solrCollection;
+
+    public ReadSpout(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection) {
+        this.zkHost = zkHost;
+        this.mongoAddresses = mongoAddresses;
+        this.solrAddresses = solrAddresses;
+        this.solrCollection = solrCollection;
     }
-    
+
     @Override
     public void nextTuple() {
         SolrQuery params = new SolrQuery("*:*");
@@ -84,6 +91,8 @@ public class ReadSpout extends BaseRichSpout {
         boolean done = false;
         //While we are not at the end of the index
         while (!done) {
+            TaskReport tr = datastore.find(TaskReport.class).filter("taskId", taskId).get();
+            if(tr==null || tr.getProcessed()%10000 ==0 ){
             try {
                 params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
                 QueryResponse resp = solrServer.query(params);
@@ -101,18 +110,40 @@ public class ReadSpout extends BaseRichSpout {
             } catch (SolrServerException | IOException ex) {
                 Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
             }
+            }
         }
 
     }
 
     @Override
     public void open(Map conf, TopologyContext topologyContext, SpoutOutputCollector collector) {
-        this.collector = collector;
+        try {
+            this.collector = collector;
+            LBHttpSolrServer lbTarget = new LBHttpSolrServer(solrAddresses);
+            solrServer = new CloudSolrServer(zkHost, lbTarget);
+            solrServer.setDefaultCollection(solrCollection);
+            solrServer.connect();
+
+            List<ServerAddress> addresses = new ArrayList<>();
+            for (String mongoStr : mongoAddresses) {
+                ServerAddress address;
+
+                address = new ServerAddress(mongoStr, 27017);
+                addresses.add(address);
+            }
+            Mongo mongo = new Mongo(addresses);
+            Morphia morphia = new Morphia();
+            morphia.map(TaskReport.class);
+            datastore = morphia.createDatastore(mongo, "taskreport");
+            datastore.ensureIndexes();
+        } catch (MalformedURLException | UnknownHostException ex) {
+            Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields(ReindexingFields.TASKID,ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY));
+        declarer.declare(new Fields(ReindexingFields.TASKID, ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY, ReindexingFields.ENTITYWRAPPER));
 
     }
 
@@ -120,19 +151,24 @@ public class ReadSpout extends BaseRichSpout {
 
         SolrDocumentList docs = resp.getResults();
         long numFound = resp.getResults().getNumFound();
-
+        if (datastore.find(TaskReport.class).filter("taskId", taskId).get() == null) {
+            TaskReport report = new TaskReport();
+            report.setDateCreated(taskId);
+            report.setQuery(query);
+            report.setTopology("enrichment");
+            report.setTotal(numFound);
+            report.setDateUpdated(taskId);
+            report.setProcessed(0);
+            datastore.save(report);
+        }
         try {
             for (SolrDocument doc : docs) {
                 String id = doc.getFieldValue("europeana_id").toString();
-                FullBean bean = mongoServer.getFullBean(id);
-                ByteArrayOutputStream bout = new ByteArrayOutputStream();
-                ObjectOutputStream oOut = new ObjectOutputStream(bout);
-                oOut.writeObject(bean);
-                jedis.set(id.getBytes(), bout.toByteArray());
-                collector.emit(new ReindexingTuple(taskId,id, numFound, query).toTuple());
+                collector.emit(new ReindexingTuple(taskId, id, numFound, query, null).toTuple(), id);
+                
             }
-            Thread.sleep(10000);
-        } catch (MongoDBException | IOException | InterruptedException ex) {
+            Thread.sleep(5000);
+        } catch (InterruptedException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
         }
 
