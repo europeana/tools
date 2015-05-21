@@ -67,13 +67,14 @@ public class TuplePersistence implements Runnable {
                 mongoHandler.saveEdmClasses(fBean, true);
                 mongoServer.getDatastore().save(fBean);
                 solrServer.add(solrHandler.generate(fBean));
-                latch.countDown();
             } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+         latch.countDown();
+         Logger.getLogger("Finished processing and persisting");
     }
     
     

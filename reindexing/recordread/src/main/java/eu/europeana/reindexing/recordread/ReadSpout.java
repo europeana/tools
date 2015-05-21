@@ -20,6 +20,7 @@ import com.mongodb.Mongo;
 import com.mongodb.ServerAddress;
 import eu.europeana.reindexing.common.ReindexingFields;
 import eu.europeana.reindexing.common.ReindexingTuple;
+import eu.europeana.reindexing.common.Status;
 import eu.europeana.reindexing.common.TaskReport;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class ReadSpout extends BaseRichSpout {
     private String[] mongoAddresses;
     private String[] solrAddresses;
     private String solrCollection;
+    private long processed=0;
 
     public ReadSpout(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection) {
         this.zkHost = zkHost;
@@ -77,13 +79,17 @@ public class ReadSpout extends BaseRichSpout {
         params.setSort("europeana_id", SolrQuery.ORDER.asc);
         //Retrieve only the europeana_id filed (the record is retrieved from Mongo)
         params.setFields("europeana_id");
+        
         //Start from the begining
         String cursorMark = CursorMarkParams.CURSOR_MARK_START;
-        taskId = new Date().getTime();
+        
         //Unless the querymark file exists which means start from where you previously stopped
         if (new File("querymark").exists()) {
             try {
-                cursorMark = FileUtils.readFileToString(new File("querymark"));
+                String resume = FileUtils.readFileToString(new File("querymark"));
+                cursorMark = resume.split("!!!")[0];
+                processed = Long.parseLong(resume.split("!!!")[1]);
+                
             } catch (IOException ex) {
                 Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -92,24 +98,34 @@ public class ReadSpout extends BaseRichSpout {
         //While we are not at the end of the index
         while (!done) {
             TaskReport tr = datastore.find(TaskReport.class).filter("taskId", taskId).get();
-            if(tr==null || tr.getProcessed()%10000 ==0 ){
+            Logger.getGlobal().info("Processed = " + processed);
+            if(tr==null || processed==tr.getProcessed() ){
             try {
                 params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
                 QueryResponse resp = solrServer.query(params);
                 String nextCursorMark = resp.getNextCursorMark();
                 //Process
                 doProcessing(resp);
+                processed+=resp.getResults().size();
+                
                 //Exit if reached the end
                 if (cursorMark.equals(nextCursorMark)) {
                     done = true;
+                    Logger.getGlobal().info("Done is now true for taskId " + taskId );
                 }
                 cursorMark = nextCursorMark;
                 //Update the querymark
-                FileUtils.write(new File("querymark"), cursorMark, false);
+                FileUtils.write(new File("querymark"), cursorMark+"!!!"+processed, false);
 
             } catch (SolrServerException | IOException ex) {
                 Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
             }
+            } else {
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
 
@@ -131,10 +147,11 @@ public class ReadSpout extends BaseRichSpout {
                 address = new ServerAddress(mongoStr, 27017);
                 addresses.add(address);
             }
+            taskId = new Date().getTime();
             Mongo mongo = new Mongo(addresses);
             Morphia morphia = new Morphia();
             morphia.map(TaskReport.class);
-            datastore = morphia.createDatastore(mongo, "taskreport");
+            datastore = morphia.createDatastore(mongo, "taskreports");
             datastore.ensureIndexes();
         } catch (MalformedURLException | UnknownHostException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
@@ -158,16 +175,18 @@ public class ReadSpout extends BaseRichSpout {
             report.setTopology("enrichment");
             report.setTotal(numFound);
             report.setDateUpdated(taskId);
-            report.setProcessed(0);
+            report.setProcessed(processed);
+            report.setTaskId(taskId);
+            report.setStatus(Status.INITIAL);
             datastore.save(report);
         }
         try {
             for (SolrDocument doc : docs) {
                 String id = doc.getFieldValue("europeana_id").toString();
                 collector.emit(new ReindexingTuple(taskId, id, numFound, query, null).toTuple(), id);
-                
+                Thread.sleep(10);
             }
-            Thread.sleep(5000);
+            Thread.sleep(60000);
         } catch (InterruptedException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
         }

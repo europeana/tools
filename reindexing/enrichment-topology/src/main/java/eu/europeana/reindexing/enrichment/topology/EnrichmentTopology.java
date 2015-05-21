@@ -38,7 +38,7 @@ public class EnrichmentTopology {
 
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("readSpout", new ReadSpout(zkHost,mongoAddresses,solrAddresses, solrCollection), 1);
-        builder.setBolt("enrichment", new EnrichmentBolt(path, mongoAddresses), 20).setNumTasks(20).shuffleGrouping("readSpout");
+        builder.setBolt("enrichment", new EnrichmentBolt(path, mongoAddresses), 10).setNumTasks(10).shuffleGrouping("readSpout");
         builder.setBolt("saverecords", new RecordWriteBolt(zkHost,mongoAddresses,solrAddresses, solrCollection), 1).shuffleGrouping("enrichment");
         return builder.createTopology();
     }
@@ -58,7 +58,6 @@ public class EnrichmentTopology {
             Config config = new Config();
             config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
             config.setNumWorkers(16);
-            config.setNumAckers(4);
             StormTopology topology = new EnrichmentTopology().buildTopology();
 
             StormSubmitter.submitTopology("enrichment", config, topology);

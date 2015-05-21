@@ -29,11 +29,22 @@ public class TaskReport implements Serializable {
     private long dateCreated;
     private long dateUpdated;
     private String topology;
+    private Status status;
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+    
 
     public long getTaskId() {
         return taskId;
     }
 
+    
     public ObjectId getId() {
         return id;
     }

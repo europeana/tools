@@ -61,23 +61,29 @@ public class EnrichmentBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map map, TopologyContext tc, OutputCollector oc) {
-        this.collector = oc;
-        driver = new EnrichmentDriver(path);
-        om = new ObjectMapper();
-        List<ServerAddress> addresses = new ArrayList<>();
+        try {
+            this.collector = oc;
+            driver = new EnrichmentDriver(path);
+            om = new ObjectMapper();
+            List<ServerAddress> addresses = new ArrayList<>();
             for (String mongoStr : mongoAddresses) {
-            try {
-                ServerAddress address;
-
-                address = new ServerAddress(mongoStr, 27017);
-                addresses.add(address);
-                Mongo mongo = new Mongo(addresses);
+                try {
+                    ServerAddress address;
+                    
+                    address = new ServerAddress(mongoStr, 27017);
+                    addresses.add(address);
+                    
+                    
+                } catch (UnknownHostException ex) {
+                    Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
+                    
+                }
+            }
+            Mongo mongo = new Mongo(addresses);
             mongoServer = new EdmMongoServerImpl(mongo, "europeana", null, null);
-            } catch (UnknownHostException | MongoDBException ex) {
-                Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            }
-            
+        } catch (MongoDBException ex) {
+            Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -85,24 +91,21 @@ public class EnrichmentBolt extends BaseRichBolt {
         ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
 
         try {
-            long startRetrieve = new Date().getTime();
             FullBeanImpl fBean =mongoServer.searchByAbout(FullBeanImpl.class, task.getIdentifier());
             
-            Logger.getGlobal().log(Level.INFO,"Got bean with rdf:about "+ fBean.getAbout() + " in " + (new Date().getTime() - startRetrieve) + " ms");
            // cleanFullBean(fBean);
             List<InputValue> values = getEnrichmentFields(fBean);
-            
+            List<EntityWrapper> entities = new ArrayList<>();
             long startEnrich = new Date().getTime();
-           
-            List<EntityWrapper> entities = driver.enrich(values, false);
-            
+           if (values.size()>0){
+             entities = driver.enrich(values, false);
+           }
              Logger.getGlobal().log(Level.INFO,"Enrichemnt for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms");
             EntityWrapperList lst = new EntityWrapperList();
             lst.setWrapperList(entities);
            // appendEntities(fBean, entities);
-           
-            collector.emit(tuple,new ReindexingTuple(task.getTaskId(), task.getIdentifier(), task.getNumFound(), task.getQuery(), om.writeValueAsString(lst)).toTuple());
-            collector.ack(tuple);
+           String enrichments = om.writeValueAsString(lst);
+            collector.emit(new ReindexingTuple(task.getTaskId(), task.getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
         } catch (IOException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
