@@ -5,8 +5,34 @@
  */
 package eu.europeana.migration;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+import org.apache.solr.client.solrj.response.FacetField.Count;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.sun.source.tree.AssertTree;
+
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Agent;
 import eu.europeana.corelib.definitions.edm.entity.Aggregation;
@@ -20,30 +46,8 @@ import eu.europeana.corelib.definitions.edm.entity.Timespan;
 import eu.europeana.corelib.definitions.edm.entity.WebResource;
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.utils.MongoUtils;
-import eu.europeana.corelib.edm.utils.SolrUtils;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
-import eu.europeana.corelib.utils.StringArrayUtils;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.junit.Assert;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
-import org.apache.solr.client.solrj.response.FacetField.Count;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * Integration test over a sample (or more than a sample) of the migrated data
@@ -54,8 +58,12 @@ public class MigrationTest {
 
     private static EdmMongoServer sourceMongo;
 
-    private static CloudSolrServer targetSolr;
-    private static EdmMongoServer targetMongo;
+    private static CloudSolrServer targetSolrIngst;
+    private static EdmMongoServer targetMongoIngst;
+    
+    private static CloudSolrServer targetSolrProd;
+    private static EdmMongoServer targetMongoProd;
+    
     private static Properties properties;
     private static int i=0;
     @Before
@@ -64,44 +72,80 @@ public class MigrationTest {
             properties = new Properties();
             properties.load(new FileInputStream(new File("src/test/resources/migration.properties")));
             String srcMongoUrl = properties.getProperty("source.mongo");
-            String[] targetSolrUrl = properties.getProperty("target.solr").split(",");
             String zookeeperHost = properties.getProperty("zookeeper.host");
-            String targetCollection = properties.getProperty("target.collection");
-            String[] targetMongoUrl = properties.getProperty("target.mongo").split(",");
-            //Connect to Solr and Mongo (source)
-            Mongo mongo = new Mongo(srcMongoUrl, 27017);
+
+            String[] targetSolrUrlIngst = properties.getProperty("target.ingestion.solr").split(",");
+            String[] targetMongoUrlIngst = properties.getProperty("target.ingestion.mongo").split(",");
+            String targetCollectionIngst = properties.getProperty("target.ingestion.collection");
+            
+            String[] targetSolrUrlProd = properties.getProperty("target.production.solr").split(",");
+            String[] targetMongoUrlProd = properties.getProperty("target.production.mongo").split(",");
+            String targetCollectionProd = properties.getProperty("target.production.collection");
+
+            //Connect to source Solr and Mongo
+            Mongo mongo = new MongoClient(srcMongoUrl, 27017);
             sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
-            //Connect to target Solr and Mongo
-            LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
-            targetSolr = new CloudSolrServer(zookeeperHost, lbTarget);
-            targetSolr.setDefaultCollection(targetCollection);
-            targetSolr.connect();
-            List<ServerAddress> addresses = new ArrayList<>();
-            for (String mongoStr : targetMongoUrl) {
+            
+            //Connect to target Solr and Mongo (ingestion)
+            LBHttpSolrServer lbTargetIngst = new LBHttpSolrServer(targetSolrUrlIngst);
+            targetSolrIngst = new CloudSolrServer(zookeeperHost, lbTargetIngst);
+            targetSolrIngst.setDefaultCollection(targetCollectionIngst);
+            targetSolrIngst.connect();
+            List<ServerAddress> addressesIngst = new ArrayList<>();
+            for (String mongoStr : targetMongoUrlIngst) {
                 ServerAddress address = new ServerAddress(mongoStr, 27017);
-                addresses.add(address);
+                addressesIngst.add(address);
             }
-            Mongo tgtMongo = new Mongo(addresses);
-            targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana", null, null);
+            Mongo tgtMongoIngst = new MongoClient(addressesIngst);
+            targetMongoIngst = new EdmMongoServerImpl(tgtMongoIngst, "europeana", null, null);
+            
+            
+            //Connect to target Solr and Mongo (production)
+            LBHttpSolrServer lbTargetProd = new LBHttpSolrServer(targetSolrUrlProd);
+            targetSolrProd = new CloudSolrServer(zookeeperHost, lbTargetProd);
+            targetSolrProd.setDefaultCollection(targetCollectionProd);
+            targetSolrProd.connect();
+            List<ServerAddress> addressesProd = new ArrayList<>();
+            for (String mongoStr : targetMongoUrlProd) {
+                ServerAddress address = new ServerAddress(mongoStr, 27017);
+                addressesProd.add(address);
+            }
+            Mongo tgtMongoProd = new MongoClient(addressesProd);
+            targetMongoProd = new EdmMongoServerImpl(tgtMongoProd, "europeana", null, null);
+            
         } catch (IOException | MongoDBException ex) {
             Logger.getLogger(MigrationTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Test
-    public void test() {
-        //Retrieve migrated collections
-        List<Count> collections = getMigratedCollections();
+    public void testIngst() {
+        //Retrieve migrated collections from Ingestion
+        List<Count> collections = getMigratedCollections(targetSolrIngst);
         
         if (collections != null) {
             Logger.getLogger(MigrationTest.class.getName()).log(Level.INFO, "Found " + collections.size() + " collections");
             for (Count collection : collections) {
-                checkSampleBeansInCollection(collection);
+                checkSampleBeansInCollection(collection, targetSolrIngst, targetMongoIngst);
             }
         }
     }
+ 
+    //FIXME: commented for now since the both targets are identical in a properties file.
+//    @Test
+//    public void testProd() {
+//        //Retrieve migrated collections from Production
+//        List<Count> collections = getMigratedCollections(targetSolrProd);
+//        
+//        if (collections != null) {
+//            Logger.getLogger(MigrationTest.class.getName()).log(Level.INFO, "Found " + collections.size() + " collections");
+//            for (Count collection : collections) {
+//                checkSampleBeansInCollection(collection, targetSolrProd, targetMongoProd);
+//            }
+//        }
+//    }
 
-    private List<Count> getMigratedCollections() {
+    private List<Count> getMigratedCollections(SolrServer targetSolr) {
         //Get all the migrated collections (faceting is faster for this one of query
         SolrQuery query = new SolrQuery("*:*");
         query.setRows(0);
@@ -116,7 +160,7 @@ public class MigrationTest {
         return null;
     }
 
-    private void checkSampleBeansInCollection(Count collection) {
+    private void checkSampleBeansInCollection(Count collection, SolrServer targetSolr, EdmMongoServer targetMongo) {
         //Sample up to 1000 records - some have less - records from a specific Europeana Collection
         SolrQuery query = new SolrQuery("europeana_collectionName:" + collection.getName());
         query.setFields("europeana_id");
@@ -124,10 +168,9 @@ public class MigrationTest {
         SolrDocumentList list;
         try {
             list = targetSolr.query(query).getResults();
-
             for (SolrDocument doc : list) {
                 //Compare the original and the migrated bean
-                checkBean(doc.getFieldValue("europeana_id").toString());
+                checkBean(doc.getFieldValue("europeana_id").toString(), targetMongo);
                 i++;
                 Logger.getLogger(MigrationTest.class.getName()).log(Level.INFO, "Checked " + i + " documents");
             }
@@ -136,7 +179,7 @@ public class MigrationTest {
         }
     }
 
-    private void checkBean(String id) {
+    private void checkBean(String id, EdmMongoServer targetMongo) {
         try {
             FullBean sourceBean = sourceMongo.getFullBean(id);
             FullBean targetBean = targetMongo.getFullBean(id);
@@ -184,7 +227,7 @@ public class MigrationTest {
         Assert.assertTrue("aggregation edmprovider for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmProvider(), targetAggregation.getEdmProvider()));
         Assert.assertTrue("aggregation edmdataprovider for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmDataProvider(), targetAggregation.getEdmDataProvider()));
         Assert.assertTrue("aggregation edmrights for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmRights(), targetAggregation.getEdmRights()));
-        compareWebResources(sourceAggregation.getWebResources(), targetAggregation.getWebResources());
+        compareWebResources(sourceAggregation, targetAggregation);
     }
 
     private void compareProxies(List<? extends Proxy> sourceProxies, List<? extends Proxy> targetProxies) {
@@ -276,8 +319,6 @@ public class MigrationTest {
         Assert.assertTrue("Europeana aggregation edmcountry for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmCountry(), targetAggregation.getEdmCountry()));
         Assert.assertTrue("Europeana aggregation edmlanguage for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmLanguage(), targetAggregation.getEdmLanguage()));
         Assert.assertTrue("Europeana aggregation edmrights for" + sourceAggregation.getAbout(), MongoUtils.mapEquals(sourceAggregation.getEdmRights(), targetAggregation.getEdmRights()));
-        compareWebResources(sourceAggregation.getWebResources(), targetAggregation.getWebResources());
-        
     }
 
     private void compareTimespan(Timespan sourceTimespan, Timespan targetTimespan) {
@@ -460,24 +501,51 @@ public class MigrationTest {
             Assert.assertTrue("Isnextinsequence for web resource " + sourceWebResource.getAbout(), StringUtils.equals(sourceWebResource.getIsNextInSequence(), targetWebResource.getIsNextInSequence()));
         }
     }
-
-    private void compareWebResources(List<? extends WebResource> sourceWebResources, List<? extends WebResource> targetWebResources) {
-        if (sourceWebResources == null) {
-            Assert.assertTrue("WebResources should be null", targetWebResources == null);
-        } else {
-            Assert.assertTrue("WebResources should be equal", sourceWebResources.size() == targetWebResources.size());
-
-            for (WebResource sourceWebResource : sourceWebResources) {
-                WebResource targetWebResource = null;
-                for (WebResource temp : targetWebResources) {
-                    if (StringUtils.equals(sourceWebResource.getAbout(), temp.getAbout())) {
-                        targetWebResource = temp;
-                        break;
-                    }
-                }
-                compareWebResource(sourceWebResource, targetWebResource);
-            }
-        }
+    
+    private void compareWebResources(Aggregation sourceAggregation, Aggregation targetAggregation) {
+    	String edmIsShownAt = targetAggregation.getEdmIsShownAt();
+    	String edmIsShownBy = targetAggregation.getEdmIsShownBy();
+    	String edmObject = targetAggregation.getEdmObject();
+    	String[] edmHasView = targetAggregation.getHasView();
+    	
+    	List<? extends WebResource> targetWebResources = targetAggregation.getWebResources();
+    	WebResource isShownAtWebResource = null;
+    	WebResource isShownByWebResource = null;
+    	WebResource aboutWebResource = null;
+    	WebResource hasViewWebResource = null;
+		for (WebResource resource : targetWebResources) { 
+    		String about = resource.getAbout();
+			if (edmIsShownAt != null && StringUtils.equals(about, edmIsShownAt)) {
+    			isShownAtWebResource = resource;
+    		} else if (edmIsShownBy != null && StringUtils.equals(about, edmIsShownBy)) {
+    			isShownByWebResource = resource;
+    		} else if (edmObject != null && StringUtils.equals(about, edmObject)) {
+    			aboutWebResource = resource;
+    		} else if (edmHasView != null && edmHasView.length > 0 && StringUtils.equals(about, edmHasView[0])) {
+    			hasViewWebResource = resource;
+    		}		
+    	}
+		
+		if (edmIsShownAt != null) { 
+			Assert.assertNotNull(isShownAtWebResource);
+		} else {
+			Assert.assertNull(isShownAtWebResource);
+		}
+		if (edmIsShownBy != null) { 
+			Assert.assertNotNull(isShownByWebResource);
+		} else {
+			Assert.assertNull(isShownByWebResource);
+		}
+		if (edmObject != null) { 
+			Assert.assertNotNull(aboutWebResource);
+		} else {
+			Assert.assertNull(aboutWebResource);
+		}
+		if (edmHasView != null && edmHasView.length > 0) { 
+			Assert.assertNotNull(hasViewWebResource);
+		} else {
+			Assert.assertNull(hasViewWebResource);
+		}
     }
 
     private void compareProvideCHO(ProvidedCHO sourceCHO, ProvidedCHO targetCHO) {

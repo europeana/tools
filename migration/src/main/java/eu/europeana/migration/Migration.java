@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,8 +35,6 @@ import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
-import java.io.FileInputStream;
-import java.util.Properties;
 
 /**
  * Migration application prototype for a proposed Europeana infrastructure
@@ -46,11 +45,10 @@ public class Migration {
 
     private static HttpSolrServer sourceSolr;
     private static EdmMongoServer sourceMongo;
-
-    private static CloudSolrServer targetSolr;
-    private static EdmMongoServer targetMongo;
-    private static FullBeanHandler mongoHandler;
-    private static SolrDocumentHandler solrHandler;
+    
+    private static Target ingestion;
+    private static Target production;
+    
     private static Properties properties;
 
     public static void main(String... args) {
@@ -62,31 +60,16 @@ public class Migration {
             properties.load(Migration.class.getResourceAsStream("/migration.properties"));
             String srcMongoUrl = properties.getProperty("source.mongo");
             String srcSolrUrl = properties.getProperty("source.solr");
-            String[] targetSolrUrl = properties.getProperty("target.solr").split(",");
-            String zookeeperHost = properties.getProperty("zookeeper.host");
-            String targetCollection = properties.getProperty("target.collection");
-            String[] targetMongoUrl = properties.getProperty("target.mongo").split(",");
+            
             //Connect to Solr and Mongo (source)
             mongo = new Mongo(srcMongoUrl, 27017);
             sourceSolr = new HttpSolrServer(srcSolrUrl);
             sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
-            //Connect to target Solr and Mongo
-            LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
-            targetSolr = new CloudSolrServer(zookeeperHost, lbTarget);
-            targetSolr.setDefaultCollection(targetCollection);
-            targetSolr.connect();
-            List<ServerAddress> addresses = new ArrayList<>();
-            for (String mongoStr : targetMongoUrl) {
-                ServerAddress address = new ServerAddress(mongoStr, 27017);
-                addresses.add(address);
-            }
-            Mongo tgtMongo = new Mongo(addresses);
-            targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana", null, null);
-
-            //Initialize Solr Document and Mongo Bean handlers
-            mongoHandler = new FullBeanHandler(targetMongo);
-            solrHandler = new SolrDocumentHandler(sourceSolr);
-
+            
+            ingestion = Target.INGESTION;
+            production = Target.PRODUCTION;
+            
+            //Query to the source
             String query = "*:*";
             String fl = "europeana_id";
             SolrQuery params = new SolrQuery();
@@ -106,11 +89,17 @@ public class Migration {
             int i = 0;
             //While we are not at the end of the index
             while (!done) {
+            	long time = System.currentTimeMillis();
                 params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
                 QueryResponse resp = sourceSolr.query(params);
                 String nextCursorMark = resp.getNextCursorMark();
+                
                 //Process
+				Logger.getLogger(Migration.class.getName()).log(
+						Level.INFO, "*** Migrating the batch #" + (i / 10000 + 1)
+																+ " started. ***");
                 doCustomProcessingOfResults(resp);
+                
                 //Exit if reached the end
                 if (cursorMark.equals(nextCursorMark)) {
                     done = true;
@@ -119,17 +108,34 @@ public class Migration {
                 //Update the querymark
                 FileUtils.write(new File("querymark"), cursorMark, false);
                 i += 10000;
-                Logger.getLogger(Migration.class.getName()).log(Level.INFO, "Added " + i + " documents");
+                time = System.currentTimeMillis() - time;
+                //Logging
+				Logger.getLogger(Migration.class.getName()).log(
+						Level.INFO,
+						"*** Time spent for migrating the batch: " + time
+								+ " milliseconds which is around "
+								+ (int) ((time / 1000) / 60) + " minutes "
+								+ (int) ((time / 1000) % 60) + " seconds. ***");
+                Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Added " 
+																+ i + " documents. ***");
             }
 
-        } catch (UnknownHostException | MongoDBException | SolrServerException | MalformedURLException  ex) {
-            Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
-        }
+		} catch (UnknownHostException | MongoDBException | SolrServerException
+				| MalformedURLException ex) {
+			Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null,
+					ex);
+		} catch (IOException ex) {
+			Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null,
+					ex);
+		}
 
     }
 
+    /**
+     * Process the batch of data to target
+     * @param resp
+     * @param target
+     */
     private static void doCustomProcessingOfResults(QueryResponse resp) {
         //If the list of results is full 
         if (resp.getResults().size() == 10000) {
@@ -138,15 +144,23 @@ public class Migration {
             CountDownLatch latch = new CountDownLatch(50);
 
             for (List<SolrDocument> segment : segments) {
-                ReadWriter writer = new ReadWriter();
-                writer.setCloudServer(targetSolr);
+                final ReadWriter writer = new ReadWriter();
                 writer.setSegment(segment);
-                writer.setSolrHandler(solrHandler);
                 writer.setSourceMongo(sourceMongo);
-                writer.setTargetMongo(targetMongo);
-                writer.setfBeanHandler(mongoHandler);
                 writer.setLatch(latch);
-                Thread t = new Thread(writer);
+                
+				writer.setTargetsIngestion(
+						ingestion.getSolrHandler(),
+						ingestion.getTargetSolr(), 
+						ingestion.getTargetMongo(),
+						ingestion.getMongoHandler());
+				writer.setTargetsProduction(
+						production.getSolrHandler(),
+						production.getTargetSolr(),
+						production.getTargetMongo(),
+						production.getMongoHandler());
+
+                Thread t = new Thread(writer);                
                 t.start();
             }
             try {
@@ -155,17 +169,26 @@ public class Migration {
             } catch (InterruptedException ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
             }
-            //On any other case do it single trheadedly (end of the index)
+            //On any other case do it single threadedly (end of the index)
         } else {
             CountDownLatch latch = new CountDownLatch(1);
-            ReadWriter writer = new ReadWriter();
-            writer.setCloudServer(targetSolr);
+            
+            final ReadWriter writer = new ReadWriter();
             writer.setSegment(resp.getResults());
-            writer.setSolrHandler(solrHandler);
             writer.setSourceMongo(sourceMongo);
-            writer.setTargetMongo(targetMongo);
-            writer.setfBeanHandler(mongoHandler);
             writer.setLatch(latch);
+            
+            writer.setTargetsIngestion(
+					ingestion.getSolrHandler(),
+					ingestion.getTargetSolr(), 
+					ingestion.getTargetMongo(),
+					ingestion.getMongoHandler());
+			writer.setTargetsProduction(
+					production.getSolrHandler(),
+					production.getTargetSolr(),
+					production.getTargetMongo(),
+					production.getMongoHandler());
+
             Thread t = new Thread(writer);
             t.start();
             try {
@@ -178,7 +201,11 @@ public class Migration {
 
     }
 
-    //Segment the results
+    /** Segment the results
+     * 
+     * @param results
+     * @return
+     */
     private static List<List<SolrDocument>> segment(SolrDocumentList results) {
         List<List<SolrDocument>> segments = new ArrayList<>();
         int i = 0;
@@ -192,4 +219,71 @@ public class Migration {
         return segments;
     }
 
+    
+    /**
+     * 
+     * @author Alena Fedasenka
+     *
+     */
+    private static enum Target {
+    	
+    	INGESTION, PRODUCTION;
+    	
+    	private String[] targetMongoUrl;
+		private String[] targetSolrUrl;    	
+    	private String targetCollection;
+
+		private CloudSolrServer targetSolr;
+        private EdmMongoServer targetMongo;
+        private FullBeanHandler mongoHandler;
+        private SolrDocumentHandler solrHandler;
+    	
+    	private Target() {
+    		String target = this.name().toLowerCase();
+			this.targetMongoUrl = properties.getProperty("target." + target + ".mongo").split(",");
+			this.targetSolrUrl = properties.getProperty("target." + target + ".solr").split(",");
+			this.targetCollection = properties.getProperty("target."+ target + ".collection");
+            
+            String zookeeperHost = properties.getProperty("zookeeper.host");
+            
+			//Connect to target Solr and Mongo
+            try {
+                LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
+                this.targetSolr = new CloudSolrServer(zookeeperHost, lbTarget);
+                this.targetSolr.setDefaultCollection(targetCollection);
+                this.targetSolr.connect();
+        		List<ServerAddress> addresses = new ArrayList<>();
+        		for (String mongoStr : targetMongoUrl) {
+        		    ServerAddress address = new ServerAddress(mongoStr, 27017);
+        		    addresses.add(address);
+        		}
+        		Mongo tgtMongo = new Mongo(addresses);
+        		this.targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana", null, null);
+            } catch (UnknownHostException | MongoDBException | MalformedURLException  ex) {
+                Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            //Initialize Solr Document and Mongo Bean handlers
+            this.mongoHandler = new FullBeanHandler(targetMongo);
+            this.solrHandler = new SolrDocumentHandler(sourceSolr);
+
+		}
+    	
+        public CloudSolrServer getTargetSolr() {
+			return this.targetSolr;
+		}
+
+		public EdmMongoServer getTargetMongo() {
+			return this.targetMongo;
+		}
+
+		public FullBeanHandler getMongoHandler() {
+			return this.mongoHandler;
+		}
+
+		public SolrDocumentHandler getSolrHandler() {
+			return this.solrHandler;
+		}
+    }
+    
 }
