@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
@@ -93,24 +91,19 @@ public class FakeOrder {
 					last.setId(nodeRet.getProperty("rdf:about").toString());
 					last.setNodeId(nodeRet.getId());
 					if (nodeRet.hasProperty("dc:title_xml:lang_def")) {
-						last.setTitle(nodeRet.getProperty(
-								"dc:title_xml:lang_def").toString());
+                                            last.setTitle(((String[]) nodeRet.getProperty("dc:title_xml:lang_def"))[0]);
 					}
 					if (nodeRet.hasProperty("dc:description_xml:lang_def")) {
-						last.setDescription(nodeRet.getProperty(
-								"dc:description_xml:lang_def").toString());
+                                            last.setDescription(((String[]) nodeRet.getProperty("dc:description_xml:lang_def"))[0]);
 					}
 					if (nodeRet.hasProperty("dc:date_xml:lang_def")) {
-						node.setDate(nodeRet.getProperty(
-								"dc:date_xml:lang_def").toString());
+                                            last.setDate(nodeRet.getProperty("dc:date_xml:lang_def").toString());
 					}
 					if (nodeRet.hasProperty("dcterms:created_xml:lang_def")) {
-						node.setCreated(nodeRet.getProperty(
-								"dcterms:created_xml:lang_def").toString());
+                                            last.setCreated(nodeRet.getProperty("dcterms:created_xml:lang_def").toString());
 					}
 					if (nodeRet.hasProperty("dcterms:issued_xml:lang_def")) {
-						node.setIssued(nodeRet.getProperty(
-								"dcterms:issued_xml:lang_def").toString());
+                                            last.setIssued(((String[]) nodeRet.getProperty("dcterms:issued_xml:lang_def"))[0]);
 					}
 					lastChildren.add(last);
 				}
@@ -174,7 +167,7 @@ public class FakeOrder {
 		List<Node> unordered = new ArrayList<Node>();
 		while (children.hasNext()) {
 			Node child = children.next();
-			if (!child.hasRelationship(EDMISNEXTINSEQUENCE)) {
+			if (!(child.hasRelationship(EDMISNEXTINSEQUENCE) || child.hasRelationship(ISFAKEORDER))) {
 				unordered.add(child);
 			}
 		}
@@ -191,24 +184,19 @@ public class FakeOrder {
 			node.setId(unorderedNode.getProperty("rdf:about").toString());
 			node.setNodeId(unorderedNode.getId());
 			if (unorderedNode.hasProperty("dc:title_xml:lang_def")) {
-				node.setTitle(unorderedNode
-						.getProperty("dc:title_xml:lang_def").toString());
+                            node.setTitle(((String[]) unorderedNode.getProperty("dc:title_xml:lang_def"))[0]);
 			}
 			if (unorderedNode.hasProperty("dc:description_xml:lang_def")) {
-				node.setDescription(unorderedNode.getProperty(
-						"dc:description_xml:lang_def").toString());
+                            node.setDescription(((String[]) unorderedNode.getProperty("dc:description_xml:lang_def"))[0]);
 			}
 			if (unorderedNode.hasProperty("dc:date_xml:lang_def")) {
-				node.setDate(unorderedNode.getProperty(
-						"dc:date_xml:lang_def").toString());
+                            node.setDate(unorderedNode.getProperty("dc:date_xml:lang_def").toString());
 			}
 			if (unorderedNode.hasProperty("dcterms:created_xml:lang_def")) {
-				node.setCreated(unorderedNode.getProperty(
-						"dcterms:created_xml:lang_def").toString());
+                            node.setCreated(unorderedNode.getProperty("dcterms:created_xml:lang_def").toString());
 			}
 			if (unorderedNode.hasProperty("dcterms:issued_xml:lang_def")) {
-				node.setIssued(unorderedNode.getProperty(
-						"dcterms:issued_xml:lang_def").toString());
+                            node.setIssued(((String[]) unorderedNode.getProperty("dcterms:issued_xml:lang_def"))[0]);
 			}
                         tx.success();
                         tx.finish();

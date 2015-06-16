@@ -7,7 +7,7 @@ package eu.europeana.neo4j.mapper;
 
 import eu.europeana.neo4j.model.Hierarchy;
 import java.util.Iterator;
-import java.util.logging.Logger;
+import java.util.List;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
@@ -42,12 +42,9 @@ public class ObjectMapper {
                     for (String str : props) {
                         parentArray.add(str);
                     }
-
                     parent.put(key, parentArray);
                 }
-
             }
-
             parents.add(parent);
         }
         json.put("parents", parents);
@@ -72,16 +69,14 @@ public class ObjectMapper {
                     for (String str : props) {
                         parentArray.add(str);
                     }
-
                     sibling.put(key, parentArray);
                 }
             }
-
             siblings.add(sibling);
         }
         json.put("followingSiblings", siblings);
         }
-         ArrayNode siblingsBefore = json.arrayNode();
+        ArrayNode siblingsBefore = json.arrayNode();
         for (Node siblingNode : hierarchy.getPreviousSiblings()) {
             ObjectNode siblingBefore = JsonNodeFactory.instance.objectNode();
 
@@ -101,14 +96,45 @@ public class ObjectMapper {
                     for (String str : props) {
                         parentArray.add(str);
                     }
-
                     siblingBefore.put(key, parentArray);
                 }
             }
-
             siblingsBefore.add(siblingBefore);
         }
-        json.put("preceedingSiblings", siblingsBefore);
+        json.put("precedingSiblings", siblingsBefore);
         return json.toString();
     }
+    
+    
+    public String siblingsToJson(List<Node> siblingsList, String title) {
+        ObjectNode json = JsonNodeFactory.instance.objectNode();
+        ArrayNode siblings = json.arrayNode();
+        for (Node siblingNode : siblingsList) {
+            ObjectNode sibling = JsonNodeFactory.instance.objectNode();
+
+            Iterator<String> siblingProperties = siblingNode.getPropertyKeys().iterator();
+            while (siblingProperties.hasNext()) {
+                String key = siblingProperties.next();
+                Object obj = siblingNode.getProperty(key);
+                if (obj.getClass().isAssignableFrom(String.class)) {
+                    sibling.put(key, (String) siblingNode.getProperty(key));
+                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
+                    sibling.put(key, (Boolean) siblingNode.getProperty(key));
+                } else if (obj.getClass().isAssignableFrom(Long.class)) {
+                    sibling.put(key, (long) siblingNode.getProperty(key));
+                } else {
+                    ArrayNode multiPropArray = sibling.arrayNode();
+                    String[] props = (String[]) siblingNode.getProperty(key);
+                    for (String str : props) {
+                        multiPropArray.add(str);
+                    }
+                    sibling.put(key, multiPropArray);
+                }
+            }
+            siblings.add(sibling);
+        }
+        json.put(title, siblings);
+        return json.toString();
+    }
+    
 }
