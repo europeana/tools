@@ -91,6 +91,7 @@ public class Startup {
             hierarchy.setParents(parents);
             
             List<Node> previousSiblings = new ArrayList<>();
+            List<Node> previousSiblingChildren = new ArrayList<>();
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
@@ -104,6 +105,7 @@ public class Startup {
                 if (endNode.hasProperty("hasChildren")) {
                     long childrenCount = getChildrenCount(endNode.getProperty("rdf:about").toString());
                     endNode.setProperty("childrenCount", childrenCount);
+                    previousSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
                 }
                 
                 if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
@@ -114,8 +116,10 @@ public class Startup {
                 previousSiblings.add(path.endNode());
             }
             hierarchy.setPreviousSiblings(previousSiblings);
+            hierarchy.setPreviousSiblingChildren(previousSiblingChildren);
             
             List<Node> followingSiblings = new ArrayList<>();
+            List<Node> followingSiblingChildren = new ArrayList<>();
             TraversalDescription traversalBefore = db.traversalDescription();
             Traverser traverseBefore = traversalBefore
                     .depthFirst()
@@ -130,6 +134,7 @@ public class Startup {
                 if (endNode.hasProperty("hasChildren")) {
                     long childrenCount = getChildrenCount(endNode.getProperty("rdf:about").toString());
                     endNode.setProperty("childrenCount", childrenCount);
+                    followingSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
                 }
                 followingSiblings.add(endNode);
                 if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
@@ -138,7 +143,8 @@ public class Startup {
                     endNode.setProperty("relBefore", true);
                 }
             }
-            hierarchy.setSiblings(followingSiblings);
+            hierarchy.setFollowingSiblings(followingSiblings);
+            hierarchy.setFollowingSiblingChildren(followingSiblingChildren);
 
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
@@ -172,14 +178,28 @@ public class Startup {
         return maxLength;
     }
 
-    private long getChildrenCount(String id) {
+    private long getChildrenCount(String rdfAbout) {
         Transaction tx = db.beginTx();
         ExecutionResult result = engine.execute(
-                "start n = node:edmsearch2(rdf_about=\"" + id
-                + "\") match (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
+                "start n = node:edmsearch2(rdf_about=\"" + rdfAbout
+                + "\") MATCH (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
         Iterator<Long> columns = result.columnAs("children");
         tx.success();
         tx.finish();
         return columns.next();
+    }
+    
+    private Node getFirstChild(String rdfAbout) {
+        Transaction tx = db.beginTx();
+        ExecutionResult result = engine.execute(
+                "start parent = node:edmsearch2(rdf_about=\"" + rdfAbout 
+                + "\") MATCH (parent)-[:`dcterms:hasPart`]->(firstchild) "
+                + "WHERE NOT ()-[:isFakeOrder]->(firstchild) "
+                + "AND NOT ()-[:`edm:isNextInSequence`]->(firstchild) "
+                + "RETURN firstchild LIMIT 1;");
+        Iterator<Node> firstChild = result.columnAs("firstchild");
+        tx.success();
+        tx.finish();
+        return firstChild.next();
     }
 }
