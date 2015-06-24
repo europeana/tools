@@ -29,6 +29,7 @@ public class TaskReport implements Serializable {
     private long dateCreated;
     private long dateUpdated;
     private String topology;
+    @Indexed
     private Status status;
 
     public Status getStatus() {
@@ -104,7 +105,5 @@ public class TaskReport implements Serializable {
     public void setTotal(long total) {
         this.total = total;
     }
-    
-    
 }
             

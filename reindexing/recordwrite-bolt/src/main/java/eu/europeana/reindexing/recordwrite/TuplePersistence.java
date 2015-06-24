@@ -5,6 +5,18 @@
  */
 package eu.europeana.reindexing.recordwrite;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.codehaus.jackson.map.ObjectMapper;
+
 import backtype.storm.tuple.Tuple;
 import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
@@ -18,16 +30,6 @@ import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.EntityWrapperList;
 import eu.europeana.reindexing.common.ReindexingTuple;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
@@ -35,31 +37,58 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class TuplePersistence implements Runnable {
 
+	private final List<Tuple> tuples;
+	private final CountDownLatch latch;
     
-    private final FullBeanHandler mongoHandler;
-    private final EdmMongoServer mongoServer;
-    private final CloudSolrServer solrServer;
-    private final SolrDocumentHandler solrHandler;
-    private final List<Tuple> tuples;
-    private final CountDownLatch latch;
+	private final SolrDocumentHandler solrHandlerIngst;
+	private final CloudSolrServer solrServerIngst;
+	private final EdmMongoServer mongoServerIngst;
+    private final FullBeanHandler mongoHandlerIngst;
+    
+	private final SolrDocumentHandler solrHandlerProd;
+	private final CloudSolrServer solrServerProd;
+	private final EdmMongoServer mongoServerProd;
+    private final FullBeanHandler mongoHandlerProd;
+
     private final ObjectMapper om = new ObjectMapper();
-    public TuplePersistence(FullBeanHandler mongoHandler, EdmMongoServer mongoServer, CloudSolrServer solrServer, SolrDocumentHandler solrHandler, List<Tuple> tuples, CountDownLatch latch) {
+    
+    public TuplePersistence(FullBeanHandler mongoHandlerIngst, EdmMongoServer mongoServerIngst, CloudSolrServer solrServerIngst, SolrDocumentHandler solrHandlerIngst,
+    						FullBeanHandler mongoHandlerProd, EdmMongoServer mongoServerProd, CloudSolrServer solrServerProd, SolrDocumentHandler solrHandlerProd,
+    						List<Tuple> tuples, CountDownLatch latch) {
         
-        this.mongoHandler = mongoHandler;
-        this.mongoServer = mongoServer;
-        this.solrServer = solrServer;
-        this.solrHandler = solrHandler;
+        this.mongoHandlerIngst = mongoHandlerIngst;
+        this.mongoServerIngst = mongoServerIngst;
+        this.solrServerIngst = solrServerIngst;
+        this.solrHandlerIngst = solrHandlerIngst;
+        
+        this.mongoHandlerProd = mongoHandlerProd;
+        this.mongoServerProd = mongoServerProd;
+        this.solrServerProd = solrServerProd;
+        this.solrHandlerProd = solrHandlerProd;
+       
         this.tuples = tuples;
         this.latch= latch;
     }
 
     @Override
     public void run() {
-        for (Tuple tuple : tuples) {
+		//write data to INGESTION
+        save(solrHandlerIngst, solrServerIngst, mongoServerIngst, mongoHandlerIngst);
+        //write data to PRODUCTION
+        save(solrHandlerProd, solrServerProd, mongoServerProd, mongoHandlerProd);
+        //Notify the main thread that you finished and that it does not have to wait for you now
+		latch.countDown();
+		Logger.getLogger("Finished processing and persisting");
+    }
+
+	private void save(SolrDocumentHandler solrHandler,
+			CloudSolrServer solrServer,
+			EdmMongoServer mongoServer,
+			FullBeanHandler mongoHandler) {
+		for (Tuple tuple : tuples) {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
 
-            try {
-                
+            try {               
                 FullBeanImpl fBean = mongoServer.searchByAbout(FullBeanImpl.class, task.getIdentifier());
                 cleanFullBean(fBean);
                 
@@ -73,9 +102,7 @@ public class TuplePersistence implements Runnable {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-         latch.countDown();
-         Logger.getLogger("Finished processing and persisting");
-    }
+	}
     
     
     private void cleanFullBean(FullBeanImpl fBean) {
@@ -117,7 +144,6 @@ public class TuplePersistence implements Runnable {
             }
             new EntityAppender().addEntities(fBean, europeanaProxy, enriched);
             fBean.getProxies().set(index, europeanaProxy);
-
         } catch (IOException ex) {
             Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -146,7 +172,6 @@ public class TuplePersistence implements Runnable {
             }
             entities.add(ret);
         }
-
         return entities;
     }
 }

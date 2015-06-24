@@ -44,27 +44,42 @@ public class RecordWriteBolt extends BaseRichBolt {
 
     private OutputCollector collector;
 
-    private EdmMongoServer mongoServer;
-    private CloudSolrServer solrServer;
-    private List<Tuple> tuples ;
+    private FullBeanHandler mongoHandlerIngst;
+    private EdmMongoServer mongoServerIngst;
+    private CloudSolrServer solrServerIngst;
+    private SolrDocumentHandler solrHandlerIngst;
+    private String zkHostIngst;
+   
+    private FullBeanHandler mongoHandlerProd;
+    private EdmMongoServer mongoServerProd;
+    private CloudSolrServer solrServerProd;
+    private SolrDocumentHandler solrHandlerProd;
+    private String zkHostProd;
+    
+    private List<Tuple> tuples;
     private Datastore datastore;
 
     private long i;
+ 
+    private String[] ingstMongoAddresses;
+    private String[] ingstSolrAddresses;
+    private String ingstSolrCollection;
+    
+    private String[] prodMongoAddresses;
+    private String[] prodSolrAddresses;
+    private String prodSolrCollection;
 
-    private FullBeanHandler mongoHandler;
-    private SolrDocumentHandler solrHandler;
-
-    private String zkHost;
-    private String[] mongoAddresses;
-    private String[] solrAddresses;
-    private String solrCollection;
-
-    public RecordWriteBolt(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection) {
-        this.zkHost = zkHost;
-        this.mongoAddresses = mongoAddresses;
-        this.solrAddresses = solrAddresses;
-        this.solrCollection = solrCollection;
+	public RecordWriteBolt(String ingstZkHost, String[] ingstMongoAddresses, String[] ingstSolrAddresses, String ingstSolrCollection,
+						   String prodZkHost, String[] prodMongoAddresses, String[] prodSolrAddresses, String prodSolrCollection) {		
+		this.ingstMongoAddresses = ingstMongoAddresses;
+        this.ingstSolrAddresses = ingstSolrAddresses;
+        this.ingstSolrCollection = ingstSolrCollection;
+        this.zkHostIngst = ingstZkHost;
         
+		this.prodMongoAddresses = prodMongoAddresses;
+        this.prodSolrAddresses = prodSolrAddresses;
+        this.prodSolrCollection = prodSolrCollection;        
+        this.zkHostProd = prodZkHost;
     }
 
     @Override
@@ -77,24 +92,43 @@ public class RecordWriteBolt extends BaseRichBolt {
         try {
             this.collector = oc;
             tuples = new ArrayList<>();
-            LBHttpSolrServer lbTarget = new LBHttpSolrServer(solrAddresses);
-            solrServer = new CloudSolrServer(zkHost, lbTarget);
-            solrServer.setDefaultCollection(solrCollection);
-            solrServer.connect();
-            List<ServerAddress> addresses = new ArrayList<>();
-            for (String mongoStr : mongoAddresses) {
-                ServerAddress address;
-
-                address = new ServerAddress(mongoStr, 27017);
-                addresses.add(address);
+            LBHttpSolrServer lbTargetIngst = new LBHttpSolrServer(ingstSolrAddresses);
+            solrServerIngst = new CloudSolrServer(zkHostIngst, lbTargetIngst);
+            solrServerIngst.setDefaultCollection(ingstSolrCollection);
+            solrServerIngst.connect();
+            
+            List<ServerAddress> addressesIngst = new ArrayList<>();
+            for (String mongoStr : ingstMongoAddresses) {
+                ServerAddress address = new ServerAddress(mongoStr, 27017);
+                addressesIngst.add(address);
             }
+            
+            Mongo mongoIngst = new Mongo(addressesIngst);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana", null, null);
+            mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
+            solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
+            
+            LBHttpSolrServer lbTargetProd = new LBHttpSolrServer(prodSolrAddresses);
+            solrServerProd = new CloudSolrServer(zkHostProd, lbTargetProd);           
+            solrServerProd.setDefaultCollection(prodSolrCollection);            
+            solrServerProd.connect();
+            
+            List<ServerAddress> addressesProd = new ArrayList<>();
+            for (String mongoStr : prodMongoAddresses) {
+                ServerAddress address = new ServerAddress(mongoStr, 27017);
+                addressesProd.add(address);
+            }
+            
+            Mongo mongoProd = new Mongo(addressesProd);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana", null, null);
+            mongoHandlerProd = new FullBeanHandler(mongoServerProd);
+            solrHandlerProd = new SolrDocumentHandler(solrServerProd);
+            
             i = 0;
-            Mongo mongo = new Mongo(addresses);
-            mongoServer = new EdmMongoServerImpl(mongo, "europeana", null, null);
-            mongoHandler = new FullBeanHandler(mongoServer);
-            solrHandler = new SolrDocumentHandler(solrServer);
+            
+            //datastore
             Morphia morphia = new Morphia().map(TaskReport.class);
-            datastore = morphia.createDatastore(mongoServer.getDatastore().getMongo(), "taskreports");
+            datastore = morphia.createDatastore(mongoServerIngst.getDatastore().getMongo(), "taskreports");
             datastore.ensureIndexes();
             
         } catch (MalformedURLException ex) {
@@ -108,11 +142,8 @@ public class RecordWriteBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple tuple) {
-
         tuples.add(tuple);
         i++;
-        
-
         if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 10000) {
            Logger.getGlobal().log(Level.INFO, "processing " + i + "records");
             processTuples(tuples);
@@ -120,12 +151,18 @@ public class RecordWriteBolt extends BaseRichBolt {
             Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
             UpdateOperations<TaskReport> ops = datastore.createUpdateOperations(TaskReport.class);
             TaskReport report = query.get();
-            if(i<report.getProcessed()){
+           
+            if (i < report.getProcessed()) {
                 i = report.getProcessed() + tuples.size();
             }
             ops.set("processed", i);
             ops.set("dateUpdated", new Date().getTime());
-            ops.set("status", Status.PROCESSING);
+            //TODO Need Yorgos' code review!
+            if (i == report.getTotal()) {
+            	ops.set("status", Status.FINISHED);
+            } else {
+            	ops.set("status", Status.PROCESSING);            	
+            }
             datastore.update(query, ops);
             tuples.clear();
         }
@@ -138,7 +175,9 @@ public class RecordWriteBolt extends BaseRichBolt {
             List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
             CountDownLatch latch = new CountDownLatch(10);
             for (List<Tuple> batch : batches) {
-                Thread t = new Thread(new TuplePersistence(mongoHandler, mongoServer, solrServer, solrHandler, batch, latch));
+                Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
+                										   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, 
+                										   batch, latch));
                 t.start();
             }
             try {
@@ -149,7 +188,9 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
         } else {
             CountDownLatch latch = new CountDownLatch(1);
-            Thread t = new Thread(new TuplePersistence(mongoHandler, mongoServer, solrServer, solrHandler, tuples, latch));
+            Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
+					   								   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, 
+					   								   tuples, latch));
             t.start();
             try {
                 latch.await();

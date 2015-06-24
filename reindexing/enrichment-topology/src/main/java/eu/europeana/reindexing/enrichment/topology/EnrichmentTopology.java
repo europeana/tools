@@ -5,6 +5,13 @@
  */
 package eu.europeana.reindexing.enrichment.topology;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
@@ -14,12 +21,6 @@ import backtype.storm.topology.TopologyBuilder;
 import eu.europeana.reindexing.enrichment.EnrichmentBolt;
 import eu.europeana.reindexing.recordread.ReadSpout;
 import eu.europeana.reindexing.recordwrite.RecordWriteBolt;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -28,38 +29,28 @@ import java.util.logging.Logger;
 public class EnrichmentTopology {
 
     private static Properties properties;
-    private static String path;
-    private static String zkHost;
-    private static String[] mongoAddresses;
-    private static String[] solrAddresses;
-    private static String solrCollection; 
-
-    public StormTopology buildTopology() {
-
-        TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("readSpout", new ReadSpout(zkHost,mongoAddresses,solrAddresses, solrCollection), 1);
-        builder.setBolt("enrichment", new EnrichmentBolt(path, mongoAddresses), 10).setNumTasks(10).shuffleGrouping("readSpout");
-        builder.setBolt("saverecords", new RecordWriteBolt(zkHost,mongoAddresses,solrAddresses, solrCollection), 1).shuffleGrouping("enrichment");
-        return builder.createTopology();
-    }
+    
+    private static Target ingestion;
+    private static Target production;  
+	
+//	private static String zookeeperHost;
+    
+	private static StormTopology topology;
 
     public static void main(String[] args) {
         try {
-            properties = new Properties();
-            properties.load(EnrichmentTopology.class.getResourceAsStream("/topology.properties"));
-
-            solrAddresses = properties.getProperty("solr.host").split(",");
-            zkHost = properties.getProperty("zookeeper.host");
-            solrCollection = properties.getProperty("solr.collection");
-            mongoAddresses = properties.getProperty("mongo.host").split(",");
-            path = properties.getProperty("enrichment.restendpoint");
-            
-
-            Config config = new Config();
-            config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
-            config.setNumWorkers(16);
-            StormTopology topology = new EnrichmentTopology().buildTopology();
-
+        	properties = new Properties();
+        	properties.load(EnrichmentTopology.class.getResourceAsStream("/topology.properties"));
+        	
+        	ingestion = Target.INGESTION;
+        	production = Target.PRODUCTION;
+        	
+        	Config config = new Config();
+        	config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+        	config.setNumWorkers(16);
+        	
+        	topology = buildTopology();
+        	
             StormSubmitter.submitTopology("enrichment", config, topology);
         } catch (AlreadyAliveException | InvalidTopologyException ex) {
             Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
@@ -67,9 +58,66 @@ public class EnrichmentTopology {
             Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
         } catch (UnknownHostException ex) {
             Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
-        }
+		} catch (IOException ex) {
+			Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
+		}
+    }
+    
+	
+    public static StormTopology buildTopology() {
+        TopologyBuilder builder = new TopologyBuilder();
+        builder.setSpout("readSpout", new ReadSpout(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection()), 1);
+        builder.setBolt("enrichment", new EnrichmentBolt(ingestion.getPath(), ingestion.getMongoAddresses()), 10).setNumTasks(10).shuffleGrouping("readSpout");
+		builder.setBolt("saverecords",
+				new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
+									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection()), 1)
+					.shuffleGrouping("enrichment");
+		return builder.createTopology();
+    }
+    
+    /**
+     * 
+     * @author Alena Fedasenka
+     *
+     */
+    private static enum Target {
+    	
+    	INGESTION, PRODUCTION;
+    	
+		private String path;
+		
+    	private String[] mongoAddresses;
+		private String[] solrAddresses;    	
+    	private String solrCollection;
+    	private String zookeeperHost;
+    	
+    	private Target() {    		
+    		String target = this.name().toLowerCase();
+			this.mongoAddresses = properties.getProperty(target + ".mongo.host").split(",");
+			this.solrAddresses = properties.getProperty(target + ".solr.host").split(",");
+			this.solrCollection = properties.getProperty(target + ".solr.collection");
+			this.path = properties.getProperty(target + ".enrichment.restendpoint");         
+			this.zookeeperHost = properties.getProperty(target + ".zookeeper.host");  
+		}
 
+    	public String getPath() {
+    		return this.path;
+    	}
+    	
+    	public String[] getMongoAddresses() {
+    		return this.mongoAddresses;
+    	}
+    	
+    	public String[] getSolrAddresses() {
+    		return this.solrAddresses;
+    	}
+    	
+    	public String getSolrCollection() {
+    		return this.solrCollection;
+    	}
+    	
+    	public String getZookeeperHost() {
+    		return this.zookeeperHost;
+    	}
     }
 }
