@@ -233,6 +233,9 @@ public class Migration {
 		private String[] targetSolrUrl;    	
     	private String targetCollection;
 
+
+
+
 		private CloudSolrServer targetSolr;
         private EdmMongoServer targetMongo;
         private FullBeanHandler mongoHandler;
@@ -242,14 +245,14 @@ public class Migration {
     		String target = this.name().toLowerCase();
 			this.targetMongoUrl = properties.getProperty("target." + target + ".mongo").split(",");
 			this.targetSolrUrl = properties.getProperty("target." + target + ".solr").split(",");
-			this.targetCollection = properties.getProperty("target."+ target + ".collection");
+			this.targetCollection = properties.getProperty("target." + target + ".collection");
             
-            String zookeeperHost = properties.getProperty("zookeeper.host");
+            String[] targetZookeeper = properties.getProperty("zookeeper."+target+".host").split(",");
             
 			//Connect to target Solr and Mongo
             try {
                 LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
-                this.targetSolr = new CloudSolrServer(zookeeperHost, lbTarget);
+                this.targetSolr = new CloudSolrServer(targetZookeeper[0], lbTarget);
                 this.targetSolr.setDefaultCollection(targetCollection);
                 this.targetSolr.connect();
         		List<ServerAddress> addresses = new ArrayList<>();
@@ -284,6 +287,7 @@ public class Migration {
 		public SolrDocumentHandler getSolrHandler() {
 			return this.solrHandler;
 		}
+
     }
     
 }
