@@ -17,6 +17,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import eu.europeana.corelib.definitions.edm.entity.Aggregation;
+import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
@@ -209,6 +211,14 @@ public class ReadWriter implements Runnable {
                     aggr.setEdmUgc("false");
                     fBean.getAggregations().set(0, aggr);
                 }
+                //Adding missing rdf:resource in the EuropeanaAggregation and aggregation
+                String pchoAbout = fBean.getProvidedCHOs().get(0).getAbout();
+                EuropeanaAggregation aggr = fBean.getEuropeanaAggregation();
+                aggr.setAggregatedCHO(pchoAbout);
+                fBean.setEuropeanaAggregation(aggr);
+                AggregationImpl aggregation = fBean.getAggregations().get(0);
+                aggregation.setAggregatedCHO(pchoAbout);
+                fBean.getAggregations().set(0,aggregation);
                 appendWebResources(fBean);
                 
                 //Fix for the edm:rights
