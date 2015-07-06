@@ -233,10 +233,7 @@ public class Migration {
 		private String[] targetSolrUrl;    	
     	private String targetCollection;
 
-
-
-
-		private CloudSolrServer targetSolr;
+    	private CloudSolrServer targetSolr;
         private EdmMongoServer targetMongo;
         private FullBeanHandler mongoHandler;
         private SolrDocumentHandler solrHandler;

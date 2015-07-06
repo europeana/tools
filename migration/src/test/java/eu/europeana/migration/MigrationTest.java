@@ -31,7 +31,6 @@ import org.junit.Test;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-import com.sun.source.tree.AssertTree;
 
 import eu.europeana.corelib.definitions.edm.beans.FullBean;
 import eu.europeana.corelib.definitions.edm.entity.Agent;
@@ -72,14 +71,15 @@ public class MigrationTest {
             properties = new Properties();
             properties.load(new FileInputStream(new File("src/test/resources/migration.properties")));
             String srcMongoUrl = properties.getProperty("source.mongo");
-            String zookeeperHost = properties.getProperty("zookeeper.host");
 
             String[] targetSolrUrlIngst = properties.getProperty("target.ingestion.solr").split(",");
             String[] targetMongoUrlIngst = properties.getProperty("target.ingestion.mongo").split(",");
+            String[] targetZookeeperIngst = properties.getProperty("zookeeper.ingestion.host").split(",");
             String targetCollectionIngst = properties.getProperty("target.ingestion.collection");
             
             String[] targetSolrUrlProd = properties.getProperty("target.production.solr").split(",");
             String[] targetMongoUrlProd = properties.getProperty("target.production.mongo").split(",");
+            String[] targetZookeeperProd = properties.getProperty("zookeeper.production.host").split(",");
             String targetCollectionProd = properties.getProperty("target.production.collection");
 
             //Connect to source Solr and Mongo
@@ -88,7 +88,7 @@ public class MigrationTest {
             
             //Connect to target Solr and Mongo (ingestion)
             LBHttpSolrServer lbTargetIngst = new LBHttpSolrServer(targetSolrUrlIngst);
-            targetSolrIngst = new CloudSolrServer(zookeeperHost, lbTargetIngst);
+            targetSolrIngst = new CloudSolrServer(targetZookeeperIngst[0], lbTargetIngst);
             targetSolrIngst.setDefaultCollection(targetCollectionIngst);
             targetSolrIngst.connect();
             List<ServerAddress> addressesIngst = new ArrayList<>();
@@ -102,7 +102,7 @@ public class MigrationTest {
             
             //Connect to target Solr and Mongo (production)
             LBHttpSolrServer lbTargetProd = new LBHttpSolrServer(targetSolrUrlProd);
-            targetSolrProd = new CloudSolrServer(zookeeperHost, lbTargetProd);
+            targetSolrProd = new CloudSolrServer(targetZookeeperProd[0], lbTargetProd);
             targetSolrProd.setDefaultCollection(targetCollectionProd);
             targetSolrProd.connect();
             List<ServerAddress> addressesProd = new ArrayList<>();
@@ -131,19 +131,18 @@ public class MigrationTest {
         }
     }
  
-    //FIXME: commented for now since the both targets are identical in a properties file.
-//    @Test
-//    public void testProd() {
-//        //Retrieve migrated collections from Production
-//        List<Count> collections = getMigratedCollections(targetSolrProd);
-//        
-//        if (collections != null) {
-//            Logger.getLogger(MigrationTest.class.getName()).log(Level.INFO, "Found " + collections.size() + " collections");
-//            for (Count collection : collections) {
-//                checkSampleBeansInCollection(collection, targetSolrProd, targetMongoProd);
-//            }
-//        }
-//    }
+    @Test
+    public void testProd() {
+        //Retrieve migrated collections from Production
+        List<Count> collections = getMigratedCollections(targetSolrProd);
+        
+        if (collections != null) {
+            Logger.getLogger(MigrationTest.class.getName()).log(Level.INFO, "Found " + collections.size() + " collections");
+            for (Count collection : collections) {
+                checkSampleBeansInCollection(collection, targetSolrProd, targetMongoProd);
+            }
+        }
+    }
 
     private List<Count> getMigratedCollections(SolrServer targetSolr) {
         //Get all the migrated collections (faceting is faster for this one of query
