@@ -175,9 +175,9 @@ public class ReadWriter implements Runnable {
 	@Override
     public void run() {
 		//write data to INGESTION
-        save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
+        //save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         //write data to PRODUCTION
-        save(solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+        save(solrHandlerIngst, cloudServerIngst, targetMongoIngst,fBeanHandlerIngst,solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
         //Notify the main thread that you finished and that it does not have to wait for you now
         latch.countDown();
     }
@@ -185,7 +185,11 @@ public class ReadWriter implements Runnable {
 	private void save(SolrDocumentHandler solrHandler,
 						CloudSolrServer cloudServer,
 						EdmMongoServer targetMongo,
-						FullBeanHandler fBeanHandler) {
+                      FullBeanHandler fBeanHandler,
+                      SolrDocumentHandler solrHandlerProd,
+                      CloudSolrServer cloudServerProd,
+                      EdmMongoServer targetMongoProd,
+						FullBeanHandler fBeanHandlerProd) {
 		List<SolrInputDocument> docList = new ArrayList<>();
          //For every document
          for (SolrDocument doc : segment) {
@@ -222,22 +226,25 @@ public class ReadWriter implements Runnable {
                 appendWebResources(fBean);
                 
                 //Fix for the edm:rights
-                Map<String,List<String>> edmRights = fBean.getAggregations().get(0).getEdmRights();
-                for(String rightsKey:edmRights.keySet()) {
-                	List<String> rights = edmRights.get(rightsKey);
-                	if(rights.size()>1) {
-                		List<String> filteredRights = new ArrayList<>();
-                		for(String right:rights) {
-                			if(StringUtils.isNotBlank(right)) {
-                				filteredRights.add(right);
-                				break;
-                			}
-                		}
-                		edmRights.put(rightsKey, filteredRights);
-                	}
-                }
+                if(fBean.getAggregations().get(0).getEdmRights()!=null) {
+
+                    Map<String, List<String>> edmRights = fBean.getAggregations().get(0).getEdmRights();
+                    for (String rightsKey : edmRights.keySet()) {
+                        List<String> rights = edmRights.get(rightsKey);
+                        if (rights.size() > 1) {
+                            List<String> filteredRights = new ArrayList<>();
+                            for (String right : rights) {
+                                if (StringUtils.isNotBlank(right)) {
+                                    filteredRights.add(right);
+                                    break;
+                                }
+                            }
+                            edmRights.put(rightsKey, filteredRights);
+                        }
+                    }
+
                 fBean.getAggregations().get(0).setEdmRights(edmRights);
-                
+                }
                 //Generate Solr document from bean
                 SolrInputDocument inputDoc = solrHandler.generate(fBean);
                 
@@ -246,11 +253,13 @@ public class ReadWriter implements Runnable {
                 
                 //Save the individual classes in the Mongo cluster
                 fBeanHandler.saveEdmClasses(fBean, true);
-                
+                fBeanHandlerProd.saveEdmClasses(fBean,true);
                 //and then save the records themselves (this does not happen in one go, because of UIM)
                 targetMongo.getDatastore().save(fBean);
-            } catch (MongoDBException | SolrServerException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-                Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
+                targetMongoProd.getDatastore().save(fBean);
+            } catch (Exception ex) {
+                Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, "Got exception for id: " +id, ex);
+
             }
 
         }
@@ -258,6 +267,7 @@ public class ReadWriter implements Runnable {
         try {
             //add the documents in Solr..they will become available..no need to commit.. PATIENZA
             cloudServer.add(docList);
+            cloudServerProd.add(docList);
         } catch (SolrServerException | IOException ex) {
             Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
         }
