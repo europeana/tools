@@ -25,6 +25,12 @@
             <groupId>eu.europeana.reindexing</groupId>
             <artifactId>recordwrite-bolt</artifactId>
         </dependency>
+        <dependency>
+            <version>1.9.5</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

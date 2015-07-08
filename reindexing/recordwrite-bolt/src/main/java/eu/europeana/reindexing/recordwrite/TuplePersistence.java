@@ -72,30 +72,37 @@ public class TuplePersistence implements Runnable {
 
     @Override
     public void run() {
-		//write data to INGESTION
-        save(solrHandlerIngst, solrServerIngst, mongoServerIngst, mongoHandlerIngst);
-        //write data to PRODUCTION
-        save(solrHandlerProd, solrServerProd, mongoServerProd, mongoHandlerProd);
-        //Notify the main thread that you finished and that it does not have to wait for you now
+		//write data to INGESTION&PRODUCTION
+		save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
+				mongoHandlerIngst, solrHandlerProd, solrServerProd,
+				mongoServerProd, mongoHandlerProd);
+		//Notify the main thread that you finished and that it does not have to wait for you now
 		latch.countDown();
 		Logger.getLogger("Finished processing and persisting");
     }
 
-	private void save(SolrDocumentHandler solrHandler,
-			CloudSolrServer solrServer,
-			EdmMongoServer mongoServer,
-			FullBeanHandler mongoHandler) {
+	private void save(SolrDocumentHandler solrHandlerIngst,
+			CloudSolrServer solrServerIngst,
+			EdmMongoServer mongoServerIngst,
+			FullBeanHandler mongoHandlerIngst,
+			SolrDocumentHandler solrHandlerProd,
+			CloudSolrServer solrServerProd,
+			EdmMongoServer mongoServerProd,
+			FullBeanHandler mongoHandlerProd) {
 		for (Tuple tuple : tuples) {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
-
-            try {               
-                FullBeanImpl fBean = mongoServer.searchByAbout(FullBeanImpl.class, task.getIdentifier());
+            try {           
+                FullBeanImpl fBean = mongoServerIngst.searchByAbout(FullBeanImpl.class, task.getIdentifier());
                 cleanFullBean(fBean);
-                
                 appendEntities(fBean, task.getEntityWrapper());
-                mongoHandler.saveEdmClasses(fBean, true);
-                mongoServer.getDatastore().save(fBean);
-                solrServer.add(solrHandler.generate(fBean));
+                
+                mongoHandlerIngst.saveEdmClasses(fBean, true);
+                mongoServerIngst.getDatastore().save(fBean);
+                solrServerIngst.add(solrHandlerIngst.generate(fBean));
+                
+                mongoHandlerProd.saveEdmClasses(fBean, true);
+                mongoServerProd.getDatastore().save(fBean);
+                solrServerProd.add(solrHandlerProd.generate(fBean));
             } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {
