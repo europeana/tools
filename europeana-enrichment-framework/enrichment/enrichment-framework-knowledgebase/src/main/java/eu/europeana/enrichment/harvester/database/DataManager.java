@@ -420,7 +420,8 @@ public class DataManager {
 			for (String label : prefLabel.getValue()) {
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.setCodeUri(agent.getAbout());
-				pTerm.setLabel(label.toLowerCase());
+
+				pTerm.setLabel(StringUtils.substringBefore(label.toLowerCase(),"(").trim());
 				String lang = prefLabel.getKey();
 
 				pTerm.setOriginalLabel(label);
