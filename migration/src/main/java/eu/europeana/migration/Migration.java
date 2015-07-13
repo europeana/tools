@@ -70,7 +70,7 @@ public class Migration {
             production = Target.PRODUCTION;
             
             //Query to the source
-            String query = "europeana_collectionName:2022304*";
+            String query = "europeana_collectionName:2022333_*";
             String fl = "europeana_id";
             SolrQuery params = new SolrQuery();
             params.setQuery(query);
