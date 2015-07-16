@@ -84,7 +84,7 @@ public class ReadSpout extends BaseRichSpout {
 			} catch (InterruptedException ex) {
 				Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
 			}
-    	} else {   		
+    	} else {		
     		for (TaskReport initialTaskReport : initialTaskReports) {    			
     			taskId = initialTaskReport.getTaskId();
     			
@@ -93,7 +93,9 @@ public class ReadSpout extends BaseRichSpout {
     			UpdateOperations<TaskReport> ops = datastore.createUpdateOperations(TaskReport.class);
     			ops.set("dateUpdated", new Date().getTime());    			
     			ops.set("status", Status.PROCESSING);
-    			
+    			if (initialTaskReport.getStatus() == Status.STOPPED) {
+    				continue;
+    			}
     			initialTaskReport.setStatus(Status.PROCESSING);			
     			Logger.getGlobal().info("Processing task report: " + taskId);
     			
@@ -127,6 +129,9 @@ public class ReadSpout extends BaseRichSpout {
     				try {
     					params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
     					QueryResponse resp = solrServer.query(params);
+    					if (initialTaskReport.getStatus() == Status.STOPPED) {
+    						break;
+    					}
     					String nextCursorMark = resp.getNextCursorMark();
 
     					// For query "q" we update "total"

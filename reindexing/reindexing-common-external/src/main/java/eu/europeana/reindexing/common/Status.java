@@ -10,5 +10,5 @@ package eu.europeana.reindexing.common;
  * @author ymamakis
  */
 public enum Status {
-        INITIAL, PROCESSING, FINISHED
+        INITIAL, PROCESSING, FINISHED, STOPPED;
 }
