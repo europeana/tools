@@ -32,19 +32,20 @@ public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
 	@JsonIgnore
 	@XmlTransient
 	private List<DBRef<? extends MongoTerm, String>> terms;
-	private String id;
-	protected T representation;
-	private String entityType;
-
 	@ObjectId
 	@JsonProperty("_id")
 	@JsonSerialize(using = ObjectIdSerializer.class)
+	private String id;
+
+	public String _id;
+	protected T representation;
+	private String entityType;
+
+
 	public String getId() {
 		return id;
 	}
 
-	@ObjectId
-	@JsonProperty("_id")
 	public void setId(String id) {
 		this.id = id;
 	}

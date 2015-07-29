@@ -49,7 +49,7 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public class Enricher {
-
+	private static InternalEnricher enricher= new InternalEnricher();
 	/**
 	 * Main enrichment method
 	 * 
@@ -63,7 +63,7 @@ public class Enricher {
 	public List<EntityWrapper> tagExternal(List<InputValue> values)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-		entities.addAll(new InternalEnricher().tag(values));
+		entities.addAll(enricher.tag(values));
 		return entities;
 	}
 
@@ -208,7 +208,7 @@ public class Enricher {
 			port = Integer.parseInt(args[1]);
 		}
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
-
+			enricher = new InternalEnricher();
 			File cacheDir = new File(path + "/tmp");
 			File baseDir = new File(path);
 			String placeFiles = "places/EU/*.rdf";

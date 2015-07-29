@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 import org.apache.commons.lang.StringUtils;
@@ -420,7 +422,85 @@ public class MongoDatabaseUtils<T> {
 
         }
     }
+    public static Map<MongoTerm, MongoTermList> getAllAgents() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("people"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        HashMap lst = new HashMap();
+        boolean i = false;
 
+        while(curs.hasNext()) {
+            try {
+                MongoTerm ex = (MongoTerm)curs.next();
+                MongoTermList t = findByCode(ex.getCodeUri(), "people");
+                lst.put(ex, t);
+            } catch (MalformedURLException var6) {
+                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var6);
+            }
+        }
+
+        return lst;
+    }
+
+    public static Map<MongoTerm, MongoTermList> getAllConcepts() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("concept"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        HashMap lst = new HashMap();
+
+        while(curs.hasNext()) {
+            try {
+                MongoTerm ex = (MongoTerm)curs.next();
+                MongoTermList t = findByCode(ex.getCodeUri(), "concept");
+                lst.put(ex, t);
+            } catch (MalformedURLException var5) {
+                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var5);
+            }
+        }
+
+        return lst;
+    }
+
+    public static Map<MongoTerm, MongoTermList> getAllPlaces() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("place"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        HashMap lst = new HashMap();
+
+        while(curs.hasNext()) {
+            try {
+                MongoTerm ex = (MongoTerm)curs.next();
+                MongoTermList t = findByCode(ex.getCodeUri(), "place");
+                lst.put(ex, t);
+            } catch (MalformedURLException var5) {
+                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var5);
+            }
+        }
+
+        return lst;
+    }
+
+    public static Map<MongoTerm, TimespanTermList> getAllTimespans() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("period"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        HashMap lst = new HashMap();
+
+        while(curs.hasNext()) {
+            MongoTerm mTerm = (MongoTerm)curs.next();
+            TimespanTermList t = findTimespanByCode(mTerm.getCodeUri());
+            lst.put(mTerm, t);
+        }
+
+        return lst;
+    }
+
+
+    private static TimespanTermList findTimespanByCode(String codeUri) {
+        DBCursor curs = (DBCursor)tColl.find().is("codeUri", codeUri);
+        if(curs.hasNext()) {
+            TimespanTermList terms = (TimespanTermList)curs.next();
+            return terms;
+        } else {
+            return null;
+        }
+    }
     //Sample conversion code from AgentImpl to AgentTermList
     private static void agentToAgentTermList(AgentImpl agent)
             throws IOException, JiBXException {
