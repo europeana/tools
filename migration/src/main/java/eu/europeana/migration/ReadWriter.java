@@ -177,9 +177,15 @@ public class ReadWriter implements Runnable {
 		//write data to INGESTION
         //save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         //write data to PRODUCTION
-        save(solrHandlerIngst, cloudServerIngst, targetMongoIngst,fBeanHandlerIngst,solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+        try {
+            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst, solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            latch.countDown();
+        }
         //Notify the main thread that you finished and that it does not have to wait for you now
-        latch.countDown();
+
     }
 
 	private void save(SolrDocumentHandler solrHandler,
