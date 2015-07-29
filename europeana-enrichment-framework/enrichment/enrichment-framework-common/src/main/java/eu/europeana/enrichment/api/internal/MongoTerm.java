@@ -1,6 +1,7 @@
 package eu.europeana.enrichment.api.internal;
 
-import net.vz.mongodb.jackson.Id;
+
+import org.mongojack.Id;
 
 /**
  * Basic POJO for search by label functionality. The class is comprised by the

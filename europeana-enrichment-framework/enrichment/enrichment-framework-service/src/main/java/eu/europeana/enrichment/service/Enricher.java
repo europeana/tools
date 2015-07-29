@@ -213,7 +213,7 @@ public class Enricher {
 			File baseDir = new File(path);
 			String placeFiles = "places/EU/*.rdf";
 			String countryFiles = "places/countries/*.rdf";
-			vocabularyOfPlaces.loadTermsSPARQL(
+			/*vocabularyOfPlaces.loadTermsSPARQL(
 					vocabularyOfPlaces.makeTermsQuery("dcterms:isPartOf"),
 					cacheDir, baseDir, placeFiles, countryFiles);
 			vocabularyOfPlaces.loadTermPropertiesSPARQL("population",
@@ -243,7 +243,7 @@ public class Enricher {
 			vocabularyOfPeriods.loadTermPropertiesSPARQL("end",
 					makeTimePropertyQuery("endDate"), cacheDir, baseDir,
 					timeFiles);
-			MongoDatabaseUtils.save("period", vocabularyOfPeriods);
+			MongoDatabaseUtils.save("period", vocabularyOfPeriods);*/
 			vocabularyOfTerms.loadTermsSPARQL(
 					vocabularyOfTerms.makeTermsQuery("skos:broader"), cacheDir,
 					baseDir, "concepts/gemet/gemet*.rdf");
@@ -253,7 +253,7 @@ public class Enricher {
 
 			MongoDatabaseUtils.save("concept", vocabularyOfTerms);
 
-			String peopleFiles = "people/*.rdf";
+			/*String peopleFiles = "people/*.rdf";
 			vocabularyOfPeople.loadTermsSPARQL(
 					vocabularyOfPeople.makeTermsQuery("dcterms:isPartOf"),
 					cacheDir, baseDir, peopleFiles);
@@ -264,7 +264,7 @@ public class Enricher {
 					makePeoplePropertyQuery("death"), cacheDir, baseDir,
 					peopleFiles);
 
-			MongoDatabaseUtils.save("people", vocabularyOfPeople);
+			MongoDatabaseUtils.save("people", vocabularyOfPeople);*/
 		}
 
 	}

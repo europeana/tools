@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-import net.vz.mongodb.jackson.DBRef;
-import net.vz.mongodb.jackson.ObjectId;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -13,6 +11,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import eu.europeana.corelib.solr.entity.AbstractEdmEntityImpl;
 import eu.europeana.enrichment.api.external.ObjectIdSerializer;
+import org.mongojack.DBRef;
+import org.mongojack.ObjectId;
 
 /**
  * Basic Class linking a number of MonoTerms. This class enables searching by

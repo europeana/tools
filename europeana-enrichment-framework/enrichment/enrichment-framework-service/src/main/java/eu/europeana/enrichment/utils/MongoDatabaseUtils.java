@@ -14,10 +14,6 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.vz.mongodb.jackson.DBCursor;
-import net.vz.mongodb.jackson.DBRef;
-import net.vz.mongodb.jackson.JacksonDBCollection;
-import net.vz.mongodb.jackson.WriteResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.jibx.runtime.JiBXException;
@@ -44,7 +40,11 @@ import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
-import net.vz.mongodb.jackson.DBQuery;
+import org.mongojack.DBCursor;
+import org.mongojack.DBRef;
+import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
+
 
 /**
  * Util class for saving and retrieving TermLists from Mongo It is used to

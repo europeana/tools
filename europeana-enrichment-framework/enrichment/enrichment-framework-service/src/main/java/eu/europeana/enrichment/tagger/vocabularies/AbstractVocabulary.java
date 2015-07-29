@@ -251,7 +251,7 @@ public abstract class AbstractVocabulary implements Vocabulary {
 		loadMap(locations, locationDescriptionForExceptionLogging, this.name,
 				query, isSesame, cacheDir, handler);
 
-		reconstructParents(handler);
+		//reconstructParents(handler);
 
 		// if (codeSet().size() == 0)
 		// throw new Exception("No terms loaded to vocabulary " + name);
