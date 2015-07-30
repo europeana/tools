@@ -205,22 +205,18 @@ public class MongoDatabaseUtils<T> {
      */
     public static MongoTermList findByCode(String codeUri, String dbtable)
             throws MalformedURLException {
-        Map<String, MongoTermList> typeMap = memCache.get(dbtable) != null ? memCache
-                .get(dbtable) : new ConcurrentHashMap<String, MongoTermList>();
-        if (typeMap.containsKey(codeUri)) {
-            return typeMap.get(codeUri);
-        }
+
         if (dbtable.equals("concept")) {
-            return findConceptByCode(codeUri, typeMap);
+            return findConceptByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("place")) {
-            return findPlaceByCode(codeUri, typeMap);
+            return findPlaceByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("people")) {
-            return findAgentByCode(codeUri, typeMap);
+            return findAgentByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("period")) {
-            return findTimespanByCode(codeUri, typeMap);
+            return findTimespanByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         return null;
     }
@@ -240,10 +236,10 @@ public class MongoDatabaseUtils<T> {
     private static MongoTermList findAgentByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
         DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
+        Logger.getLogger(MongoDatabaseUtils.class.getName()).info("Parsed " + codeUri);
         if (curs.hasNext()) {
             AgentTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("people", typeMap);
+
             return terms;
         }
         return null;
@@ -254,8 +250,7 @@ public class MongoDatabaseUtils<T> {
         DBCursor<PlaceTermList> curs = pColl.find().is("codeUri", codeUri);
         if (curs.hasNext()) {
             PlaceTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("place", typeMap);
+
             return terms;
         }
         return null;
@@ -266,8 +261,7 @@ public class MongoDatabaseUtils<T> {
         DBCursor<ConceptTermList> curs = cColl.find().is("codeUri", codeUri);
         if (curs.hasNext()) {
             ConceptTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("concept", typeMap);
+
             return terms;
         }
         return null;
@@ -298,8 +292,7 @@ public class MongoDatabaseUtils<T> {
         if (curs.hasNext()) {
             MongoTerm mTerm = curs.next();
             MongoTermList t = findByCode(mTerm.getCodeUri(), dbtable);
-            typeMap.put(label.toLowerCase(), t);
-            memCache.put(dbtable, typeMap);
+
             return t;
         }
         return null;
@@ -422,70 +415,64 @@ public class MongoDatabaseUtils<T> {
 
         }
     }
-    public static Map<MongoTerm, MongoTermList> getAllAgents() {
+    public static List<MongoTerm> getAllAgents() {
         JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("people"), MongoTerm.class, String.class);
         DBCursor curs = pColl.find();
-        HashMap lst = new HashMap();
+        List lst = new ArrayList();
         boolean i = false;
 
         while(curs.hasNext()) {
-            try {
+
                 MongoTerm ex = (MongoTerm)curs.next();
-                MongoTermList t = findByCode(ex.getCodeUri(), "people");
-                lst.put(ex, t);
-            } catch (MalformedURLException var6) {
-                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var6);
-            }
+                //MongoTermList t = findByCode(ex.getCodeUri(), "people");
+                lst.add(ex);
+
         }
 
         return lst;
     }
 
-    public static Map<MongoTerm, MongoTermList> getAllConcepts() {
+    public static List<MongoTerm> getAllConcepts() {
         JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("concept"), MongoTerm.class, String.class);
         DBCursor curs = pColl.find();
-        HashMap lst = new HashMap();
+        List<MongoTerm> lst = new ArrayList<>();
 
         while(curs.hasNext()) {
-            try {
+
                 MongoTerm ex = (MongoTerm)curs.next();
-                MongoTermList t = findByCode(ex.getCodeUri(), "concept");
-                lst.put(ex, t);
-            } catch (MalformedURLException var5) {
-                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var5);
-            }
+              //  MongoTermList t = findByCode(ex.getCodeUri(), "concept");
+                lst.add(ex);
+
         }
 
         return lst;
     }
 
-    public static Map<MongoTerm, MongoTermList> getAllPlaces() {
+    public static List<MongoTerm> getAllPlaces() {
         JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("place"), MongoTerm.class, String.class);
         DBCursor curs = pColl.find();
-        HashMap lst = new HashMap();
+        List<MongoTerm> lst = new ArrayList<>();
 
         while(curs.hasNext()) {
-            try {
+
                 MongoTerm ex = (MongoTerm)curs.next();
-                MongoTermList t = findByCode(ex.getCodeUri(), "place");
-                lst.put(ex, t);
-            } catch (MalformedURLException var5) {
-                Logger.getLogger(MongoDatabaseUtils.class.getName()).log(Level.SEVERE, (String)null, var5);
-            }
+               // MongoTermList t = findByCode(ex.getCodeUri(), "place");
+                lst.add(ex);
+
         }
 
         return lst;
     }
 
-    public static Map<MongoTerm, TimespanTermList> getAllTimespans() {
+    public static List<MongoTerm> getAllTimespans() {
         JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("period"), MongoTerm.class, String.class);
         DBCursor curs = pColl.find();
-        HashMap lst = new HashMap();
+        List<MongoTerm> lst = new ArrayList<>();
 
         while(curs.hasNext()) {
             MongoTerm mTerm = (MongoTerm)curs.next();
-            TimespanTermList t = findTimespanByCode(mTerm.getCodeUri());
-            lst.put(mTerm, t);
+          //  TimespanTermList t = findTimespanByCode(mTerm.getCodeUri());
+            lst.add(mTerm);
         }
 
         return lst;
