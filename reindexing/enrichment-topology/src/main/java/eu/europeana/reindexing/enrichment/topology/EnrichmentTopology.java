@@ -66,7 +66,7 @@ public class EnrichmentTopology {
 	
     public static StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("readSpout", new ReadSpout(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection()), 1);
+        builder.setSpout("readSpout", new ReadSpout(production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection()), 1);
         builder.setBolt("enrichment", new EnrichmentBolt(ingestion.getPath(), ingestion.getMongoAddresses()), 10).setNumTasks(10).shuffleGrouping("readSpout");
 		builder.setBolt("saverecords",
 				new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
