@@ -104,7 +104,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoIngst = new Mongo(addressesIngst);
-            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana", null, null);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana_test1", null, null);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
             
@@ -120,7 +120,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana", null, null);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana_test1", null, null);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             
@@ -144,6 +144,7 @@ public class RecordWriteBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         tuples.add(tuple);
         i++;
+        Logger.getGlobal().log(Level.INFO, "got " + i + " records");
         if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 10000) {
            Logger.getGlobal().log(Level.INFO, "processing " + i + "records");
             processTuples(tuples);
@@ -157,7 +158,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             ops.set("processed", i);
             ops.set("dateUpdated", new Date().getTime());
-            
+
             //to reset the index "i"
             if (report.getStatus() == Status.STOPPED) {
             	i = 0;
@@ -166,7 +167,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             //to finish a current task report and reset the index "i"
             if (i == report.getTotal()) {
             	ops.set("status", Status.FINISHED);
-            	i = 0;
+                i=0;
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
