@@ -2,12 +2,13 @@ package eu.europeana.enrichment.harvester.api;
 
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Property;
+import org.mongojack.Id;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import net.vz.mongodb.jackson.Id;
 
 
 @Entity

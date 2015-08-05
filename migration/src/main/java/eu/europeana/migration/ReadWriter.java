@@ -177,9 +177,15 @@ public class ReadWriter implements Runnable {
 		//write data to INGESTION
         //save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         //write data to PRODUCTION
-        save(solrHandlerIngst, cloudServerIngst, targetMongoIngst,fBeanHandlerIngst,solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+        try {
+            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst, solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            latch.countDown();
+        }
         //Notify the main thread that you finished and that it does not have to wait for you now
-        latch.countDown();
+
     }
 
 	private void save(SolrDocumentHandler solrHandler,
@@ -253,10 +259,10 @@ public class ReadWriter implements Runnable {
                 
                 //Save the individual classes in the Mongo cluster
                 fBeanHandler.saveEdmClasses(fBean, true);
-                fBeanHandlerProd.saveEdmClasses(fBean,true);
+                //fBeanHandlerProd.saveEdmClasses(fBean,true);
                 //and then save the records themselves (this does not happen in one go, because of UIM)
                 targetMongo.getDatastore().save(fBean);
-                targetMongoProd.getDatastore().save(fBean);
+                //targetMongoProd.getDatastore().save(fBean);
             } catch (Exception ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, "Got exception for id: " +id, ex);
 

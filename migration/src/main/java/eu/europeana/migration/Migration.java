@@ -64,13 +64,13 @@ public class Migration {
             //Connect to Solr and Mongo (source)
             mongo = new Mongo(srcMongoUrl, 27017);
             sourceSolr = new HttpSolrServer(srcSolrUrl);
-            sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
+            sourceMongo = new EdmMongoServerImpl(mongo, "europeana_test1", null, null);
             
             ingestion = Target.INGESTION;
             production = Target.PRODUCTION;
             
             //Query to the source
-            String query = "europeana_collectionName:2048605_*";
+            String query = "*:*";
             String fl = "europeana_id";
             SolrQuery params = new SolrQuery();
             params.setQuery(query);
@@ -258,7 +258,7 @@ public class Migration {
         		    addresses.add(address);
         		}
         		Mongo tgtMongo = new Mongo(addresses);
-        		this.targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana", null, null);
+        		this.targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana_test1", null, null);
             } catch (UnknownHostException | MongoDBException | MalformedURLException  ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
             }

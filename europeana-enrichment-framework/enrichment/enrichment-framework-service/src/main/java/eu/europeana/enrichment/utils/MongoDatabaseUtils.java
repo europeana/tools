@@ -13,11 +13,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.vz.mongodb.jackson.DBCursor;
-import net.vz.mongodb.jackson.DBRef;
-import net.vz.mongodb.jackson.JacksonDBCollection;
-import net.vz.mongodb.jackson.WriteResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.jibx.runtime.JiBXException;
@@ -44,7 +42,11 @@ import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
-import net.vz.mongodb.jackson.DBQuery;
+import org.mongojack.DBCursor;
+import org.mongojack.DBRef;
+import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
+
 
 /**
  * Util class for saving and retrieving TermLists from Mongo It is used to
@@ -203,22 +205,18 @@ public class MongoDatabaseUtils<T> {
      */
     public static MongoTermList findByCode(String codeUri, String dbtable)
             throws MalformedURLException {
-        Map<String, MongoTermList> typeMap = memCache.get(dbtable) != null ? memCache
-                .get(dbtable) : new ConcurrentHashMap<String, MongoTermList>();
-        if (typeMap.containsKey(codeUri)) {
-            return typeMap.get(codeUri);
-        }
+
         if (dbtable.equals("concept")) {
-            return findConceptByCode(codeUri, typeMap);
+            return findConceptByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("place")) {
-            return findPlaceByCode(codeUri, typeMap);
+            return findPlaceByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("people")) {
-            return findAgentByCode(codeUri, typeMap);
+            return findAgentByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         if (dbtable.equals("period")) {
-            return findTimespanByCode(codeUri, typeMap);
+            return findTimespanByCode(codeUri, new HashMap<String, MongoTermList>());
         }
         return null;
     }
@@ -238,10 +236,10 @@ public class MongoDatabaseUtils<T> {
     private static MongoTermList findAgentByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
         DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
+        Logger.getLogger(MongoDatabaseUtils.class.getName()).info("Parsed " + codeUri);
         if (curs.hasNext()) {
             AgentTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("people", typeMap);
+
             return terms;
         }
         return null;
@@ -252,8 +250,7 @@ public class MongoDatabaseUtils<T> {
         DBCursor<PlaceTermList> curs = pColl.find().is("codeUri", codeUri);
         if (curs.hasNext()) {
             PlaceTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("place", typeMap);
+
             return terms;
         }
         return null;
@@ -264,8 +261,7 @@ public class MongoDatabaseUtils<T> {
         DBCursor<ConceptTermList> curs = cColl.find().is("codeUri", codeUri);
         if (curs.hasNext()) {
             ConceptTermList terms = curs.next();
-            typeMap.put(codeUri, terms);
-            memCache.put("concept", typeMap);
+
             return terms;
         }
         return null;
@@ -296,8 +292,7 @@ public class MongoDatabaseUtils<T> {
         if (curs.hasNext()) {
             MongoTerm mTerm = curs.next();
             MongoTermList t = findByCode(mTerm.getCodeUri(), dbtable);
-            typeMap.put(label.toLowerCase(), t);
-            memCache.put(dbtable, typeMap);
+
             return t;
         }
         return null;
@@ -420,7 +415,79 @@ public class MongoDatabaseUtils<T> {
 
         }
     }
+    public static List<MongoTerm> getAllAgents() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("people"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        List lst = new ArrayList();
+        boolean i = false;
 
+        while(curs.hasNext()) {
+
+                MongoTerm ex = (MongoTerm)curs.next();
+                //MongoTermList t = findByCode(ex.getCodeUri(), "people");
+                lst.add(ex);
+
+        }
+
+        return lst;
+    }
+
+    public static List<MongoTerm> getAllConcepts() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("concept"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        List<MongoTerm> lst = new ArrayList<>();
+
+        while(curs.hasNext()) {
+
+                MongoTerm ex = (MongoTerm)curs.next();
+              //  MongoTermList t = findByCode(ex.getCodeUri(), "concept");
+                lst.add(ex);
+
+        }
+
+        return lst;
+    }
+
+    public static List<MongoTerm> getAllPlaces() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("place"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        List<MongoTerm> lst = new ArrayList<>();
+
+        while(curs.hasNext()) {
+
+                MongoTerm ex = (MongoTerm)curs.next();
+               // MongoTermList t = findByCode(ex.getCodeUri(), "place");
+                lst.add(ex);
+
+        }
+
+        return lst;
+    }
+
+    public static List<MongoTerm> getAllTimespans() {
+        JacksonDBCollection pColl = JacksonDBCollection.wrap(db.getCollection("period"), MongoTerm.class, String.class);
+        DBCursor curs = pColl.find();
+        List<MongoTerm> lst = new ArrayList<>();
+
+        while(curs.hasNext()) {
+            MongoTerm mTerm = (MongoTerm)curs.next();
+          //  TimespanTermList t = findTimespanByCode(mTerm.getCodeUri());
+            lst.add(mTerm);
+        }
+
+        return lst;
+    }
+
+
+    private static TimespanTermList findTimespanByCode(String codeUri) {
+        DBCursor curs = (DBCursor)tColl.find().is("codeUri", codeUri);
+        if(curs.hasNext()) {
+            TimespanTermList terms = (TimespanTermList)curs.next();
+            return terms;
+        } else {
+            return null;
+        }
+    }
     //Sample conversion code from AgentImpl to AgentTermList
     private static void agentToAgentTermList(AgentImpl agent)
             throws IOException, JiBXException {
