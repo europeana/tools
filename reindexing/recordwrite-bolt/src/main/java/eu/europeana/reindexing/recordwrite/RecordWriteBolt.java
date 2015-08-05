@@ -157,9 +157,16 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             ops.set("processed", i);
             ops.set("dateUpdated", new Date().getTime());
-            //TODO Need Yorgos' code review!
+            
+            //to reset the index "i"
+            if (report.getStatus() == Status.STOPPED) {
+            	i = 0;
+            }
+            
+            //to finish a current task report and reset the index "i"
             if (i == report.getTotal()) {
             	ops.set("status", Status.FINISHED);
+            	i = 0;
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }

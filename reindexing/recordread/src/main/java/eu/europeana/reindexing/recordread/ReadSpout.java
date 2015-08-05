@@ -136,6 +136,13 @@ public class ReadSpout extends BaseRichSpout {
 
     					// For query "q" we update "total"
     					ops.set("total", resp.getResults().getNumFound());
+    					
+    					//if the number of results is 0 then we finish the task report
+    					if (resp.getResults().getNumFound() == 0) {
+    						initialTaskReport.setStatus(Status.FINISHED);
+    						break;
+    					}
+    					
     					// Update current task report at the data store
     	    			datastore.update(q, ops);
     	    			
