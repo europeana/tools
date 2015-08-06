@@ -116,14 +116,6 @@ public class ReadSpout extends BaseRichSpout {
     				Logger.getGlobal().info("Processed for taskId " + taskId + " = " + processed);
     				try {
 						TaskReport report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
-						while(processed>report.getProcessed()){
-							report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
-							try {
-								Thread.sleep(30000);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
     					params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
     					QueryResponse resp = solrServer.query(params);
     					if ( report.getStatus() == Status.STOPPED) {
@@ -149,9 +141,21 @@ public class ReadSpout extends BaseRichSpout {
     					// Exit if reached the end
     					if (cursorMark.equals(nextCursorMark)) {
     						done = true;
+							ops.set("status", Status.FINISHED);
     						Logger.getGlobal().info("Done is now true for taskId " + taskId);
     					}
+
+
+						while(processed>report.getProcessed()){
+							report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
+							try {
+								Thread.sleep(30000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
     					cursorMark = nextCursorMark;
+
 						// Update the query mark
 						ops.set("queryMark", nextCursorMark);
 						// Update current task report at the data store
