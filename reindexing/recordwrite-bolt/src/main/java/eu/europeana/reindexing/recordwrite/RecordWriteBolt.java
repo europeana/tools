@@ -120,7 +120,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana_test1", null, null);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana_test2", null, null);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             
@@ -145,7 +145,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         tuples.add(tuple);
         i++;
         Logger.getGlobal().log(Level.INFO, "got " + i + " records");
-        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 10000) {
+        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 5000) {
            Logger.getGlobal().log(Level.INFO, "processing " + i + "records");
             processTuples(tuples);
             
@@ -179,7 +179,7 @@ public class RecordWriteBolt extends BaseRichBolt {
     }
 
     private void processTuples(List<Tuple> tuples) {
-        if (tuples.size() == 10000) {
+        if (tuples.size() == 5000) {
             List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
             CountDownLatch latch = new CountDownLatch(10);
             for (List<Tuple> batch : batches) {
@@ -212,7 +212,7 @@ public class RecordWriteBolt extends BaseRichBolt {
     private List<List<Tuple>> splitTuplesIntoBatches(List<Tuple> tuples) {
         List<List<Tuple>> batches = new ArrayList<>();
         int i = 0;
-        int k = 1000;
+        int k = 500;
         while (i < tuples.size()) {
             batches.add(tuples.subList(i, i+k));
             i = i + k;

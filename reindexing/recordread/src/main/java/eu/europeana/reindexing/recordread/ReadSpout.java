@@ -101,7 +101,7 @@ public class ReadSpout extends BaseRichSpout {
     			
     			query = initialTaskReport.getQuery();
     			SolrQuery params = new SolrQuery(query);
-    			params.setRows(10000);
+    			params.setRows(5000);
     			// Enable Cursor (needs order)
     			params.setSort("europeana_id", SolrQuery.ORDER.asc);
     			// Retrieve only the europeana_id filed (the record is retrieved from Mongo)
@@ -125,11 +125,21 @@ public class ReadSpout extends BaseRichSpout {
     			boolean done = false;
     			// While we are not at the end of the index
     			while (!done) {
+
     				Logger.getGlobal().info("Processed for taskId " + taskId + "= " + processed);
     				try {
+						TaskReport report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
+						while(processed>report.getProcessed()){
+							report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
+							try {
+								Thread.sleep(80000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
     					params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
     					QueryResponse resp = solrServer.query(params);
-    					if (initialTaskReport.getStatus() == Status.STOPPED) {
+    					if ( report.getStatus() == Status.STOPPED) {
     						break;
     					}
     					String nextCursorMark = resp.getNextCursorMark();
@@ -149,7 +159,7 @@ public class ReadSpout extends BaseRichSpout {
     	    			// Process
     					doProcessing(resp);
     					processed += resp.getResults().size();
-    					
+
     					// Exit if reached the end
     					if (cursorMark.equals(nextCursorMark)) {
     						done = true;
@@ -211,7 +221,7 @@ public class ReadSpout extends BaseRichSpout {
                 collector.emit(new ReindexingTuple(taskId, id, numFound, query, null).toTuple(), id);
                 Thread.sleep(10);
             }
-            Thread.sleep(60000);
+            Thread.sleep(80000);
         } catch (InterruptedException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
         }
