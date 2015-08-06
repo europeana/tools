@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,7 @@ public class ReadSpout extends BaseRichSpout {
     public void nextTuple() {
         // Check that there is a list of task reports with status INITIAL
         // If there is no task  - sleep 5 minutes!
-    	List<TaskReport> initialTaskReports = datastore.find(TaskReport.class).filter("status", Status.INITIAL).asList();
+    	List<TaskReport> initialTaskReports = datastore.find(TaskReport.class).field("status").in(Arrays.asList(Status.INITIAL, Status.PROCESSING)).asList();
     	if (initialTaskReports == null || initialTaskReports.isEmpty()) {
 			try {
 				Thread.sleep(60000);
@@ -87,6 +88,8 @@ public class ReadSpout extends BaseRichSpout {
     	} else {		
     		for (TaskReport initialTaskReport : initialTaskReports) {    			
     			taskId = initialTaskReport.getTaskId();
+    			// Start from the beginning or from the last cursor mark of a task report (queryMark)
+    			String cursorMark = initialTaskReport.getStatus() == Status.INITIAL? CursorMarkParams.CURSOR_MARK_START: initialTaskReport.getQueryMark();
     			
     			// Create another query "q" to update the task report "status", "dateUpdated"
 				Query<TaskReport> q = datastore.find(TaskReport.class).filter("taskId", taskId);
@@ -106,26 +109,10 @@ public class ReadSpout extends BaseRichSpout {
     			params.setSort("europeana_id", SolrQuery.ORDER.asc);
     			// Retrieve only the europeana_id filed (the record is retrieved from Mongo)
     			params.setFields("europeana_id");
-    			
-    			// Start from the beginning
-    			String cursorMark = CursorMarkParams.CURSOR_MARK_START;
-    			
-    			// Unless the query mark file exists which means start from where you previously stopped
-    			if (new File("querymark_" + taskId).exists()) {
-    				try {
-    					String resume = FileUtils.readFileToString(new File("querymark_" + taskId));
-    					String[] split = resume.split("!!!");
-						cursorMark = split[0];
-    					processed = Long.parseLong(split[1]);   					
-    				} catch (IOException ex) {
-    					Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
-    				}
-    			}
-    			
+    			// Unless the query mark file exists which means start from where you previously stopped    			
     			boolean done = false;
     			// While we are not at the end of the index
     			while (!done) {
-
     				Logger.getGlobal().info("Processed for taskId " + taskId + "= " + processed);
     				try {
 						TaskReport report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
@@ -143,6 +130,8 @@ public class ReadSpout extends BaseRichSpout {
     						break;
     					}
     					String nextCursorMark = resp.getNextCursorMark();
+    					// Update the query mark
+    					ops.set("queryMark", nextCursorMark);
 
     					// For query "q" we update "total"
     					ops.set("total", resp.getResults().getNumFound());
@@ -166,10 +155,7 @@ public class ReadSpout extends BaseRichSpout {
     						Logger.getGlobal().info("Done is now true for taskId " + taskId);
     					}
     					cursorMark = nextCursorMark;
-    					
-    					// Update the query mark
-    					FileUtils.write(new File("querymark_" + taskId), cursorMark + "!!!" + processed, false);
-    				} catch (SolrServerException | IOException ex) {
+    				} catch (SolrServerException ex) {
     					Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
     				}
     			}

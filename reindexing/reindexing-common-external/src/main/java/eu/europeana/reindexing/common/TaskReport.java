@@ -29,7 +29,17 @@ public class TaskReport implements Serializable {
     private long dateCreated;
     private long dateUpdated;
     private String topology;
-    @Indexed
+    private String queryMark;
+    
+    public String getQueryMark() {
+		return queryMark;
+	}
+
+	public void setQueryMark(String queryMark) {
+		this.queryMark = queryMark;
+	}
+
+	@Indexed
     private Status status;
 
     public Status getStatus() {
