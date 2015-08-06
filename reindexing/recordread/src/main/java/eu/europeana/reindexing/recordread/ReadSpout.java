@@ -79,6 +79,7 @@ public class ReadSpout extends BaseRichSpout {
         // Check that there is a list of task reports with status INITIAL
         // If there is no task  - sleep 5 minutes!
     	List<TaskReport> initialTaskReports = datastore.find(TaskReport.class).field("status").in(Arrays.asList(Status.INITIAL, Status.PROCESSING)).asList();
+		Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE,"Got " + (initialTaskReports!=null?initialTaskReports.size():0)+" tasks");
     	if (initialTaskReports == null || initialTaskReports.isEmpty()) {
 			try {
 				Thread.sleep(60000);
@@ -88,6 +89,7 @@ public class ReadSpout extends BaseRichSpout {
     	} else {		
     		for (TaskReport initialTaskReport : initialTaskReports) {    			
     			taskId = initialTaskReport.getTaskId();
+				processed = initialTaskReport.getProcessed();
     			// Start from the beginning or from the last cursor mark of a task report (queryMark)
     			String cursorMark = initialTaskReport.getStatus() == Status.INITIAL? CursorMarkParams.CURSOR_MARK_START: initialTaskReport.getQueryMark();
     			
@@ -96,9 +98,7 @@ public class ReadSpout extends BaseRichSpout {
     			UpdateOperations<TaskReport> ops = datastore.createUpdateOperations(TaskReport.class);
     			ops.set("dateUpdated", new Date().getTime());    			
     			ops.set("status", Status.PROCESSING);
-    			if (initialTaskReport.getStatus() == Status.STOPPED) {
-    				continue;
-    			}
+
     			initialTaskReport.setStatus(Status.PROCESSING);			
     			Logger.getGlobal().info("Processing task report: " + taskId);
     			
@@ -113,7 +113,7 @@ public class ReadSpout extends BaseRichSpout {
     			boolean done = false;
     			// While we are not at the end of the index
     			while (!done) {
-    				Logger.getGlobal().info("Processed for taskId " + taskId + "= " + processed);
+    				Logger.getGlobal().info("Processed for taskId " + taskId + " = " + processed);
     				try {
 						TaskReport report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
 						while(processed>report.getProcessed()){
@@ -130,8 +130,7 @@ public class ReadSpout extends BaseRichSpout {
     						break;
     					}
     					String nextCursorMark = resp.getNextCursorMark();
-    					// Update the query mark
-    					ops.set("queryMark", nextCursorMark);
+
 
     					// For query "q" we update "total"
     					ops.set("total", resp.getResults().getNumFound());
@@ -141,21 +140,24 @@ public class ReadSpout extends BaseRichSpout {
     						initialTaskReport.setStatus(Status.FINISHED);
     						break;
     					}
-    					
-    					// Update current task report at the data store
-    	    			datastore.update(q, ops);
-    	    			
+
+						//datastore.update(q, ops);
     	    			// Process
     					doProcessing(resp);
     					processed += resp.getResults().size();
-
+						Logger.getGlobal().info("Processed "+ processed +" for taskId " + taskId);
     					// Exit if reached the end
     					if (cursorMark.equals(nextCursorMark)) {
     						done = true;
     						Logger.getGlobal().info("Done is now true for taskId " + taskId);
     					}
     					cursorMark = nextCursorMark;
-    				} catch (SolrServerException ex) {
+						// Update the query mark
+						ops.set("queryMark", nextCursorMark);
+						// Update current task report at the data store
+						datastore.update(q, ops);
+
+					} catch (SolrServerException ex) {
     					Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
     				}
     			}
@@ -208,7 +210,7 @@ public class ReadSpout extends BaseRichSpout {
                 Thread.sleep(10);
             }
             Thread.sleep(30000);
-        } catch (InterruptedException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
