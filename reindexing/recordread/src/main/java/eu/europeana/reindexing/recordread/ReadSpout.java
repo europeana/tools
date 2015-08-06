@@ -132,7 +132,7 @@ public class ReadSpout extends BaseRichSpout {
 						while(processed>report.getProcessed()){
 							report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
 							try {
-								Thread.sleep(80000);
+								Thread.sleep(30000);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -221,7 +221,7 @@ public class ReadSpout extends BaseRichSpout {
                 collector.emit(new ReindexingTuple(taskId, id, numFound, query, null).toTuple(), id);
                 Thread.sleep(10);
             }
-            Thread.sleep(80000);
+            Thread.sleep(30000);
         } catch (InterruptedException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
         }

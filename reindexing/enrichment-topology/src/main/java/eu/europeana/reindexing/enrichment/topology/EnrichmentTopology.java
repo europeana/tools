@@ -47,6 +47,7 @@ public class EnrichmentTopology {
         	
         	Config config = new Config();
         	config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
+        	config.put(Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS, 5000);
         	config.setNumWorkers(16);
         	
         	topology = buildTopology();
