@@ -129,6 +129,8 @@ public class ReadSpout extends BaseRichSpout {
     					
     					//if the number of results is 0 then we finish the task report
     					if (resp.getResults().getNumFound() == 0) {
+							done = true;
+							ops.set("status", Status.FINISHED);
     						initialTaskReport.setStatus(Status.FINISHED);
     						break;
     					}
