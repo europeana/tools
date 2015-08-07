@@ -13,6 +13,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.validator.routines.UrlValidator;
+
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
@@ -164,6 +166,7 @@ public class MongoDataSerializer {
 		
 
 		Element agentElement = doc.createElement("edm:Agent");
+		
 		agentElement.setAttribute("rdf:about", agent.getAbout());
 		if(agent.getPrefLabel()!=null){
 			for (String attrVal:agent.getPrefLabel().keySet()){
@@ -222,8 +225,26 @@ public class MongoDataSerializer {
 		
 		if(agent.getRdaGr2BiographicalInformation()!=null){
 			for (String attrVal:agent.getRdaGr2BiographicalInformation().keySet())
-				for (String val:agent.getRdaGr2BiographicalInformation().get(attrVal))
-					agentElement.appendChild(getElements(doc, "rdaGr2:biographicalInformation", "xml:lang", attrVal, val));
+				//for (String val:agent.getRdaGr2BiographicalInformation().get(attrVal))
+				//	agentElement.appendChild(getElements(doc, "rdaGr2:biographicalInformation", "xml:lang", attrVal, val));
+				agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:biographicalInformation", attrVal, agent.getRdaGr2BiographicalInformation().get(attrVal) ));
+
+			if(agent.getRdaGr2PlaceOfBirth()!=null){
+				for (String attrVal:agent.getRdaGr2PlaceOfBirth().keySet())
+					for (String val:agent.getRdaGr2PlaceOfBirth().get(attrVal))
+						agentElement.appendChild(getElements(doc, "rdaGr2:placeOfBirth", "xml:lang", attrVal, val));
+					//agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:placeOfBirth", attrVal, agent.getRdaGr2PlaceOfBirth().get(attrVal) ));
+
+		
+		}
+			if(agent.getRdaGr2PlaceOfDeath()!=null){
+				for (String attrVal:agent.getRdaGr2PlaceOfDeath().keySet())
+					for (String val:agent.getRdaGr2PlaceOfDeath().get(attrVal))
+						agentElement.appendChild(getElements(doc, "rdaGr2:placeOfDeath", "xml:lang", attrVal, val));
+					//agentElement.appendChild(getElements(doc, agentElement, "rdaGr2:placeOfDeath", attrVal, agent.getRdaGr2PlaceOfDeath().get(attrVal) ));
+			}
+		
+		
 		
 		}
 		if(agent.getRdaGr2DateOfBirth()!=null){
@@ -275,15 +296,18 @@ public class MongoDataSerializer {
 		if (agent.getEdmIsRelatedTo()!=null){
 			for (String attrVal:agent.getEdmIsRelatedTo().keySet()){
 				for (String val:agent.getEdmIsRelatedTo().get(attrVal))
-					agentElement.appendChild(getElements(doc, "edm:isRelatedTo", "xml:lang", attrVal, val));
+				//	agentElement.appendChild(getElements(doc, "edm:isRelatedTo", "xml:lang", attrVal, val));
+				agentElement.appendChild(getElement(doc, agentElement, "edm:isRelatedTo", attrVal, val ));
 			}
 			
 		}
 		
 		if (agent.getDcDate()!=null){
 			for (String attrVal:agent.getDcDate().keySet()){
-				for (String val:agent.getDcDate().get(attrVal))
-					agentElement.appendChild(getElements(doc, "dc:date", "xml:lang", attrVal, val));
+				//for (String val:agent.getDcDate().get(attrVal))
+				//	agentElement.appendChild(getElements(doc, "dc:date", "xml:lang", attrVal, val));
+				agentElement.appendChild(getElements(doc, agentElement, "dc:date", attrVal, agent.getDcDate().get(attrVal) ));
+
 			}
 			
 		}
@@ -291,31 +315,15 @@ public class MongoDataSerializer {
 		if (agent.getRdaGr2ProfessionOrOccupation()!=null){
 			for (String attrVal:agent.getRdaGr2ProfessionOrOccupation().keySet()){
 				for (String val:agent.getRdaGr2ProfessionOrOccupation().get(attrVal))
-					agentElement.appendChild(getElements(doc, "rdaGr2:professionOrOccupation", "xml:lang", attrVal, val));
+				//	agentElement.appendChild(getElements(doc, "rdaGr2:professionOrOccupation", "xml:lang", attrVal, val));
+					agentElement.appendChild(getElement(doc, agentElement, "rdaGr2:professionOrOccupation", attrVal, val ));
+
 				
 
 			}
 			
 		}
-		/*try {
-			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-			DOMSource source = new DOMSource(doc);
-			DOMSource source1 = new DOMSource(conceptElement);
-			//StreamResult result = new StreamResult(new File("C:\\file.xml"));
-
-			// Output to console for testing
-			StreamResult result = new StreamResult(System.out);
-
-			transformer.transform(source1, result);
-			
-		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-
+		
 		return agentElement;
 	
 	}
@@ -411,11 +419,12 @@ public class MongoDataSerializer {
     //1
 	private Node getElements(Document doc, Element conceptElement,
 			String name, String attribute, String attributeValue, java.util.List<String> textValue) {
-
+		String temp;
 		Element node = doc.createElement(name);
 
 		if (attribute.equals("xml:lang") && attributeValue.equals("def"))
-			System.out.println("a def");
+			//System.out.println("a def");
+			temp ="";
 		else
 			node.setAttribute(attribute, attributeValue);
 		for (String value:textValue)
@@ -435,11 +444,15 @@ public class MongoDataSerializer {
 	}
 	 //3
 		private Node getElements(Document doc, String name, String attribute, String attributeValue, String textValue) {
-
+			String temp;
 			Element node = doc.createElement(name);
 
+			String value= textValue.replace("\n", " ");
+			textValue=value.replace("\t", "");
+			textValue=textValue.trim().replaceAll(" +", " ");
 			if (attribute.equals("xml:lang") && attributeValue.equals("def"))
-				System.out.println("a def");
+				//System.out.println("a def");
+				temp="";
 			else
 				node.setAttribute(attribute, attributeValue);
 			
@@ -448,19 +461,46 @@ public class MongoDataSerializer {
 			return node;
 		}
 
+		
 
 	private Node getElements(Document doc, Element conceptElement, String name,  String attributeValue, java.util.List<String> textValue) {
 
 		Element node = doc.createElement(name);
+		UrlValidator urlValidator = new UrlValidator();
+		
 		for (String value:textValue){
-			if (value.startsWith("http://")){
+			String myValue= value.replace("\t", "");
+			value= myValue.replace("\n", "");
+			value=value.trim().replaceAll(" +", " ");
+			if (urlValidator.isValid(value)){
 				node.setAttribute("rdf:resource", value);
 			}
 			else{
-				node.setAttribute("xml:lang", attributeValue);
+				if (!attributeValue.trim().equalsIgnoreCase("def"))
+						node.setAttribute("xml:lang", attributeValue);
 				node.appendChild(doc.createTextNode(value));
 			}
 		}
+
+		return node;
+	}
+	private Node getElement(Document doc, Element conceptElement, String name,  String attributeValue, String value) {
+
+		Element node = doc.createElement(name);
+		UrlValidator urlValidator = new UrlValidator();
+		String myValue= value.replace("\t", "");
+		value= myValue.replace("\n", "");
+		
+		value=value.trim().replaceAll(" +", " ");
+			if (urlValidator.isValid(value)){
+				node.setAttribute("rdf:resource", value);
+			}
+			else{
+				if (!attributeValue.trim().equalsIgnoreCase("def"))
+						node.setAttribute("xml:lang", attributeValue);
+				node.appendChild(doc.createTextNode(value));
+			}
+		
 
 		return node;
 	}
