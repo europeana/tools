@@ -7,12 +7,13 @@ package eu.europeana.reindexing.recordwrite;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -114,6 +115,7 @@ public class TuplePersistence implements Runnable {
     
     private void cleanFullBean(FullBeanImpl fBean) {
         ProxyImpl europeanaProxy = null;
+        fBean = cleanEntitiesFromBean(fBean);
         int index = 0;
         for (ProxyImpl proxy : fBean.getProxies()) {
             if (proxy.isEuropeanaProxy()) {
@@ -135,8 +137,144 @@ public class TuplePersistence implements Runnable {
 
         fBean.getProxies().set(index, europeanaProxy);
     }
-    
-     private void appendEntities(FullBeanImpl fBean, String entityWrapper) {
+
+    private FullBeanImpl cleanEntitiesFromBean(FullBeanImpl fBean) {
+        ProxyImpl europeanaProxy = null;
+        int index = 0;
+        for (ProxyImpl proxy : fBean.getProxies()) {
+            if (proxy.isEuropeanaProxy()) {
+                europeanaProxy = proxy;
+                break;
+            }
+            index++;
+        }
+        List<TimespanImpl> cleanedTs = new ArrayList<>();
+        List<TimespanImpl> timespans = fBean.getTimespans();
+        if(timespans!=null) {
+            for (TimespanImpl ts : timespans) {
+               if(!StringUtils.contains(ts.getAbout(),"semium")){
+                   cleanedTs.add(ts);
+               }
+
+            }
+        }
+        fBean.setTimespans(cleanedTs);
+
+        List<ConceptImpl> cleanedConcept  = new ArrayList<>();
+        List<ConceptImpl> concepts = fBean.getConcepts();
+        if(concepts!=null){
+            for(ConceptImpl concept:concepts){
+                if(!StringUtils.contains(concept.getAbout(),"eionet")){
+                    cleanedConcept.add(concept);
+                }
+            }
+        }
+
+        fBean.setConcepts(cleanedConcept);
+
+        Map<String,List<String>> creators = europeanaProxy.getDcCreator();
+        List<AgentImpl> agents = fBean.getAgents();
+        List<AgentImpl> agentCopy = new CopyOnWriteArrayList<>();
+        Collections.copy(agents,agentCopy);
+        if(creators!=null){
+            for(String creator:creators.get("def")){
+
+                for(AgentImpl agent:agentCopy){
+                    if (StringUtils.equals(creator,agent.getAbout())){
+                        agentCopy.remove(agent);
+                    }
+                }
+            }
+        }
+        fBean.setAgents(agentCopy);
+
+        Map<String,List<String>> contributors = europeanaProxy.getDcContributor();
+        List<AgentImpl> agentsNew = fBean.getAgents();
+        List<AgentImpl> agentCopyNew = new CopyOnWriteArrayList<>();
+        Collections.copy(agentsNew,agentCopyNew);
+        if(contributors!=null){
+            for(String contributor:contributors.get("def")){
+
+                for(AgentImpl agent:agentCopyNew){
+                    if (StringUtils.equals(contributor,agent.getAbout())){
+                        agentCopyNew.remove(agent);
+                    }
+                }
+            }
+        }
+        fBean.setAgents(agentCopyNew);
+
+        Map<String,String> placeMap = new HashMap<>();
+        List<PlaceImpl> places = fBean.getPlaces();
+        if(places!=null){
+            for(PlaceImpl place:places){
+                placeMap.put(place.getAbout(),place.getIsPartOf()!=null?place.getIsPartOf().get("def").get(0):null);
+            }
+        }
+
+        Map<String,List<String>> spatial = europeanaProxy.getDctermsSpatial();
+        Set<String> toRemove = new HashSet<>();
+        if(spatial!=null){
+            for(String sp:spatial.get("def")) {
+                if (placeMap.containsKey(sp)){
+                    toRemove.add(sp);
+                    toRemove.addAll(removeParent(sp, placeMap));
+                }
+
+            }
+        }
+
+        List<PlaceImpl> placesCopy = new CopyOnWriteArrayList<>();
+        Collections.copy(places,placesCopy);
+        for(String uri:toRemove){
+            for(PlaceImpl place:placesCopy){
+                if(StringUtils.equals(place.getAbout(),uri)){
+                    placesCopy.remove(place);
+                }
+            }
+        }
+
+        fBean.setPlaces(placesCopy);
+
+        Map<String,List<String>> coverage = europeanaProxy.getDcCoverage();
+        Set<String> toRemoveNew = new HashSet<>();
+        if(coverage!=null){
+            for(String sp:coverage.get("def")) {
+                if (placeMap.containsKey(sp)){
+
+                    toRemoveNew.addAll(removeParent(sp, placeMap));
+                }
+
+            }
+        }
+
+        List<PlaceImpl> placesCopyNew = new CopyOnWriteArrayList<>();
+        Collections.copy(fBean.getPlaces(),placesCopy);
+        for(String uri:toRemoveNew){
+            for(PlaceImpl place:placesCopyNew){
+                if(StringUtils.equals(place.getAbout(),uri)){
+                    placesCopyNew.remove(place);
+                }
+            }
+        }
+
+        fBean.setPlaces(placesCopyNew);
+        return fBean;
+    }
+
+    private List<String> removeParent(String sp, Map<String, String> placeMap) {
+        List<String> parents = new ArrayList<>();
+        if(sp!=null) {
+            parents.add(sp);
+            if (placeMap.get(sp) != null && !StringUtils.equals(sp,placeMap.get(sp))) {
+                Logger.getGlobal().severe(sp);
+                parents.addAll(removeParent(placeMap.get(sp), placeMap));
+            }
+        }
+        return parents;
+    }
+
+    private void appendEntities(FullBeanImpl fBean, String entityWrapper) {
         try {
             List<EntityWrapper> entities = om.readValue(entityWrapper, EntityWrapperList.class).getWrapperList();
             List<RetrievedEntity> enriched = convertToObjects(entities);
