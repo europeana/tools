@@ -132,6 +132,7 @@ public class ReadSpout extends BaseRichSpout {
 							done = true;
 							ops.set("status", Status.FINISHED);
     						initialTaskReport.setStatus(Status.FINISHED);
+							datastore.update(q, ops);
     						break;
     					}
 
