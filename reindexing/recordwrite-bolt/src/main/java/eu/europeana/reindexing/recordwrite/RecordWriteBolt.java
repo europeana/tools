@@ -108,7 +108,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoIngst = new Mongo(addressesIngst);
-            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana_test1", null, null);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana", null, null);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
             
@@ -124,7 +124,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana_test2", null, null);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana", null, null);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             

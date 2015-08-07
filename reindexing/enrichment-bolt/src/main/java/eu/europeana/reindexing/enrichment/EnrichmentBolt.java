@@ -80,7 +80,7 @@ public class EnrichmentBolt extends BaseRichBolt {
                 }
             }
             Mongo mongo = new Mongo(addresses);
-            mongoServer = new EdmMongoServerImpl(mongo, "europeana_test1", null, null);
+            mongoServer = new EdmMongoServerImpl(mongo, "europeana", null, null);
         } catch (MongoDBException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
