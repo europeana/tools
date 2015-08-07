@@ -4,9 +4,16 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
+import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
+import com.hp.hpl.jena.rdf.model.Model;
+
+import com.hp.hpl.jena.tdb.TDBFactory;
 
 import java.util.logging.Logger;
 
@@ -18,64 +25,75 @@ import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 
-public class DbPediaAgentsCollector {
+public class DbPediaLocalAgentsCollector {
 
-    private static final Logger log = Logger.getLogger(DbPediaAgentsCollector.class.getCanonicalName());
+    private static final Logger log = Logger.getLogger(DbPediaLocalAgentsCollector.class.getCanonicalName());
     private static final DataManager dm = new DataManager();
-   
     private static final String AGENTQUERY = "SELECT DISTINCT * WHERE {{?subject ?y <http://dbpedia.org/ontology/Artist>.}"+
-    											" UNION " +
-    											"{?subject ?y <http://dbpedia.org/ontology/Philosopher>.}" +
-    											" UNION " +
-    											"{?subject ?y <http://dbpedia.org/class/yago/Artist109812338>.}} LIMIT %d OFFSET %d";
+												" UNION " +
+												"{?subject ?y <http://dbpedia.org/ontology/Philosopher>.}" +
+												" UNION " +
+												"{?subject ?y <http://dbpedia.org/class/yago/Artist109812338>.}} LIMIT %d OFFSET %d";
     
-   
-    
-    //private static final String AGENTQUERY = "SELECT DISTINCT * WHERE {?subject ?y <http://dbpedia.org/ontology/Philosopher>.} LIMIT %d OFFSET %d";
-    
-   // private static final String AGENTQUERY = "SELECT * WHERE {?subject ?y <http://dbpedia.org/ontology/Artist>.} LIMIT %d OFFSET %d";
-    private static final String DBPEDIA = "DBPedia";
-    private static int qLimit = 300;
-    private static final int QOFFSET =165900;
+    private static final String SOURCE = "LocalDbPedia";
+    private static int qLimit = 200;
+    private static final int QOFFSET = 0;
     private static final boolean MAXAGENTS = false;  //used for testing purposes, if true qLimit agents are downloaded, use false to download all agents from dbpedia 
 
+    private static Dataset dataset;
+    private static Model tdbModel;
     /**
      * @param args
      */
     public static void main(String[] args) {
 
-        DbPediaAgentsCollector dbpc = new DbPediaAgentsCollector();
+        DbPediaLocalAgentsCollector dbpc = new DbPediaLocalAgentsCollector();
         if (args != null && args.length > 1) {
             if (StringUtils.isNumeric(args[0])) {
                 qLimit = Integer.parseInt(args[0]);
                 
             }
         }
-        dbpc.getDBPediaAgents(false); //get agents from dbpedia and store them locally, (parameter must always have false value, will fix it) ;
+        String directory = "/home/cesare/freebase/DbPediaFullDump";
+		System.out.println("counting "+directory);
+         dataset = TDBFactory.createDataset(directory);
+		 tdbModel= dataset.getDefaultModel();
+        dbpc.getLocalDbPediaAgents(false); //get agents from dbpedia and store them locally, (parameter must always have false value, will fix it) ;
 
     }
+    
+    private void loadAgentsFromFreebase(){
+    	
+    }
 
-    private int loadAgentsfromDBPedia(String query, boolean harvestData) {
+    private int loadAgentsfromDBPedia(String queryString, boolean harvestData) {
         int i = 0;
 
         try {
             Date todayDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             System.out.println(sdf.format(todayDate));
-           // QueryEngineHTTP endpoint = new QueryEngineHTTP("http://dbpedia.org/sparql", query);
-            QueryEngineHTTP endpoint = new QueryEngineHTTP("http://localhost:3031/tdbdb/query", query);
-            log.log(Level.INFO, "getting artists from DBPedia " + query);
-            ResultSet rs = endpoint.execSelect();
-
+            
+            
+    		
+            
+            log.log(Level.INFO, "getting artists from local DbPedia " + queryString);
+            Query query = QueryFactory.create(queryString);
+    		QueryExecution qexec= QueryExecutionFactory.create(query, dataset);
+    		ResultSet rs= qexec.execSelect();
+    		
             while (rs.hasNext()) {
+
                 QuerySolution qs = rs.next();
 
                 String subject = qs.get("subject").toString();
                 
-                AgentMap agentMap = new AgentMap(subject, new URI(subject), DBPEDIA, todayDate, null);
+                AgentMap agentMap = new AgentMap(subject, new URI(subject), SOURCE, todayDate, null);
 
                 dm.insertAgentMap(agentMap);
                 i = rs.getRowNumber();
+
+          
 
             }
 
@@ -90,7 +108,7 @@ public class DbPediaAgentsCollector {
      * Harvests agents from DBPedia. Related content can be also harvested if the parameter is true.
      */
 
-    public void getDBPediaAgents(boolean harvestContent) {
+    public void getLocalDbPediaAgents(boolean harvestContent) {
         int resultsize = qLimit;
         int limit = qLimit;
         int offset = QOFFSET;

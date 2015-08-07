@@ -181,11 +181,13 @@ public class DataManager {
 	public void insertConcept(ConceptImpl concept) {
 		try {
 
-			if (queryToFindConceptDescription(concept.getAbout())){
+			
+			if (concept.getAbout()!=null && queryToFindConceptDescription(concept.getAbout().trim())){
 				conceptToConceptTermList(concept, true);
 				
 			}
-				
+			else
+				System.out.println(concept.getAbout()+", not inserted!");				
 				                              
 		} catch (IOException | JiBXException e) {
 			log.log(Level.SEVERE, e.getMessage());
@@ -195,8 +197,8 @@ public class DataManager {
 	public void deleteConcept(String id) {
 		try {
 
-			if (!queryToFindConceptDescription(id))
-				removeTermList(id);
+			if (!queryToFindConceptDescription(id.trim()))
+				removeTermList(id.trim());
 		} catch (Exception e) {
 			log.log(Level.SEVERE, e.getMessage());
 		}
@@ -243,7 +245,7 @@ public class DataManager {
 				String freebase = (String) ite.next();
 				if (freebase.contains(stringPattern)){
 					//System.out.println(freebase+ " "+aboutAgent.toString()+" "+offset);
-					addSameAs(aboutAgent.toString(), freebase);
+					//addSameAs(aboutAgent.toString(), freebase);
 					dbpLocalAgent.add(freebase);
 				}
 
@@ -326,7 +328,8 @@ public class DataManager {
 		BasicDBObject query = new BasicDBObject(CODEURI, id);
 		
 		coll.remove(query);
-		db.getCollection("concepts").remove(query);
+		//db.getCollection("concepts").remove(query);
+		db.getCollection("TermList").remove(query);
 		
 		
 	}
@@ -413,9 +416,15 @@ public class DataManager {
 
 		Query<AgentTermList> qATL;
 		AgentTermList termList = new AgentTermList();
-		log.info("*********agent prefl "+agent.getPrefLabel());
-		if (agent.getPrefLabel() == null || agent.getPrefLabel().entrySet().size()==0)
+		//log.info("*********agent prefl "+agent.getPrefLabel());
+		
+		if (agent.getPrefLabel() == null || agent.getPrefLabel().entrySet().size()==0){
+			//if (agent.getPrefLabel() != null)
+			//{
+				System.out.println("********* agent prefl not inserted "+agent.getAbout()+" *********");
+			//}
 			return;
+		}
 		termList.setCodeUri(agent.getAbout());
 		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<>();
 		for (Entry<String, List<String>> prefLabel : agent.getPrefLabel().entrySet()) {
@@ -463,7 +472,7 @@ public class DataManager {
 
 		Query<ConceptTermList> qATL;
 		ConceptTermList termList = new ConceptTermList();
-		log.info("*********Concept prefl "+concept.getPrefLabel());
+		//log.info("*********Concept prefl "+concept.getPrefLabel());
 		if (concept.getPrefLabel() == null || concept.getPrefLabel().entrySet().size()==0)
 			return;
 		termList.setCodeUri(concept.getAbout());

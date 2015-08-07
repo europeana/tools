@@ -39,7 +39,7 @@ public class ConceptTransformer implements XslTransformer<ConceptImpl> {
             StreamResult out = new StreamResult(new StringWriter());
             transformer.setParameter("rdf_about", resourceUri);
             transformer.transform(doc, out);
-            System.out.println(out.getWriter().toString());
+            //System.out.println(out.getWriter().toString());
            // System.out.println("<!-- -->");
             return normalize(ConceptTemplate.getInstance().transform(out.getWriter().toString(), resourceUri));
         } catch (TransformerFactoryConfigurationError | TransformerException e) {
