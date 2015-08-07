@@ -57,7 +57,7 @@ public class EnrichmentResource {
             JsonMappingException, IOException, Exception {
         ObjectMapper mapper = new ObjectMapper();
         UriList values = mapper.readValue(input, UriList.class);
-        EntityRemover remover = new EntityRemover();
+        EntityRemover remover = new EntityRemover(enricher.getEnricher());
         remover.remove(values.getUris(), null);
         return Response.ok().build();
     }

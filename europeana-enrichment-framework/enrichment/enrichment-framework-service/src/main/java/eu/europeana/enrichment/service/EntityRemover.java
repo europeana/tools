@@ -16,6 +16,10 @@ public class EntityRemover {
 
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 27017;
+    private InternalEnricher en;
+    public EntityRemover(InternalEnricher enricher){
+        en = enricher;
+    }
 
     public void remove(List<String> uris, String... args) {
         String host = DEFAULT_HOST;
@@ -27,6 +31,8 @@ public class EntityRemover {
         MongoDatabaseUtils.dbExists(host, port);
         
         MongoDatabaseUtils.delete(uris);
+        en.remove(uris);
+
     }
 
 }

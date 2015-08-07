@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import eu.europeana.enrichment.api.internal.*;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -85,6 +86,39 @@ public class InternalEnricher {
         timespanParents = new ConcurrentHashMap();
         placeParents = new ConcurrentHashMap();
         populate();
+    }
+
+    public void remove(List<String> uris){
+        for (String str: uris){
+            agentUriCache.remove(str);
+            agentParents.remove(str);
+            conceptUriCache.remove(str);
+            placeUriCache.remove(str);
+            timespanUriCache.remove(str);
+            conceptParents.remove(str);
+            placeParents.remove(str);
+            timespanParents.remove(str);
+            for(Map.Entry<String,String> agentEntry:agentCache.entrySet()){
+             if(StringUtils.equals(agentEntry.getValue(),str)){
+                 agentCache.remove(agentEntry.getKey());
+             }
+            }
+            for(Map.Entry<String,String> agentEntry:placeCache.entrySet()){
+                if(StringUtils.equals(agentEntry.getValue(),str)){
+                    placeCache.remove(agentEntry.getKey());
+                }
+            }
+            for(Map.Entry<String,String> agentEntry:conceptCache.entrySet()){
+                if(StringUtils.equals(agentEntry.getValue(),str)){
+                    conceptCache.remove(agentEntry.getKey());
+                }
+            }
+            for(Map.Entry<String,String> agentEntry:timespanCache.entrySet()){
+                if(StringUtils.equals(agentEntry.getValue(),str)){
+                    timespanCache.remove(agentEntry.getKey());
+                }
+            }
+        }
     }
 
     public void populate() {
@@ -160,7 +194,7 @@ public class InternalEnricher {
 
         for(MongoTerm place:placesMongo2) {
             try {
-                PlaceTermList ptl = (PlaceTermList)MongoDatabaseUtils.findByCode(place.getCodeUri(),"places");
+                PlaceTermList ptl = (PlaceTermList)MongoDatabaseUtils.findByCode(place.getCodeUri(),"place");
 
             if (ptl!=null) {
                 try {

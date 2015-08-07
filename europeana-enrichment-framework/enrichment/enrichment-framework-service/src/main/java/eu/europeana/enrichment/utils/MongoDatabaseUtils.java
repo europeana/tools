@@ -236,7 +236,7 @@ public class MongoDatabaseUtils<T> {
     private static MongoTermList findAgentByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
         DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
-        Logger.getLogger(MongoDatabaseUtils.class.getName()).info("Parsed " + codeUri);
+
         if (curs.hasNext()) {
             AgentTermList terms = curs.next();
 
