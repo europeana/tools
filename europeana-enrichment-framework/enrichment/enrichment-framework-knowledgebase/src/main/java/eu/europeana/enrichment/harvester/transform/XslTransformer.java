@@ -1,8 +1,8 @@
 package eu.europeana.enrichment.harvester.transform;
 
+import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
 import javax.xml.transform.Source;
 
-import eu.europeana.corelib.definitions.solr.entity.ContextualClass;
 
 /**
  * A Transformer interface that converts a custom controlled vocabulary resource to a Europeana Contextual Class

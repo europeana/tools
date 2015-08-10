@@ -42,6 +42,7 @@ import org.neo4j.kernel.impl.util.StringLogger;
 public class Startup {
 
     final DynamicRelationshipType ISNEXTINSEQUENCE = DynamicRelationshipType.withName("edm:isNextInSequence");
+    final DynamicRelationshipType ISFAKEORDER = DynamicRelationshipType.withName("isFakeOrder");
 
     private GraphDatabaseService db;
     private ExecutionEngine engine;
@@ -68,6 +69,12 @@ public class Startup {
                 long childrenCount = getChilrenCount(node.getProperty("rdf:about").toString());
                 node.setProperty("childrenCount", childrenCount);
             }
+            if (node.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
+                node.setProperty("relBefore", false);
+            } else if (node.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
+                node.setProperty("relBefore", true);
+            }
+
             parents.add(node);
             Node testNode = node;
             while (testNode.hasProperty("hasParent")) {
@@ -77,6 +84,11 @@ public class Startup {
                 long childrenCount = getChilrenCount(newNode.getProperty("rdf:about").toString());
                 newNode.setProperty("index", parentIndex);
                 newNode.setProperty("childrenCount", childrenCount);
+                if (newNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
+                    newNode.setProperty("relBefore", false);
+                } else if (newNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
+                    newNode.setProperty("relBefore", true);
+                }
                 parents.add(newNode);
                 testNode = newNode;
             }
@@ -87,6 +99,7 @@ public class Startup {
             Traverser traverse = traversal
                     .depthFirst()
                     .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
                     .evaluator(Evaluators.toDepth(length))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
@@ -99,6 +112,12 @@ public class Startup {
                     endNode.setProperty("childrenCount", childrenCount);
                 }
                 endNode.setProperty("index", followingIndex);
+                
+                if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
+                    endNode.setProperty("relBefore", false);
+                } else if (endNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
+                    endNode.setProperty("relBefore", true);
+                }
                 children.add(path.endNode());
             }
 
@@ -108,6 +127,7 @@ public class Startup {
             Traverser traverseBefore = traversalBefore
                     .depthFirst()
                     .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
                     .evaluator(Evaluators.toDepth(lengthBefore))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
@@ -122,6 +142,11 @@ public class Startup {
                 }
                 endNode.setProperty("index", previousIndex);
                 childrenBefore.add(endNode);
+                if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
+                    endNode.setProperty("relBefore", false);
+                } else if (endNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
+                    endNode.setProperty("relBefore", true);
+                }
             }
             hierarchy.setPreviousSiblings(childrenBefore);
 
@@ -143,6 +168,7 @@ public class Startup {
             Traverser traverse = traversal
                     .depthFirst()
                     .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
                     .traverse(startNode);
 
             for (Path path : traverse) {

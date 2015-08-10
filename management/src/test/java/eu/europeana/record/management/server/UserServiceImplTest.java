@@ -28,12 +28,14 @@ import eu.europeana.record.management.database.dao.Dao;
 import eu.europeana.record.management.database.entity.UserObj;
 import eu.europeana.record.management.database.enums.Role;
 import eu.europeana.record.management.shared.dto.UserDTO;
+import org.junit.Ignore;
 
 /**
  * Unit tests for the UserService
  * 
  * @author Yorgos.Mamakis@ kb.nl
  */
+@Ignore
 public class UserServiceImplTest {
 	Dao<UserObj> userDao;
 	UserServiceImpl userService;

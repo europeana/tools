@@ -13,16 +13,15 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
 
-import net.vz.mongodb.jackson.DBRef;
-import net.vz.mongodb.jackson.JacksonDBCollection;
-import net.vz.mongodb.jackson.WriteResult;
 
+import com.google.code.morphia.query.Query;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.update.UpdateLog;
 import org.jibx.runtime.JiBXException;
 
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
-import com.google.code.morphia.query.Query;
+
 import com.google.code.morphia.query.UpdateOperations;
 import com.google.code.morphia.query.UpdateResults;
 import com.mongodb.BasicDBList;
@@ -44,6 +43,10 @@ import eu.europeana.enrichment.api.internal.PlaceTermList;
 import eu.europeana.enrichment.api.internal.TimespanTermList;
 import eu.europeana.enrichment.harvester.api.AgentMap;
 import eu.europeana.enrichment.converters.*;
+import org.mongojack.DBQuery;
+import org.mongojack.DBRef;
+import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
 
 public class DataManager {
 
@@ -429,7 +432,8 @@ public class DataManager {
 			for (String label : prefLabel.getValue()) {
 				MongoTerm pTerm = new MongoTerm();
 				pTerm.setCodeUri(agent.getAbout());
-				pTerm.setLabel(label.toLowerCase());
+
+				pTerm.setLabel(StringUtils.substringBefore(label.toLowerCase(),"(").trim());
 				String lang = prefLabel.getKey();
 
 				pTerm.setOriginalLabel(label);
@@ -454,8 +458,10 @@ public class DataManager {
 			aColl.insert(termList);
 		else {
 			 
-			 qATL= dsTL.createQuery(AgentTermList.class).field(CODEURI).equal(agent.getAbout());
-			 aColl.update(qATL.get(), termList);
+			 //qATL= dsTL.createQuery(AgentTermList.class).field(CODEURI).equal(agent.getAbout());
+			DBQuery.Query atl = DBQuery.all(CODEURI,agent.getAbout());
+			 aColl.update(atl, termList);
+
 		}
 		
 
@@ -503,9 +509,10 @@ public class DataManager {
 		}
 
 		else {
-			 
-			 qATL= dsTL.createQuery(ConceptTermList.class).field(CODEURI).equal(concept.getAbout());
-			 cColl.update(qATL.get(), termList);
+
+			 //qATL= dsTL.createQuery(ConceptTermList.class).field(CODEURI).equal(concept.getAbout());
+			DBQuery.Query all = DBQuery.all(CODEURI,concept.getAbout());
+			 cColl.update(all, termList);
 		}
 		
 

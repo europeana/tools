@@ -49,7 +49,7 @@ import eu.europeana.enrichment.utils.MongoDatabaseUtils;
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public class Enricher {
-
+	private static InternalEnricher enricher= new InternalEnricher();
 	/**
 	 * Main enrichment method
 	 * 
@@ -63,7 +63,7 @@ public class Enricher {
 	public List<EntityWrapper> tagExternal(List<InputValue> values)
 			throws JsonGenerationException, JsonMappingException, IOException {
 		List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
-		entities.addAll(new InternalEnricher().tag(values));
+		entities.addAll(enricher.tag(values));
 		return entities;
 	}
 
@@ -208,7 +208,7 @@ public class Enricher {
 			port = Integer.parseInt(args[1]);
 		}
 		if (!MongoDatabaseUtils.dbExists(host, port)) {
-
+			enricher = new InternalEnricher();
 			File cacheDir = new File(path + "/tmp");
 			File baseDir = new File(path);
 			String placeFiles = "places/EU/*.rdf";
@@ -253,7 +253,7 @@ public class Enricher {
 
 			MongoDatabaseUtils.save("concept", vocabularyOfTerms);
 
-			String peopleFiles = "people/*.rdf";
+			/*String peopleFiles = "people/*.rdf";
 			vocabularyOfPeople.loadTermsSPARQL(
 					vocabularyOfPeople.makeTermsQuery("dcterms:isPartOf"),
 					cacheDir, baseDir, peopleFiles);
@@ -264,9 +264,11 @@ public class Enricher {
 					makePeoplePropertyQuery("death"), cacheDir, baseDir,
 					peopleFiles);
 
-			MongoDatabaseUtils.save("people", vocabularyOfPeople);
+			MongoDatabaseUtils.save("people", vocabularyOfPeople);*/
 		}
 
 	}
-
+	public static InternalEnricher getEnricher(){
+		return enricher;
+	}
 }
