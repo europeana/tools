@@ -206,16 +206,33 @@ public class TuplePersistence implements Runnable {
 
         Map<String,String> placeMap = new HashMap<>();
         List<PlaceImpl> places = fBean.getPlaces();
-        if(places!=null){
-            for(PlaceImpl place:places){
-                placeMap.put(place.getAbout(),place.getIsPartOf()!=null?place.getIsPartOf().get("def").get(0):null);
+        if(places != null){
+            for(PlaceImpl place : places) {
+            	if(place == null) {
+            		Logger.getGlobal().severe("Place is null");
+            	} else {
+            		if (place.getAbout() == null)
+            			Logger.getGlobal().severe("Place getAbout is null");
+            		if (place.getIsPartOf() == null)
+            			Logger.getGlobal().severe("Place getIsPartOf is null");
+            		else if (place.getIsPartOf().get("def") == null) {
+            			Logger.getGlobal().severe("Place getIsPartOf def is null");
+            		} else if (place.getIsPartOf().get("def").isEmpty()) {
+            			Logger.getGlobal().severe("Place getIsPartOf def is empty");
+            		}
+            	}
+				placeMap.put(
+						place.getAbout(),
+						place.getIsPartOf() != null ? place.getIsPartOf()
+								.get("def") != null ? !place.getIsPartOf().get("def").isEmpty() 
+										? place.getIsPartOf().get("def").get(0) : null : null : null);
             }
         }
 
         Map<String,List<String>> spatial = europeanaProxy.getDctermsSpatial();
         Set<String> toRemove = new HashSet<>();
         if(spatial!=null){
-            for(String sp:spatial.get("def")) {
+            for(String sp : spatial.get("def")) {
                 if (placeMap.containsKey(sp)){
                     toRemove.add(sp);
                     toRemove.addAll(removeParent(sp, placeMap));
