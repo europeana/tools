@@ -100,7 +100,7 @@ public class EnrichmentBolt extends BaseRichBolt {
            if (values.size()>0){
              entities = driver.enrich(values, false);
            }
-             Logger.getGlobal().log(Level.INFO,"Enrichemnt for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms");
+             Logger.getGlobal().log(Level.INFO,"*** Enrichment for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms ***");
             EntityWrapperList lst = new EntityWrapperList();
             lst.setWrapperList(entities);
            // appendEntities(fBean, entities);
