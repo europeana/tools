@@ -105,6 +105,7 @@ public class TuplePersistence implements Runnable {
                 mongoHandlerProd.saveEdmClasses(fBean, true);
                 mongoServerProd.getDatastore().save(fBean);
                 solrServerProd.add(solrHandlerProd.generate(fBean));
+                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved. ***");
             } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {

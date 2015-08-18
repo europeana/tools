@@ -148,9 +148,9 @@ public class RecordWriteBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         tuples.add(tuple);
         i++;
-        Logger.getGlobal().log(Level.INFO, "Got " + i + " records");
+        Logger.getGlobal().log(Level.INFO, "Got " + i + " records to save.");
         if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 3000) {
-           Logger.getGlobal().log(Level.INFO, "processing " + i + " records");
+            Logger.getGlobal().log(Level.INFO, "Processing " + i + " records");
             processTuples(tuples);
             
             Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
