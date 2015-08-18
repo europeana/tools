@@ -74,6 +74,7 @@ public class TuplePersistence implements Runnable {
     @Override
     public void run() {
 		//write data to INGESTION&PRODUCTION
+    	Logger.getLogger("Saving...");
 		save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
 				mongoHandlerIngst, solrHandlerProd, solrServerProd,
 				mongoServerProd, mongoHandlerProd);
@@ -204,6 +205,7 @@ public class TuplePersistence implements Runnable {
         //**********			PLACE				***********//
         Map<String,String> placeMap = new HashMap<>();
         List<PlaceImpl> beanPlaces = fBean.getPlaces();
+//        Logger.getGlobal().info("*** Bean " + fBean.getAbout() + " has " + beanPlaces.size() + " places. ***");
         if(beanPlaces != null) {
             for(PlaceImpl place : beanPlaces) {
 				if (place != null 
@@ -213,23 +215,10 @@ public class TuplePersistence implements Runnable {
 						&& !place.getIsPartOf().get("def").isEmpty()) {
 					placeMap.put(place.getAbout(), place.getIsPartOf().get("def").get(0));
 				} else {
-					Logger.getGlobal().info("!!! Place "
-									+ (place != null ? place.getAbout() : "")
-									+ " getIsPartOf is null or empty !!!");
+//					Logger.getGlobal().info("!!! Place "
+//									+ (place != null ? place.getAbout() : "")
+//									+ " getIsPartOf is null or empty !!!");
 				}
-//            	if (place == null) {
-//            		Logger.getGlobal().severe("!!! Place is null !!!");
-//            	} else if (place.getAbout() == null) {
-//        			Logger.getGlobal().severe("!!! Place getAbout is null !!!");
-//        		} else  if (place.getIsPartOf() == null) {
-//        			Logger.getGlobal().severe("!!! Place getIsPartOf is null !!!");
-//        		} else if (place.getIsPartOf().get("def") == null) {
-//        			Logger.getGlobal().severe("!!! Place getIsPartOf def is null !!!");
-//        		} else if (place.getIsPartOf().get("def").isEmpty()) {
-//        			Logger.getGlobal().severe("!!! Place getIsPartOf def is empty !!!");
-//        		} else {
-//        			placeMap.put(place.getAbout(), place.getIsPartOf().get("def").get(0));
-//        		}
             }
         }
         if (beanPlaces != null) {        	
@@ -273,7 +262,7 @@ public class TuplePersistence implements Runnable {
         if(sp != null) {
             parents.add(sp);
             if (placeMap.get(sp) != null && !StringUtils.equals(sp, placeMap.get(sp))) {
-                Logger.getGlobal().severe(sp);
+//                Logger.getGlobal().severe(sp);
                 parents.addAll(removeParent(placeMap.get(sp), placeMap));
             }
         }
@@ -309,17 +298,13 @@ public class TuplePersistence implements Runnable {
             ret.setOriginalLabel(entity.getOriginalValue());
             ret.setUri(entity.getUrl());
             if (entity.getClassName().equals(TimespanImpl.class.getName())) {
-                ret.setEntity(new ObjectMapper().readValue(entity.
-                        getContextualEntity(), TimespanImpl.class));
+                ret.setEntity(new ObjectMapper().readValue(entity.getContextualEntity(), TimespanImpl.class));
             } else if (entity.getClassName().equals(AgentImpl.class.getName())) {
-                ret.setEntity(new ObjectMapper().readValue(entity.
-                        getContextualEntity(), AgentImpl.class));
+                ret.setEntity(new ObjectMapper().readValue(entity.getContextualEntity(), AgentImpl.class));
             } else if (entity.getClassName().equals(ConceptImpl.class.getName())) {
-                ret.setEntity(new ObjectMapper().readValue(entity.
-                        getContextualEntity(), ConceptImpl.class));
+                ret.setEntity(new ObjectMapper().readValue(entity.getContextualEntity(), ConceptImpl.class));
             } else {
-                ret.setEntity(new ObjectMapper().readValue(entity.
-                        getContextualEntity(), PlaceImpl.class));
+                ret.setEntity(new ObjectMapper().readValue(entity.getContextualEntity(), PlaceImpl.class));
             }
             entities.add(ret);
         }

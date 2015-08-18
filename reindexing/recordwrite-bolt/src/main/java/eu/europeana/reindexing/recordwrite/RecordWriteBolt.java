@@ -148,9 +148,9 @@ public class RecordWriteBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         tuples.add(tuple);
         i++;
-        Logger.getGlobal().log(Level.INFO, "got " + i + " records");
-        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 5000) {
-           Logger.getGlobal().log(Level.INFO, "processing " + i + "records");
+        Logger.getGlobal().log(Level.INFO, "Got " + i + " records");
+        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 3000) {
+           Logger.getGlobal().log(Level.INFO, "processing " + i + " records");
             processTuples(tuples);
             
             Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
@@ -171,38 +171,36 @@ public class RecordWriteBolt extends BaseRichBolt {
             //to finish a current task report and reset the index "i"
             if (i == report.getTotal()) {
             	ops.set("status", Status.FINISHED);
-                i=0;
+                i = 0;
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
             datastore.update(query, ops);
             tuples.clear();
         }
-
-        
     }
 
     private void processTuples(List<Tuple> tuples) {
-        if (tuples.size() == 5000) {
+        if (tuples.size() == 3000) {
             List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
-            CountDownLatch latch = new CountDownLatch(10);
+            //6 batches per each method call
+            CountDownLatch latch = new CountDownLatch(6);
             for (List<Tuple> batch : batches) {
+            	//500 tuples per each batch
                 Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
-                										   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, 
-                										   batch, latch));
+                										   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, batch, latch));
                 t.start();
             }
             try {
                 latch.await();
-                Logger.getLogger("Finished saving");
+                Logger.getLogger("/// --- Finished saving of 3000 tuples.--- ///");
             } catch (InterruptedException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
             CountDownLatch latch = new CountDownLatch(1);
             Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
-					   								   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, 
-					   								   tuples, latch));
+					   								   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, tuples, latch));
             t.start();
             try {
                 latch.await();
