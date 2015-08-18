@@ -149,7 +149,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         tuples.add(tuple);
         i++;
         Logger.getGlobal().log(Level.INFO, "Got " + i + " records to save.");
-        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 3000) {
+        if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 5000) {
             Logger.getGlobal().log(Level.INFO, "Processing " + i + " records");
             processTuples(tuples);
             
@@ -181,10 +181,10 @@ public class RecordWriteBolt extends BaseRichBolt {
     }
 
     private void processTuples(List<Tuple> tuples) {
-        if (tuples.size() == 3000) {
+        if (tuples.size() == 5000) {
             List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
-            //6 batches per each method call
-            CountDownLatch latch = new CountDownLatch(6);
+            //10 batches per each method call
+            CountDownLatch latch = new CountDownLatch(10);
             for (List<Tuple> batch : batches) {
             	//500 tuples per each batch
                 Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
@@ -193,7 +193,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             try {
                 latch.await();
-                Logger.getLogger("/// --- Finished saving of 3000 tuples.--- ///");
+                Logger.getLogger("/// --- Finished saving of 5000 tuples.--- ///");
             } catch (InterruptedException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -204,6 +204,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             t.start();
             try {
                 latch.await();
+                Logger.getLogger("/// --- Finished saving of " + tuples.size() + " tuples.--- ///");
             } catch (InterruptedException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
