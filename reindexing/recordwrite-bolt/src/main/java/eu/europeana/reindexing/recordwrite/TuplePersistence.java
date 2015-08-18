@@ -95,6 +95,7 @@ public class TuplePersistence implements Runnable {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
             try {           
                 FullBeanImpl fBean = mongoServerIngst.searchByAbout(FullBeanImpl.class, task.getIdentifier());
+                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Saving record " + fBean.getAbout() + " ... ***");
                 cleanFullBean(fBean);
                 appendEntities(fBean, task.getEntityWrapper());
                 
