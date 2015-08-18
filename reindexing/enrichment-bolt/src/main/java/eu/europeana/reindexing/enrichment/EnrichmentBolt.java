@@ -100,19 +100,19 @@ public class EnrichmentBolt extends BaseRichBolt {
            if (values.size()>0){
              entities = driver.enrich(values, false);
            }
-             Logger.getGlobal().log(Level.INFO,"*** Enrichment for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms ***");
+            Logger.getGlobal().log(Level.INFO,"*** Enrichment for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms ***");
             EntityWrapperList lst = new EntityWrapperList();
             lst.setWrapperList(entities);
-           // appendEntities(fBean, entities);
-           String enrichments = om.writeValueAsString(lst);
+            // appendEntities(fBean, entities);
+            long startConvert = new Date().getTime();
+            String enrichments = om.writeValueAsString(lst);
+            Logger.getGlobal().log(Level.INFO,"*** Converting to String for enriched "+ fBean.getAbout() + " took " + (new Date().getTime() - startConvert) + " ms ***");
             collector.emit(new ReindexingTuple(task.getTaskId(), task.getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
         } catch (IOException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
-
-    
 
     private List<InputValue> getEnrichmentFields(FullBeanImpl fBean) {
         ProxyImpl providerProxy = null;
