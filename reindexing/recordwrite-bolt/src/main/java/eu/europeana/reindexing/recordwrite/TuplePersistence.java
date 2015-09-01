@@ -5,14 +5,22 @@
  */
 package eu.europeana.reindexing.recordwrite;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
@@ -273,7 +281,13 @@ public class TuplePersistence implements Runnable {
 
     private void appendEntities(FullBeanImpl fBean, String entityWrapper) {
         try {
-            List<EntityWrapper> entities = om.readValue(entityWrapper, EntityWrapperList.class).getWrapperList();
+        	byte[] decoded = new Base64().decode(entityWrapper);
+    		ByteArrayInputStream byteInput = new ByteArrayInputStream(decoded);
+    		GZIPInputStream gZipInput = new GZIPInputStream(byteInput);
+    		EntityWrapperList readValue = om.readValue(gZipInput, EntityWrapperList.class);
+    		List<EntityWrapper> entities = readValue.getWrapperList();
+    		
+//            List<EntityWrapper> entities = om.readValue(entityWrapper, EntityWrapperList.class).getWrapperList();
             List<RetrievedEntity> enriched = convertToObjects(entities);
             ProxyImpl europeanaProxy = null;
             int index = 0;

@@ -5,14 +5,30 @@
  */
 package eu.europeana.reindexing.enrichment;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
+
+import org.codehaus.jackson.map.ObjectMapper;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
+
 import com.mongodb.Mongo;
 import com.mongodb.ServerAddress;
+import org.apache.commons.codec.binary.Base64;
+
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
@@ -23,15 +39,6 @@ import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import eu.europeana.reindexing.common.ReindexingFields;
 import eu.europeana.reindexing.common.ReindexingTuple;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
@@ -89,25 +96,31 @@ public class EnrichmentBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple tuple) {
         ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
-
         try {
-            FullBeanImpl fBean =mongoServer.searchByAbout(FullBeanImpl.class, task.getIdentifier());
-            
-           // cleanFullBean(fBean);
-            List<InputValue> values = getEnrichmentFields(fBean);
-            List<EntityWrapper> entities = new ArrayList<>();
-            long startEnrich = new Date().getTime();
-           if (values.size()>0){
-             entities = driver.enrich(values, false);
-           }
-            Logger.getGlobal().log(Level.INFO,"*** Enrichment for "+ fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms ***");
-            EntityWrapperList lst = new EntityWrapperList();
-            lst.setWrapperList(entities);
-            // appendEntities(fBean, entities);
-            long startConvert = new Date().getTime();
-            String enrichments = om.writeValueAsString(lst);
-            Logger.getGlobal().log(Level.INFO,"*** Converting to String for enriched "+ fBean.getAbout() + " took " + (new Date().getTime() - startConvert) + " ms ***");
-            collector.emit(new ReindexingTuple(task.getTaskId(), task.getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
+			FullBeanImpl fBean = mongoServer.searchByAbout(FullBeanImpl.class, task.getIdentifier());
+
+			// cleanFullBean(fBean);
+			List<InputValue> values = getEnrichmentFields(fBean);
+			List<EntityWrapper> entities = new ArrayList<>();
+			long startEnrich = new Date().getTime();
+			if (values.size() > 0) {
+				entities = driver.enrich(values, false);
+			}
+			Logger.getGlobal().log(Level.INFO, "*** Enrichment for " + fBean.getAbout() + " took " + (new Date().getTime() - startEnrich) + " ms ***");
+			EntityWrapperList lst = new EntityWrapperList();
+			lst.setWrapperList(entities);
+			// appendEntities(fBean, entities);
+			long startConvert = new Date().getTime();
+			// String enrichments = om.writeValueAsString(lst);
+
+			ByteArrayOutputStream byteOutput = new ByteArrayOutputStream(1024);
+			om.writeValue(new GZIPOutputStream(byteOutput), lst);
+			String enrichments = new Base64().encodeAsString(byteOutput
+					.toByteArray());
+
+			Logger.getGlobal().log( Level.INFO, "*** Converting to String for enriched " + fBean.getAbout()
+							+ " took " + (new Date().getTime() - startConvert) + " ms ***");
+			collector.emit(new ReindexingTuple(task.getTaskId(), task .getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
         } catch (IOException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
