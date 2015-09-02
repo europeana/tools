@@ -46,6 +46,19 @@ import eu.europeana.reindexing.common.TaskReport;
  */
 public class RecordWriteBolt extends BaseRichBolt {
 
+	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
+    private static final String MONGO_DB_PASSWORD_INGST = "S0769hIM0vB5d4";
+
+	private static final String MONGO_DB_USER_INGST = "mongoadmin";
+
+	private static final String MONGO_DB_NAME_INGST = "europeana";
+	
+    private static final String MONGO_DB_PASSWORD_PROD = "S0769hIM0vB5d4";
+
+	private static final String MONGO_DB_USER_PROD = "mongoadmin";
+
+	private static final String MONGO_DB_NAME_PROD = "europeana";
+
     private OutputCollector collector;
 
     private FullBeanHandler mongoHandlerIngst;
@@ -108,7 +121,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoIngst = new Mongo(addressesIngst);
-            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, "europeana", null, null);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, MONGO_DB_NAME_INGST, MONGO_DB_USER_INGST, MONGO_DB_PASSWORD_INGST);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
             
@@ -124,7 +137,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, "europeana", null, null);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, MONGO_DB_NAME_PROD, MONGO_DB_USER_PROD, MONGO_DB_PASSWORD_PROD);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             

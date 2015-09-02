@@ -45,6 +45,12 @@ import eu.europeana.reindexing.common.ReindexingTuple;
  * @author ymamakis
  */
 public class EnrichmentBolt extends BaseRichBolt {
+	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
+    private static final String MONGO_DB_PASSWORD_INGST = "S0769hIM0vB5d4";
+ 
+	private static final String MONGO_DB_USER_INGST = "mongoadmin";
+ 
+	private static final String MONGO_DB_NAME_INGST = "europeana";
 
     private OutputCollector collector;
     
@@ -87,7 +93,7 @@ public class EnrichmentBolt extends BaseRichBolt {
                 }
             }
             Mongo mongo = new Mongo(addresses);
-            mongoServer = new EdmMongoServerImpl(mongo, "europeana", null, null);
+            mongoServer = new EdmMongoServerImpl(mongo, MONGO_DB_NAME_INGST, MONGO_DB_USER_INGST, MONGO_DB_PASSWORD_INGST);
         } catch (MongoDBException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }

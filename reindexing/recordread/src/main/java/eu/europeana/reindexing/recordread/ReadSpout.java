@@ -5,8 +5,6 @@
  */
 package eu.europeana.reindexing.recordread;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -17,7 +15,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
@@ -38,6 +35,8 @@ import com.google.code.morphia.Morphia;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
 import eu.europeana.reindexing.common.ReindexingFields;
@@ -51,6 +50,10 @@ import eu.europeana.reindexing.common.TaskReport;
  * @author ymamakis
  */
 public class ReadSpout extends BaseRichSpout {
+	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
+    private static final String MONGO_DB_PASSWORD = "S0769hIM0vB5d4";
+ 
+	private static final String MONGO_DB_USER = "mongoadmin";
 
     private CloudSolrServer solrServer;
 
@@ -188,7 +191,11 @@ public class ReadSpout extends BaseRichSpout {
                 addresses.add(address);
             }
             taskId = new Date().getTime();
-            Mongo mongo = new Mongo(addresses);
+            
+            List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
+            MongoCredential credential = MongoCredential.createCredential(MONGO_DB_USER, "taskreports", MONGO_DB_PASSWORD.toCharArray());
+            credentialsList.add(credential);
+            Mongo mongo = new MongoClient(addresses, credentialsList);
             Morphia morphia = new Morphia();
             morphia.map(TaskReport.class);
             datastore = morphia.createDatastore(mongo, "taskreports");
