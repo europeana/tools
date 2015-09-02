@@ -27,11 +27,11 @@ import eu.europeana.reindexing.recordwrite.RecordWriteBolt;
  * @author ymamakis
  */
 public class EnrichmentTopology {
-
     private static Properties properties;
     
     private static Target ingestion;
-    private static Target production;  
+    private static Target production;
+    private static Target taskreport;
 	
 //	private static String zookeeperHost;
     
@@ -44,6 +44,7 @@ public class EnrichmentTopology {
         	
         	ingestion = Target.INGESTION;
         	production = Target.PRODUCTION;
+        	taskreport = Target.TASKREPORT;
         	
         	Config config = new Config();
         	config.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 2000);
@@ -67,12 +68,16 @@ public class EnrichmentTopology {
 	
     public static StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        //FIXME TaskReports will stay at Hetzner for now!
-        String[] taskReportMongoAddresses = {"176.9.7.182","148.251.183.82","78.46.60.203","176.9.7.91"};
-        builder.setSpout("readSpout", new ReadSpout(production.getZookeeperHost(), taskReportMongoAddresses, production.getSolrAddresses(), production.getSolrCollection()), 1);
-        builder.setBolt("enrichment", new EnrichmentBolt(production.getPath(), production.getMongoAddresses()), 10).setNumTasks(10).shuffleGrouping("readSpout");
-		builder.setBolt("saverecords", new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
-									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection()), 1).shuffleGrouping("enrichment");
+        builder.setSpout("readSpout", new ReadSpout(taskreport.getZookeeperHost(), taskreport.getMongoAddresses(), taskreport.getSolrAddresses(), taskreport.getSolrCollection()), 1);
+        
+        builder.setBolt("enrichment", new EnrichmentBolt(production.getPath(), production.getMongoAddresses(), production.getDatabaseName(), 
+        							production.getDatabaseUser(), production.getDatabasePassword()), 10).setNumTasks(10).shuffleGrouping("readSpout");
+		
+        builder.setBolt("saverecords", new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
+									ingestion.getDatabaseName(), ingestion.getDatabaseUser(), ingestion.getDatabasePassword(),
+									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection(),
+									production.getDatabaseName(), production.getDatabaseUser(), production.getDatabasePassword(),
+									taskreport.getMongoAddresses()), 1).shuffleGrouping("enrichment");
 		return builder.createTopology();
     }
     
@@ -83,7 +88,7 @@ public class EnrichmentTopology {
      */
     private static enum Target {
     	
-    	INGESTION, PRODUCTION;
+    	INGESTION, PRODUCTION, TASKREPORT;
     	
 		private String path;
 		
@@ -91,14 +96,20 @@ public class EnrichmentTopology {
 		private String[] solrAddresses;    	
     	private String solrCollection;
     	private String zookeeperHost;
-    	
-    	private Target() {    		
+    	private String databaseName;
+    	private String databaseUser;
+    	private String databasePassword;
+
+		private Target() {    		
     		String target = this.name().toLowerCase();
 			this.mongoAddresses = properties.getProperty(target + ".mongo.host").split(",");
 			this.solrAddresses = properties.getProperty(target + ".solr.host").split(",");
 			this.solrCollection = properties.getProperty(target + ".solr.collection");
-			this.path = properties.getProperty(target + ".enrichment.restendpoint");         
-			this.zookeeperHost = properties.getProperty(target + ".zookeeper.host");  
+			this.path = properties.getProperty(target + ".enrichment.restendpoint"); 
+			this.zookeeperHost = properties.getProperty(target + ".zookeeper.host");
+			this.databaseName = properties.getProperty(target + ".mongo.database");
+			this.databaseUser = properties.getProperty(target + ".mongo.user");
+			this.databasePassword = properties.getProperty(target + ".mongo.password");
 		}
 
     	public String getPath() {
@@ -120,5 +131,17 @@ public class EnrichmentTopology {
     	public String getZookeeperHost() {
     		return this.zookeeperHost;
     	}
+    	
+    	public String getDatabaseName() {
+			return databaseName;
+		}
+
+		public String getDatabaseUser() {
+			return databaseUser;
+		}
+
+		public String getDatabasePassword() {
+			return databasePassword;
+		}
     }
 }

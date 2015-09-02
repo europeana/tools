@@ -26,16 +26,12 @@ import org.junit.Test;
 import backtype.storm.Config;
 import backtype.storm.ILocalCluster;
 import backtype.storm.Testing;
-import backtype.storm.generated.AlreadyAliveException;
-import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.testing.CompleteTopologyParam;
 import backtype.storm.testing.MkClusterParam;
 import backtype.storm.testing.MockedSources;
 import backtype.storm.testing.TestJob;
-import backtype.storm.testing.TrackedTopology;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.tuple.Values;
 
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
@@ -75,6 +71,10 @@ public class EnrichmentTopologyTest {
 	private String[] srcMongoAddresses;
 	private String srcZookeeper;
 	String srcPath;
+	
+	private String srcDbName;
+	private String srcDbUser;
+	private String srcDbPassword;
 
 	private Mongo mongo;
     
@@ -89,6 +89,10 @@ public class EnrichmentTopologyTest {
             srcMongoAddresses = properties.getProperty("ingestion.mongo.host").split(",");
             srcZookeeper = properties.getProperty("ingestion.zookeeper.host");
             srcPath = properties.getProperty("ingestion.enrichment.restendpoint");
+            
+            srcDbName = properties.getProperty("ingestion.mongo.database");
+        	srcDbUser = properties.getProperty("ingestion.mongo.user");
+        	srcDbPassword =properties.getProperty("ingestion.mongo.password");
 
         } catch (IOException ex) {
         	Logger.getLogger(EnrichmentTopologyTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -109,7 +113,7 @@ public class EnrichmentTopologyTest {
 				//build topology
                 TopologyBuilder builder = new TopologyBuilder();
                 builder.setSpout("readSpout", new ReadSpout(srcZookeeper, srcMongoAddresses, srcSolrAddresses, srcCollection));
-                builder.setBolt("enrichment", new EnrichmentBolt(srcPath, srcMongoAddresses)).shuffleGrouping("readSpout");
+                builder.setBolt("enrichment", new EnrichmentBolt(srcPath, srcMongoAddresses, srcDbName, srcDbUser, srcDbPassword)).shuffleGrouping("readSpout");
                 StormTopology topology = builder.createTopology();
                 
                 

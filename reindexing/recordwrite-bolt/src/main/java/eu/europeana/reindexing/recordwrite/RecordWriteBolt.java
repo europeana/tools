@@ -46,20 +46,6 @@ import eu.europeana.reindexing.common.TaskReport;
  * @author ymamakis
  */
 public class RecordWriteBolt extends BaseRichBolt {
-
-	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
-    private static final String MONGO_DB_PASSWORD_INGST = "S0769hIM0vB5d4";
-
-	private static final String MONGO_DB_USER_INGST = "mongoadmin";
-
-	private static final String MONGO_DB_NAME_INGST = "europeana";
-	
-    private static final String MONGO_DB_PASSWORD_PROD = "S0769hIM0vB5d4";
-
-	private static final String MONGO_DB_USER_PROD = "mongoadmin";
-
-	private static final String MONGO_DB_NAME_PROD = "europeana";
-
     private OutputCollector collector;
 
     private FullBeanHandler mongoHandlerIngst;
@@ -83,21 +69,42 @@ public class RecordWriteBolt extends BaseRichBolt {
     private String[] ingstSolrAddresses;
     private String ingstSolrCollection;
     
+    String ingstDbName;
+    String ingstDbUser;
+    String ingstDbPassword;
+    
     private String[] prodMongoAddresses;
     private String[] prodSolrAddresses;
     private String prodSolrCollection;
+    
+    String prodDbName;
+    String prodDbUser;
+    String prodDbPassword;
+    
+    String[] taskreportMongoAddresses;
 
 	public RecordWriteBolt(String ingstZkHost, String[] ingstMongoAddresses, String[] ingstSolrAddresses, String ingstSolrCollection,
-						   String prodZkHost, String[] prodMongoAddresses, String[] prodSolrAddresses, String prodSolrCollection) {		
+						   String ingstDbName, String ingstDbUser, String ingstDbPassword,
+						   String prodZkHost, String[] prodMongoAddresses, String[] prodSolrAddresses, String prodSolrCollection,
+						   String prodDbName, String prodDbUser, String prodDbPassword,
+						   String[] taskReportMongoAddresses) {		
 		this.ingstMongoAddresses = ingstMongoAddresses;
         this.ingstSolrAddresses = ingstSolrAddresses;
         this.ingstSolrCollection = ingstSolrCollection;
         this.zkHostIngst = ingstZkHost;
+        this.ingstDbName = ingstDbName;
+        this.ingstDbUser = ingstDbUser;
+        this.ingstDbPassword = ingstDbPassword;
         
 		this.prodMongoAddresses = prodMongoAddresses;
         this.prodSolrAddresses = prodSolrAddresses;
         this.prodSolrCollection = prodSolrCollection;        
         this.zkHostProd = prodZkHost;
+        this.prodDbName = prodDbName;
+        this.prodDbUser = prodDbUser;
+        this.prodDbPassword = prodDbPassword;
+        
+        this.taskreportMongoAddresses = taskreportMongoAddresses;
     }
 
     @Override
@@ -122,7 +129,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoIngst = new Mongo(addressesIngst);
-            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, MONGO_DB_NAME_INGST, MONGO_DB_USER_INGST, MONGO_DB_PASSWORD_INGST);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, ingstDbName, ingstDbUser, ingstDbPassword);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
             
@@ -138,7 +145,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             
             Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, MONGO_DB_NAME_PROD, MONGO_DB_USER_PROD, MONGO_DB_PASSWORD_PROD);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, prodDbName, prodDbUser, prodDbPassword);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             
@@ -146,18 +153,13 @@ public class RecordWriteBolt extends BaseRichBolt {
             
             //datastore
             Morphia morphia = new Morphia().map(TaskReport.class);
-            
-            //FIXME TaskReports will stay at Hetzner for now!
-            ////////////////////////////////
-            String[] taskReportMongoAddresses = {"176.9.7.182","148.251.183.82","78.46.60.203","176.9.7.91"};
             List<ServerAddress> addressesTaskReport = new ArrayList<>();
-            for (String mStr : taskReportMongoAddresses) {
+            for (String mStr : taskreportMongoAddresses) {
                 ServerAddress addr = new ServerAddress(mStr, 27017);
                 addressesTaskReport.add(addr);
             }
             Mongo mongoTaskReports = new Mongo(addressesTaskReport);
             MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,"taskreports", null, null);
-            ////////////////////////////////
             
             datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), "taskreports");
             datastore.ensureIndexes();

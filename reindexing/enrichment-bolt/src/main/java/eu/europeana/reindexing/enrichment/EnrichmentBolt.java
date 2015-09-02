@@ -45,13 +45,6 @@ import eu.europeana.reindexing.common.ReindexingTuple;
  * @author ymamakis
  */
 public class EnrichmentBolt extends BaseRichBolt {
-	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
-    private static final String MONGO_DB_PASSWORD_INGST = "S0769hIM0vB5d4";
- 
-	private static final String MONGO_DB_USER_INGST = "mongoadmin";
- 
-	private static final String MONGO_DB_NAME_INGST = "europeana";
-
     private OutputCollector collector;
     
     private ObjectMapper om;
@@ -59,9 +52,16 @@ public class EnrichmentBolt extends BaseRichBolt {
     private EdmMongoServerImpl mongoServer;
     private String path;
     private String[] mongoAddresses;
-    public EnrichmentBolt(String path, String[] mongoAddresses) {
+    String dbName;
+    String dbUser;
+    String dbPassword;
+    
+    public EnrichmentBolt(String path, String[] mongoAddresses, String dbName, String dbUser, String dbPassword) {
         this.path = path;
-        this.mongoAddresses= mongoAddresses;
+        this.mongoAddresses = mongoAddresses;
+        this.dbName = dbName;
+        this.dbUser = dbUser;
+        this.dbPassword = dbPassword;
     }
 
     
@@ -93,7 +93,7 @@ public class EnrichmentBolt extends BaseRichBolt {
                 }
             }
             Mongo mongo = new Mongo(addresses);
-            mongoServer = new EdmMongoServerImpl(mongo, MONGO_DB_NAME_INGST, MONGO_DB_USER_INGST, MONGO_DB_PASSWORD_INGST);
+            mongoServer = new EdmMongoServerImpl(mongo, dbName, dbUser, dbPassword);
         } catch (MongoDBException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }
