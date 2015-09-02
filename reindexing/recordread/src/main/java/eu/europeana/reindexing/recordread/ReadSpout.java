@@ -35,8 +35,6 @@ import com.google.code.morphia.Morphia;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
 import eu.europeana.reindexing.common.ReindexingFields;
@@ -50,10 +48,6 @@ import eu.europeana.reindexing.common.TaskReport;
  * @author ymamakis
  */
 public class ReadSpout extends BaseRichSpout {
-	//FIXME Think about code re-factoring (maybe makes sense to externalize values to properties file).
-    private static final String MONGO_DB_PASSWORD = "S0769hIM0vB5d4";
- 
-	private static final String MONGO_DB_USER = "mongoadmin";
 
     private CloudSolrServer solrServer;
 
@@ -191,11 +185,7 @@ public class ReadSpout extends BaseRichSpout {
                 addresses.add(address);
             }
             taskId = new Date().getTime();
-            
-            List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
-            MongoCredential credential = MongoCredential.createCredential(MONGO_DB_USER, "taskreports", MONGO_DB_PASSWORD.toCharArray());
-            credentialsList.add(credential);
-            Mongo mongo = new MongoClient(addresses, credentialsList);
+            Mongo mongo = new Mongo(addresses);
             Morphia morphia = new Morphia();
             morphia.map(TaskReport.class);
             datastore = morphia.createDatastore(mongo, "taskreports");

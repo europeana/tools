@@ -67,8 +67,10 @@ public class EnrichmentTopology {
 	
     public static StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("readSpout", new ReadSpout(production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection()), 1);
-        builder.setBolt("enrichment", new EnrichmentBolt(ingestion.getPath(), ingestion.getMongoAddresses()), 10).setNumTasks(10).shuffleGrouping("readSpout");
+        //FIXME TaskReports will stay at Hetzner for now!
+        String[] taskReportMongoAddresses = {"176.9.7.182","148.251.183.82","78.46.60.203","176.9.7.91"};
+        builder.setSpout("readSpout", new ReadSpout(production.getZookeeperHost(), taskReportMongoAddresses, production.getSolrAddresses(), production.getSolrCollection()), 1);
+        builder.setBolt("enrichment", new EnrichmentBolt(production.getPath(), production.getMongoAddresses()), 10).setNumTasks(10).shuffleGrouping("readSpout");
 		builder.setBolt("saverecords", new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
 									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection()), 1).shuffleGrouping("enrichment");
 		return builder.createTopology();
