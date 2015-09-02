@@ -36,6 +36,7 @@ import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
+import eu.europeana.corelib.storage.MongoServer;
 import eu.europeana.reindexing.common.ReindexingFields;
 import eu.europeana.reindexing.common.Status;
 import eu.europeana.reindexing.common.TaskReport;
@@ -145,7 +146,20 @@ public class RecordWriteBolt extends BaseRichBolt {
             
             //datastore
             Morphia morphia = new Morphia().map(TaskReport.class);
-            datastore = morphia.createDatastore(mongoServerIngst.getDatastore().getMongo(), "taskreports");
+            
+            //FIXME TaskReports will stay at Hetzner for now!
+            ////////////////////////////////
+            String[] taskReportMongoAddresses = {"176.9.7.182","148.251.183.82","78.46.60.203","176.9.7.91"};
+            List<ServerAddress> addressesTaskReport = new ArrayList<>();
+            for (String mStr : taskReportMongoAddresses) {
+                ServerAddress addr = new ServerAddress(mStr, 27017);
+                addressesTaskReport.add(addr);
+            }
+            Mongo mongoTaskReports = new Mongo(addressesTaskReport);
+            MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,"taskreports", null, null);
+            ////////////////////////////////
+            
+            datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), "taskreports");
             datastore.ensureIndexes();
             
         } catch (MalformedURLException ex) {
