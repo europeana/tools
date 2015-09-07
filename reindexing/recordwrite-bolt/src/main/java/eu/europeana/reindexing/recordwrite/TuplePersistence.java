@@ -24,6 +24,11 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import backtype.storm.tuple.Tuple;
@@ -109,8 +114,35 @@ public class TuplePersistence implements Runnable {
                 
                 mongoHandlerIngst.saveEdmClasses(fBean, true);
                 mongoServerIngst.getDatastore().save(fBean);
-                solrServerIngst.add(solrHandlerIngst.generate(fBean));
+                SolrInputDocument solrDocument = solrHandlerIngst.generate(fBean);
                 
+                ModifiableSolrParams params = new ModifiableSolrParams();
+                params.add("q", "europeana_id:" + ClientUtils.escapeQueryChars(fBean.getAbout()));
+                params.add("fl", "is_fulltext,has_thumbnails,has_media,filter_tags,facet_tags,has_landingpage");
+                QueryResponse resp = solrServerIngst.query(params);
+                if(resp.getResults().size() > 0) {
+                    SolrDocument retrievedDoc = resp.getResults().get(0);
+                    if(retrievedDoc.containsKey("is_fulltext")) {
+                    	solrDocument.addField("is_fulltext", retrievedDoc.get("is_fulltext"));
+                    }
+                    if(retrievedDoc.containsKey("has_thumbnails")) {
+                    	solrDocument.addField("has_thumbnails", retrievedDoc.get("has_thumbnails"));
+                    }
+                    if(retrievedDoc.containsKey("has_media")) {
+                    	solrDocument.addField("has_media", retrievedDoc.get("has_media"));
+                    }
+                    if(retrievedDoc.containsKey("filter_tags")) {
+                    	solrDocument.addField("filter_tags", retrievedDoc.get("filter_tags"));
+                    }
+                    if(retrievedDoc.containsKey("facet_tags")) {
+                    	solrDocument.addField("facet_tags", retrievedDoc.get("facet_tags"));
+                    }
+                    if(retrievedDoc.containsKey("has_landingpage")) {
+                    	solrDocument.addField("has_landingpage", retrievedDoc.get("has_landingpage"));
+                    }
+                }
+                
+                solrServerIngst.add(solrDocument);
                 mongoHandlerProd.saveEdmClasses(fBean, true);
                 mongoServerProd.getDatastore().save(fBean);
                 solrServerProd.add(solrHandlerProd.generate(fBean));
@@ -121,8 +153,7 @@ public class TuplePersistence implements Runnable {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-	}
-    
+	} 
     
     private void cleanFullBean(FullBeanImpl fBean) {
         ProxyImpl europeanaProxy = null;
