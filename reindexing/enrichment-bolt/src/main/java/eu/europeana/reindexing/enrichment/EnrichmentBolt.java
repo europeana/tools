@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import backtype.storm.task.OutputCollector;
@@ -25,9 +26,9 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import org.apache.commons.codec.binary.Base64;
 
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
@@ -92,8 +93,11 @@ public class EnrichmentBolt extends BaseRichBolt {
                     
                 }
             }
-            Mongo mongo = new Mongo(addresses);
-            mongoServer = new EdmMongoServerImpl(mongo, dbName, dbUser, dbPassword);
+            List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
+            MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPassword.toCharArray());
+            credentialsList.add(credential);
+            MongoClient mongo = new MongoClient(addresses, credentialsList);
+            mongoServer = new EdmMongoServerImpl(mongo, dbName, null, null);
         } catch (MongoDBException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }

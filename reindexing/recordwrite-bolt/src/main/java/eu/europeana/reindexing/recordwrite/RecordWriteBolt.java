@@ -29,6 +29,8 @@ import com.google.code.morphia.Morphia;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
@@ -128,8 +130,12 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesIngst.add(address);
             }
             
-            Mongo mongoIngst = new Mongo(addressesIngst);
-            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, ingstDbName, ingstDbUser, ingstDbPassword);
+            List<MongoCredential> ingstCredentialsList = new ArrayList<MongoCredential>();
+            MongoCredential ingstCredential = MongoCredential.createCredential(ingstDbUser, ingstDbName, ingstDbPassword.toCharArray());
+            ingstCredentialsList.add(ingstCredential);
+            
+            MongoClient mongoIngst = new MongoClient(addressesIngst, ingstCredentialsList);
+            mongoServerIngst = new EdmMongoServerImpl(mongoIngst, ingstDbName, null, null);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
             
@@ -144,8 +150,12 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesProd.add(address);
             }
             
-            Mongo mongoProd = new Mongo(addressesProd);
-            mongoServerProd = new EdmMongoServerImpl(mongoProd, prodDbName, prodDbUser, prodDbPassword);
+            List<MongoCredential> prodCredentialsList = new ArrayList<MongoCredential>();
+            MongoCredential prodCredential = MongoCredential.createCredential(prodDbUser, prodDbName, prodDbPassword.toCharArray());
+            prodCredentialsList.add(prodCredential);
+            
+            MongoClient mongoProd = new MongoClient(addressesProd, prodCredentialsList);
+            mongoServerProd = new EdmMongoServerImpl(mongoProd, prodDbName, null, null);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
             
