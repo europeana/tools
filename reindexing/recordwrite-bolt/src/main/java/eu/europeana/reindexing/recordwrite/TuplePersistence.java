@@ -107,54 +107,72 @@ public class TuplePersistence implements Runnable {
 		for (Tuple tuple : tuples) {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
             try {           
-                FullBeanImpl fBean = mongoServerIngst.searchByAbout(FullBeanImpl.class, task.getIdentifier());
+                FullBeanImpl fBean = mongoServerProd.searchByAbout(FullBeanImpl.class, task.getIdentifier());
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Saving record " + fBean.getAbout() + " ... ***");
                 cleanFullBean(fBean);
                 appendEntities(fBean, task.getEntityWrapper());
                 
-                mongoHandlerIngst.saveEdmClasses(fBean, true);
-                mongoServerIngst.getDatastore().save(fBean);
-                SolrInputDocument solrDocument = solrHandlerIngst.generate(fBean);
-                
                 ModifiableSolrParams params = new ModifiableSolrParams();
                 params.add("q", "europeana_id:" + ClientUtils.escapeQueryChars(fBean.getAbout()));
                 params.add("fl", "is_fulltext,has_thumbnails,has_media,filter_tags,facet_tags,has_landingpage");
-                QueryResponse resp = solrServerIngst.query(params);
-                if(resp.getResults().size() > 0) {
-                    SolrDocument retrievedDoc = resp.getResults().get(0);
-                    if(retrievedDoc.containsKey("is_fulltext")) {
-                    	solrDocument.addField("is_fulltext", retrievedDoc.get("is_fulltext"));
-                    }
-                    if(retrievedDoc.containsKey("has_thumbnails")) {
-                    	solrDocument.addField("has_thumbnails", retrievedDoc.get("has_thumbnails"));
-                    }
-                    if(retrievedDoc.containsKey("has_media")) {
-                    	solrDocument.addField("has_media", retrievedDoc.get("has_media"));
-                    }
-                    if(retrievedDoc.containsKey("filter_tags")) {
-                    	solrDocument.addField("filter_tags", retrievedDoc.get("filter_tags"));
-                    }
-                    if(retrievedDoc.containsKey("facet_tags")) {
-                    	solrDocument.addField("facet_tags", retrievedDoc.get("facet_tags"));
-                    }
-                    if(retrievedDoc.containsKey("has_landingpage")) {
-                    	solrDocument.addField("has_landingpage", retrievedDoc.get("has_landingpage"));
-                    }
-                }
                 
-                solrServerIngst.add(solrDocument);
                 mongoHandlerProd.saveEdmClasses(fBean, true);
                 mongoServerProd.getDatastore().save(fBean);
-                solrServerProd.add(solrHandlerProd.generate(fBean));
-                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved. ***");
+                SolrInputDocument solrDocumentProd = solrHandlerProd.generate(fBean);
+                addFields(solrDocumentProd, solrServerProd.query(params));
+                solrServerProd.add(solrDocumentProd);
+                Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Production. ***");
+                
+                FullBeanImpl fBeanIngst = mongoServerIngst.searchByAbout(FullBeanImpl.class, fBean.getAbout());
+                if (fBeanIngst != null) {
+                	mongoHandlerIngst.saveEdmClasses(fBean, true);
+                	mongoServerIngst.getDatastore().save(fBean);
+                	SolrInputDocument solrDocumentIngst = solrHandlerIngst.generate(fBean);
+                	addFields(solrDocumentIngst, solrServerIngst.query(params));
+					solrServerIngst.add(solrDocumentIngst);                	
+					Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Ingestion. ***");
+                }
             } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-	} 
+	}
+	
+	/**
+	 * Add CRF fields
+	 * @param doc
+	 * @param resp
+	 */
+	private void addFields(SolrInputDocument doc, QueryResponse resp) {
+		if(resp.getResults().size() > 0) {
+            SolrDocument retrievedDoc = resp.getResults().get(0);
+            if (retrievedDoc.containsKey("is_fulltext")) {
+            	doc.addField("is_fulltext", retrievedDoc.get("is_fulltext"));
+            }
+            if (retrievedDoc.containsKey("has_thumbnails")) {
+            	doc.addField("has_thumbnails", retrievedDoc.get("has_thumbnails"));
+            }
+            if (retrievedDoc.containsKey("has_media")) {
+            	doc.addField("has_media", retrievedDoc.get("has_media"));
+            }
+            if (retrievedDoc.containsKey("filter_tags")) {
+            	doc.addField("filter_tags", retrievedDoc.get("filter_tags"));
+            }
+            if (retrievedDoc.containsKey("facet_tags")) {
+            	doc.addField("facet_tags", retrievedDoc.get("facet_tags"));
+            }
+            if (retrievedDoc.containsKey("has_landingpage")) {
+            	doc.addField("has_landingpage", retrievedDoc.get("has_landingpage"));
+            }
+        }
+	}
     
+	/**
+	 * Clean bean from old obsolete data
+	 * @param fBean
+	 */
     private void cleanFullBean(FullBeanImpl fBean) {
         ProxyImpl europeanaProxy = null;
         fBean = cleanEntitiesFromBean(fBean);
@@ -180,6 +198,11 @@ public class TuplePersistence implements Runnable {
         fBean.getProxies().set(index, europeanaProxy);
     }
 
+    /**
+     * Clean bean from Timespans, Agents and Places (before appending the enriched data)
+     * @param fBean
+     * @return
+     */
     private FullBeanImpl cleanEntitiesFromBean(FullBeanImpl fBean) {
         ProxyImpl europeanaProxy = null;
         for (ProxyImpl proxy : fBean.getProxies()) {
