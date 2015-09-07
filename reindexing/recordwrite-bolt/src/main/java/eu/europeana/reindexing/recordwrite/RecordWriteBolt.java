@@ -106,7 +106,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         this.prodDbUser = prodDbUser;
         this.prodDbPassword = prodDbPassword;
         
-        this.taskreportMongoAddresses = taskreportMongoAddresses;
+        this.taskreportMongoAddresses = taskReportMongoAddresses;
     }
 
     @Override
