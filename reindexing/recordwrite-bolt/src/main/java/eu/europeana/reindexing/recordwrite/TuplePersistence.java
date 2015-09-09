@@ -88,11 +88,20 @@ public class TuplePersistence implements Runnable {
     public void run() {
 		//write data to INGESTION&PRODUCTION
     	Logger.getLogger("Saving...");
-		save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
-				mongoHandlerIngst, solrHandlerProd, solrServerProd,
-				mongoServerProd, mongoHandlerProd);
+        try {
+            save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
+                    mongoHandlerIngst, solrHandlerProd, solrServerProd,
+                    mongoServerProd, mongoHandlerProd);
+        } catch(Exception e){
+            Logger.getGlobal().severe(e.getMessage());
+            e.printStackTrace();
+        }
 		//Notify the main thread that you finished and that it does not have to wait for you now
-		latch.countDown();
+		finally {
+            Logger.getGlobal().info("Threads remaining:" + (latch.getCount()-1));
+            latch.countDown();
+        }
+
 		Logger.getLogger("Finished processing and persisting");
     }
 
@@ -106,8 +115,9 @@ public class TuplePersistence implements Runnable {
 			FullBeanHandler mongoHandlerProd) {
 		for (Tuple tuple : tuples) {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
+            FullBeanImpl fBean = mongoServerProd.searchByAbout(FullBeanImpl.class, task.getIdentifier());
             try {           
-                FullBeanImpl fBean = mongoServerProd.searchByAbout(FullBeanImpl.class, task.getIdentifier());
+
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Saving record " + fBean.getAbout() + " ... ***");
                 cleanFullBean(fBean);
                 appendEntities(fBean, task.getEntityWrapper());
@@ -125,9 +135,11 @@ public class TuplePersistence implements Runnable {
                 
                 FullBeanImpl fBeanIngst = mongoServerIngst.searchByAbout(FullBeanImpl.class, fBean.getAbout());
                 if (fBeanIngst != null) {
-                	mongoHandlerIngst.saveEdmClasses(fBean, true);
-                	mongoServerIngst.getDatastore().save(fBean);
-                	SolrInputDocument solrDocumentIngst = solrHandlerIngst.generate(fBean);
+                    cleanFullBean(fBeanIngst);
+                    appendEntities(fBeanIngst, task.getEntityWrapper());
+                	mongoHandlerIngst.saveEdmClasses(fBeanIngst, true);
+                	mongoServerIngst.getDatastore().save(fBeanIngst);
+                	SolrInputDocument solrDocumentIngst = solrHandlerIngst.generate(fBeanIngst);
                 	//addFields(solrDocumentIngst, solrServerIngst.query(params));
 					solrServerIngst.add(solrDocumentIngst);                	
 					Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Ingestion. ***");
@@ -136,6 +148,9 @@ public class TuplePersistence implements Runnable {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception e){
+
+                throw e;
             }
         }
 	}
