@@ -112,14 +112,14 @@ public class TuplePersistence implements Runnable {
                 cleanFullBean(fBean);
                 appendEntities(fBean, task.getEntityWrapper());
                 
-                ModifiableSolrParams params = new ModifiableSolrParams();
+              /*  ModifiableSolrParams params = new ModifiableSolrParams();
                 params.add("q", "europeana_id:" + ClientUtils.escapeQueryChars(fBean.getAbout()));
                 params.add("fl", "is_fulltext,has_thumbnails,has_media,filter_tags,facet_tags,has_landingpage");
-                
+                */
                 mongoHandlerProd.saveEdmClasses(fBean, true);
                 mongoServerProd.getDatastore().save(fBean);
                 SolrInputDocument solrDocumentProd = solrHandlerProd.generate(fBean);
-                addFields(solrDocumentProd, solrServerProd.query(params));
+                //addFields(solrDocumentProd, solrServerProd.query(params));
                 solrServerProd.add(solrDocumentProd);
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Production. ***");
                 
@@ -128,7 +128,7 @@ public class TuplePersistence implements Runnable {
                 	mongoHandlerIngst.saveEdmClasses(fBean, true);
                 	mongoServerIngst.getDatastore().save(fBean);
                 	SolrInputDocument solrDocumentIngst = solrHandlerIngst.generate(fBean);
-                	addFields(solrDocumentIngst, solrServerIngst.query(params));
+                	//addFields(solrDocumentIngst, solrServerIngst.query(params));
 					solrServerIngst.add(solrDocumentIngst);                	
 					Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Ingestion. ***");
                 }
@@ -145,7 +145,7 @@ public class TuplePersistence implements Runnable {
 	 * @param doc
 	 * @param resp
 	 */
-	private void addFields(SolrInputDocument doc, QueryResponse resp) {
+/*	private void addFields(SolrInputDocument doc, QueryResponse resp) {
 		if(resp.getResults().size() > 0) {
             SolrDocument retrievedDoc = resp.getResults().get(0);
             if (retrievedDoc.containsKey("is_fulltext")) {
@@ -167,7 +167,7 @@ public class TuplePersistence implements Runnable {
             	doc.addField("has_landingpage", retrievedDoc.get("has_landingpage"));
             }
         }
-	}
+	}*/
     
 	/**
 	 * Clean bean from old obsolete data

@@ -121,9 +121,10 @@ public class ReadSpout extends BaseRichSpout {
     					String nextCursorMark = resp.getNextCursorMark();
 
 
-    					// For query "q" we update "total"
-    					ops.set("total", resp.getResults().getNumFound());
-    					
+    					// For query "q" we update "total" if it has not been set already
+						if(report.getTotal()==0) {
+							ops.set("total", resp.getResults().getNumFound());
+						}
     					//if the number of results is 0 then we finish the task report
     					if (resp.getResults().getNumFound() == 0) {
 							done = true;
