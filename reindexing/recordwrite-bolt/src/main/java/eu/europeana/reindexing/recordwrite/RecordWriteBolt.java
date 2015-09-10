@@ -209,8 +209,10 @@ public class RecordWriteBolt extends BaseRichBolt {
             
             //to finish a current task report and reset the index "i"
             if (i == report.getTotal()) {
+            	Logger.getGlobal().log(Level.WARNING, "*** Current i is " + i + ". ***");
             	ops.set("status", Status.FINISHED);
                 i = 0;
+                Logger.getGlobal().log(Level.WARNING, "*** Resetted i to " + i + ". ***");
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
