@@ -87,7 +87,7 @@ public class TuplePersistence implements Runnable {
     @Override
     public void run() {
 		//write data to INGESTION&PRODUCTION
-    	Logger.getLogger("Saving...");
+    	Logger.getGlobal().info("Saving...");
         try {
             save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
                     mongoHandlerIngst, solrHandlerProd, solrServerProd,
@@ -98,11 +98,11 @@ public class TuplePersistence implements Runnable {
         }
 		//Notify the main thread that you finished and that it does not have to wait for you now
 		finally {
-            Logger.getGlobal().info("Threads remaining:" + (latch.getCount()-1));
+            Logger.getGlobal().info("Threads remaining:" + (latch.getCount() - 1));
             latch.countDown();
         }
 
-		Logger.getLogger("Finished processing and persisting");
+		Logger.getGlobal().info("Finished processing and persisting");
     }
 
 	private void save(SolrDocumentHandler solrHandlerIngst,
@@ -117,7 +117,6 @@ public class TuplePersistence implements Runnable {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
             FullBeanImpl fBean = mongoServerProd.searchByAbout(FullBeanImpl.class, task.getIdentifier());
             try {           
-
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Saving record " + fBean.getAbout() + " ... ***");
                 cleanFullBean(fBean);
                 appendEntities(fBean, task.getEntityWrapper());

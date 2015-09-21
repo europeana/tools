@@ -71,12 +71,24 @@ public class ReadSpout extends BaseRichSpout {
         this.solrCollection = solrCollection;
     }
 
+    /**
+     * The logic for each unfinished task report is the following:
+     * 
+     * - read an unfinished task report from DB, if there is no one then wait;
+     * - set the status of initial task report to PROCESSING if was INITIAL;
+     * - get the cursor mark from a task report;
+     * - get the response for task report query and cursor mark;
+     * - process (emit) the response for further re-indexing until it gets the number of "processed" equal to number of "total".
+     * 
+     * NOTE: 	We DO update only the "total" (one first time when we start the initial task).
+     * 			We DO update the "queryMark" after processing of the response.
+     * 			We DO NOT change "processed" and "status" fields (except for an empty result set) for a task report during the processing.
+     * 			The fields "processed" and "status" should be updated in RecordWriteBolt.
+     */
     @Override
     public void nextTuple() {
-        // Check that there is a list of task reports with status INITIAL
-        // If there is no task  - sleep 5 minutes!
     	List<TaskReport> initialTaskReports = datastore.find(TaskReport.class).field("status").in(Arrays.asList(Status.INITIAL, Status.PROCESSING)).asList();
-		Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE,"Got " + (initialTaskReports!=null?initialTaskReports.size():0)+" tasks");
+		Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE,"Got " + (initialTaskReports != null ? initialTaskReports.size() : 0) + " tasks");
     	if (initialTaskReports == null || initialTaskReports.isEmpty()) {
 			try {
 				Thread.sleep(60000);
@@ -88,7 +100,7 @@ public class ReadSpout extends BaseRichSpout {
     			taskId = initialTaskReport.getTaskId();
 				processed = initialTaskReport.getProcessed();
     			// Start from the beginning or from the last cursor mark of a task report (queryMark)
-    			String cursorMark = initialTaskReport.getStatus() == Status.INITIAL? CursorMarkParams.CURSOR_MARK_START: initialTaskReport.getQueryMark();
+    			String cursorMark = initialTaskReport.getStatus() == Status.INITIAL ? CursorMarkParams.CURSOR_MARK_START : initialTaskReport.getQueryMark();
     			
     			// Create another query "q" to update the task report "status", "dateUpdated"
 				Query<TaskReport> q = datastore.find(TaskReport.class).filter("taskId", taskId);
@@ -110,44 +122,49 @@ public class ReadSpout extends BaseRichSpout {
     			boolean done = false;
     			// While we are not at the end of the index
     			while (!done) {
-    				Logger.getGlobal().info("Processed for taskId " + taskId + " = " + processed);
     				try {
 						TaskReport report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
     					params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
     					QueryResponse resp = solrServer.query(params);
-    					if ( report.getStatus() == Status.STOPPED) {
+    					long numFound = resp.getResults().getNumFound();
+    					String nextCursorMarkFromSolr = resp.getNextCursorMark();
+
+    					// If the task report is stopped or finished
+    					if (report.getStatus() == Status.STOPPED || report.getStatus() == Status.FINISHED) {
+    						done = true;
     						break;
     					}
-    					String nextCursorMark = resp.getNextCursorMark();
-
-
-    					// For query "q" we update "total" if it has not been set already
-						if(report.getTotal()==0) {
-							ops.set("total", resp.getResults().getNumFound());
-						}
-    					//if the number of results is 0 then we finish the task report
-    					if (resp.getResults().getNumFound() == 0) {
+						
+    					// If the number of results is 0 then we finish the task report
+    					if (numFound == 0) {
 							done = true;
 							ops.set("status", Status.FINISHED);
-    						initialTaskReport.setStatus(Status.FINISHED);
 							datastore.update(q, ops);
+							break;
+    					}
+
+    					// For query "q" we update "total" if it has not been set already 
+    					// NOTE: works only one time for each task report
+						if (report.getTotal() == 0) {
+							ops.set("total", numFound);
+						}
+
+    					// Process
+    					doProcessing(resp);
+    					
+    					// Exit if reached the end
+    					if (report.getProcessed() == numFound) {
+    						done = true;
     						break;
     					}
 
-						//datastore.update(q, ops);
-    	    			// Process
-    					doProcessing(resp);
+    					// Update task report
+    					ops.set("queryMark", nextCursorMarkFromSolr);
+    					datastore.update(q, ops);
+
     					processed += resp.getResults().size();
-						Logger.getGlobal().info("Processed "+ processed +" for taskId " + taskId);
-    					// Exit if reached the end
-    					if (cursorMark.equals(nextCursorMark)) {
-    						done = true;
-							ops.set("status", Status.FINISHED);
-    						Logger.getGlobal().info("Done is now true for taskId " + taskId);
-    					}
-
-
-						while(processed>report.getProcessed()){
+						Logger.getGlobal().info("Processed "+ processed + " records for taskId=" + taskId);
+						while (processed > report.getProcessed()){
 							report = datastore.find(TaskReport.class).filter("taskId", taskId).get();
 							try {
 								Thread.sleep(30000);
@@ -155,13 +172,6 @@ public class ReadSpout extends BaseRichSpout {
 								e.printStackTrace();
 							}
 						}
-    					cursorMark = nextCursorMark;
-
-						// Update the query mark
-						ops.set("queryMark", nextCursorMark);
-						// Update current task report at the data store
-						datastore.update(q, ops);
-
 					} catch (SolrServerException ex) {
     					Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);
     				}
