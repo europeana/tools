@@ -22,17 +22,8 @@ except:
     pass  # was py3
 
 
-class Worker(object):
-    def request(self, url):
-        t = time.time()
-        r = requests.get(url)
-        msg = '\t%s' % (time.time() - t)
-        if r.status_code != 200:
-            msg += ' <Fail'
-        print(msg)
-
 class LogReplayer(object):
-    TIME_PROGRESS  = 15
+    TIME_PROGRESS  = 5 # intervall for showing progress
 
     def __init__(self):
         """Parse command line options."""
@@ -118,10 +109,6 @@ class LogReplayer(object):
 The solr logfile specific parts
 """
 class SolrLogReplayer(LogReplayer):
-    def __init__(self):
-        super(SolrLogReplayer, self).__init__()
-        print('solrid<query>[zzz if idling to wait for logfile timing] responsetime [<Fail]')
-
     def parse_logline(self, line):
         #print('parse_logline: %s' % line)
         s, q = line.split('Solr query: q=')
