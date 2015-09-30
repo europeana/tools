@@ -32,7 +32,7 @@ class Worker(object):
         print(msg)
 
 class LogReplayer(object):
-    TIME_PROGRESS  = 3
+    TIME_PROGRESS  = 15
 
     def __init__(self):
         """Parse command line options."""
