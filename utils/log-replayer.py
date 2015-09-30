@@ -106,8 +106,10 @@ class LogReplayer(object):
 
 
 
-"""
-The solr logfile specific parts
+""" =============================================================================
+
+Handling our solr logfiles
+
 """
 class SolrLogReplayer(LogReplayer):
     def parse_logline(self, line):
@@ -122,7 +124,11 @@ class SolrLogReplayer(LogReplayer):
         return ts, url
 
 
-"""
+
+
+
+"""=============================================================================
+
   parsing portal2 Cloud Foundry app output, generated like:
     cf logs blue-portal > blue-portal.log
 
@@ -142,8 +148,6 @@ class Portal2LogReplayer(LogReplayer):
         dt = datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%S")
         ts = time.mktime(dt.timetuple())
         return ts, url
-
-
 
     def extract_url(self, line):
         parts = line.split('"referer":')
