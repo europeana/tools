@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Replay requests from a log file, subclass with handlers for the specific format.
-
 - Takes time between requests into account, with option to speed up the replay.
-
   Inspired by https://github.com/chromano/apache-log-replay
-
   Written 2015-09-30 by jacob.lundqvist@europeana.eu
   License: EUPL
 """
@@ -69,13 +66,9 @@ class LogReplayer(object):
                  time.sleep(0.001)
             self.handle_request(url)
             if t_progress + self.TIME_PROGRESS < time.time():
-                print('progress: running %i secs at speed %i, sent %i requests' % (int(time.time() - t_offset), self.options.speedup, idx))
-                t_progress = time.time()
+                t_progress += self.TIME_PROGRESS
+                print('progress: running %i secs at speed %i, sent %i requests in total' % (int(time.time() - t_offset), self.options.speedup, idx))
         print('>>>>> logfile completed <<<<<')
-
-    def forceprint(self, msg):
-        sys.stdout.write(msg)
-        sys.stdout.flush()
 
     def handle_request(self, url):
         """
@@ -107,20 +100,21 @@ class LogReplayer(object):
 
 
 """ =============================================================================
-
 Handling our solr logfiles
-
 """
 class SolrLogReplayer(LogReplayer):
     def parse_logline(self, line):
-        #print('parse_logline: %s' % line)
-        s, q = line.split('Solr query: q=')
-        idx = random.randint(1,6)
-        self.forceprint('%i<%s' % (idx,q))
-        url = "http://sol%i.eanadev.org:9191/solr/search_1/select?q=%s" % (idx, q)
-        s2,remainder = s.split('+')[0].split('.')
-        dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
-        ts = time.mktime(dt.timetuple())
+        try:
+            s, q = line.split('Solr query: q=')
+            idx = random.randint(1,6)
+            url = "http://sol%i.eanadev.org:9191/solr/search_1/select?q=%s" % (idx, q)
+            s2 = s.split('+')[0].split('.')[0]
+            dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
+            ts = time.mktime(dt.timetuple())
+        except:
+            # Failed to parse line
+            ts = 0
+            url = None
         return ts, url
 
 
@@ -128,10 +122,8 @@ class SolrLogReplayer(LogReplayer):
 
 
 """=============================================================================
-
   parsing portal2 Cloud Foundry app output, generated like:
     cf logs blue-portal > blue-portal.log
-
 """
 class Portal2LogReplayer(LogReplayer):
     def parse_logline(self, line):
@@ -163,5 +155,6 @@ class Portal2LogReplayer(LogReplayer):
 
 
 if __name__ == "__main__":
-     lr = Portal2LogReplayer()
+     #lr = Portal2LogReplayer()
+     lr = SolrLogReplayer()
      lr.run()
