@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Replay requests from a log file, subclass with handlers for the specific format.
 
 - Takes time between requests into account, with option to speed up the replay.
