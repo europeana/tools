@@ -8,6 +8,7 @@
 """
 
 import subprocess
+import sys
 import time
 import requests
 from optparse import OptionParser
@@ -15,7 +16,7 @@ import multiprocessing
 
 
 class LogReplayer(object):
-    TIME_PROGRESS  = 1 # intervall for showing progress
+    TIME_PROGRESS  = 2 # intervall for showing progress
 
     def __init__(self):
         """Parse command line options."""
@@ -29,6 +30,10 @@ class LogReplayer(object):
         parser.add_option('-1', '--singlethread',
                           help='run new request as soon as one is completed',
                           dest='sinlge', action="store_true", default=False)
+        parser.add_option('-m', '--maxworkers',
+                          help='max pending requests',
+                          dest='max_workers', type='int', default=15)
+        self.custom_options(parser)
         (self.options, args) = parser.parse_args()
         if len(args) == 1:
             self.fname = args[0]
@@ -36,12 +41,24 @@ class LogReplayer(object):
             parser.error("incorrect number of arguments (try -h)")
         if self.options.sinlge and (self.options.speedup > 1):
             parser.error('You can not specify both -s and -1 (try -h)')
+        if self.options.max_workers < 1:
+            parser.error('max_workers must be > 0')
+        self.verify_options(parser)
         self.workers_running = 0
         self.urls_processed = 0
         self.queue_results = multiprocessing.Queue()
         self.workers = {}
         self.failed_requests = {}
         self.timings = []
+
+    def custom_options(self, parser):
+        "Use this as hook for defining custom options"
+        return
+
+    def verify_options(self, parser):
+        "Use this hook to verify that self.options (typically custom_options) are valid"
+        return
+
 
     def logfile_read(self):
         """returns timestamp + query param, one line at a time"""
@@ -61,9 +78,10 @@ class LogReplayer(object):
         if self.options.sinlge:
             print('Will run in sequential mode and send the next request as soon as the previous returns')
         else:
-            print('Will replay the logfile at %i times the original speed based on timestamps' % self.options.speedup)
+            print('Will replay the logfile at %i times the original speed based on timestamps (adjust with -s)' % self.options.speedup)
         print('Status will be updated every %i seconds' % self.TIME_PROGRESS)
         print('Processing timestamps and requests from: %s' % self.fname)
+        print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
         t_offset = self.t_progress = time.time()
         idx = 0
         for ts, url in self.logfile_read():
@@ -84,7 +102,12 @@ class LogReplayer(object):
                     time.sleep(0.01)
                     self.process_completed_tasks()
                     self.maybe_show_progres()
-            self.maybe_show_progres()
+            else:
+                self.maybe_show_progres()
+            while self.workers_running >= self.options.max_workers:
+                self.process_completed_tasks()
+                time.sleep(0.01)
+
         print('Waiting for all requests to complete...')
         while self.workers_running:
             self.maybe_show_progres()
@@ -137,10 +160,17 @@ class LogReplayer(object):
         failed = 0
         for k in self.failed_requests.keys():
             failed += len(self.failed_requests[k])
-        average = sum(self.timings) / float(completed)
+        try:
+            average = sum(self.timings) / float(completed)
+        except:
+            average = 0
         count = self.urls_processed
         succeeded = completed - failed
-        msg = 'Sent:%i\t pending:%i\t fail ratio:%.1f' % (self.urls_processed, self.workers_running, failed/(count - self.workers_running) * 100)
+        try:
+            failed_ratio = failed/(count - self.workers_running) * 100
+        except:
+            failed_ratio = 0
+        msg = 'Sent:%i\t pending:%i\t fail ratio:%.1f' % (self.urls_processed, self.workers_running, failed_ratio)
         if self.options.sinlge:
             msg += '\t sequential mode'
         else:
