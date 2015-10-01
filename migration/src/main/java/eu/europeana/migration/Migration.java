@@ -43,11 +43,11 @@ import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
  */
 public class Migration {
 
-    private static HttpSolrServer sourceSolr;
+    private static CloudSolrServer sourceSolr;
     private static EdmMongoServer sourceMongo;
     
     private static Target ingestion;
-    private static Target production;
+
     
     private static Properties properties;
 
@@ -59,15 +59,26 @@ public class Migration {
         try {
             properties.load(Migration.class.getResourceAsStream("/migration.properties"));
             String srcMongoUrl = properties.getProperty("source.mongo");
-            String srcSolrUrl = properties.getProperty("source.solr");
+            String[] srcSolrUrl = properties.getProperty("source.solr").split(",");
+            String srcSolrZookeeperUrl = properties.getProperty("source.zookeeper");
             
             //Connect to Solr and Mongo (source)
             mongo = new Mongo(srcMongoUrl, 27017);
-            sourceSolr = new HttpSolrServer(srcSolrUrl);
+            /*
+             LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
+                this.targetSolr = new CloudSolrServer(targetZookeeper[0], lbTarget);
+                this.targetSolr.setDefaultCollection(targetCollection);
+                this.targetSolr.connect();
+             */
+            LBHttpSolrServer lbTarget = new LBHttpSolrServer(srcSolrUrl);
+            sourceSolr = new CloudSolrServer(srcSolrZookeeperUrl);
+            sourceSolr.setDefaultCollection("search_1");
+            sourceSolr.connect();
+            //sourceSolr = new HttpSolrServer(srcSolrUrl);
             sourceMongo = new EdmMongoServerImpl(mongo, "europeana_test1", null, null);
             
             ingestion = Target.INGESTION;
-            production = Target.PRODUCTION;
+
             
             //Query to the source
             String query = "*:*";
@@ -117,7 +128,10 @@ public class Migration {
 								+ (int) ((time / 1000) / 60) + " minutes "
 								+ (int) ((time / 1000) % 60) + " seconds. ***");
                 Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Added " 
-																+ i + " documents. ***");
+                        + i + " documents. ***");
+                if (i==15000000){
+                    done = true;
+                }
             }
 
 		} catch (UnknownHostException | MongoDBException | SolrServerException
@@ -134,7 +148,7 @@ public class Migration {
     /**
      * Process the batch of data to target
      * @param resp
-     * @param target
+
      */
     private static void doCustomProcessingOfResults(QueryResponse resp) {
         //If the list of results is full 
@@ -154,11 +168,7 @@ public class Migration {
 						ingestion.getTargetSolr(), 
 						ingestion.getTargetMongo(),
 						ingestion.getMongoHandler());
-				writer.setTargetsProduction(
-						production.getSolrHandler(),
-						production.getTargetSolr(),
-						production.getTargetMongo(),
-						production.getMongoHandler());
+
 
                 Thread t = new Thread(writer);                
                 t.start();
@@ -183,11 +193,6 @@ public class Migration {
 					ingestion.getTargetSolr(), 
 					ingestion.getTargetMongo(),
 					ingestion.getMongoHandler());
-			writer.setTargetsProduction(
-					production.getSolrHandler(),
-					production.getTargetSolr(),
-					production.getTargetMongo(),
-					production.getMongoHandler());
 
             Thread t = new Thread(writer);
             t.start();
@@ -227,7 +232,7 @@ public class Migration {
      */
     private static enum Target {
     	
-    	INGESTION, PRODUCTION;
+    	INGESTION;
     	
     	private String[] targetMongoUrl;
 		private String[] targetSolrUrl;    	

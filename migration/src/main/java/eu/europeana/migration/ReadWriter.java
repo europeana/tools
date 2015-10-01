@@ -48,10 +48,7 @@ public class ReadWriter implements Runnable {
     private EdmMongoServer targetMongoIngst;
     private FullBeanHandler fBeanHandlerIngst;
     
-    private SolrDocumentHandler solrHandlerProd;
-    private CloudSolrServer cloudServerProd;
-    private EdmMongoServer targetMongoProd;
-    private FullBeanHandler fBeanHandlerProd;
+
     
     
     public List<SolrDocument> getSegment() {
@@ -105,38 +102,7 @@ public class ReadWriter implements Runnable {
 	public void setfBeanHandlerIngst(FullBeanHandler fBeanHandlerIngst) {
 		this.fBeanHandlerIngst = fBeanHandlerIngst;
 	}
-	
-	public SolrDocumentHandler getSolrHandlerProd() {
-		return solrHandlerProd;
-	}
 
-	public void setSolrHandlerProd(SolrDocumentHandler solrHandlerProd) {
-		this.solrHandlerProd = solrHandlerProd;
-	}
-
-	public CloudSolrServer getCloudServerProd() {
-		return cloudServerProd;
-	}
-
-	public void setCloudServerProd(CloudSolrServer cloudServerProd) {
-		this.cloudServerProd = cloudServerProd;
-	}
-
-	public EdmMongoServer getTargetMongoProd() {
-		return targetMongoProd;
-	}
-
-	public void setTargetMongoProd(EdmMongoServer targetMongoProd) {
-		this.targetMongoProd = targetMongoProd;
-	}
-	
-	public FullBeanHandler getfBeanHandlerProd() {
-		return fBeanHandlerProd;
-	}
-	
-	public void setfBeanHandlerProd(FullBeanHandler fBeanHandlerProd) {
-		this.fBeanHandlerProd = fBeanHandlerProd;
-	}
 	
 	/**
 	 * To set all Ingestion settings at once.
@@ -155,22 +121,6 @@ public class ReadWriter implements Runnable {
 		setCloudServerIngst(cloudServer);
 	}
 
-	/**
-	 * To set all Production settings at once.
-	 * @param solrHandler
-	 * @param cloudServer
-	 * @param targetMongo
-	 * @param fBeanHandler
-	 */
-	public void setTargetsProduction(SolrDocumentHandler solrHandler,
-									CloudSolrServer cloudServer, 
-									EdmMongoServer targetMongo,
-									FullBeanHandler fBeanHandler) {
-		setSolrHandlerProd(solrHandler);
-		setfBeanHandlerProd(fBeanHandler);
-		setTargetMongoProd(targetMongo);
-		setCloudServerProd(cloudServer);
-	}
 
 	@Override
     public void run() {
@@ -178,7 +128,7 @@ public class ReadWriter implements Runnable {
         //save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         //write data to PRODUCTION
         try {
-            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst, solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -191,11 +141,7 @@ public class ReadWriter implements Runnable {
 	private void save(SolrDocumentHandler solrHandler,
 						CloudSolrServer cloudServer,
 						EdmMongoServer targetMongo,
-                      FullBeanHandler fBeanHandler,
-                      SolrDocumentHandler solrHandlerProd,
-                      CloudSolrServer cloudServerProd,
-                      EdmMongoServer targetMongoProd,
-						FullBeanHandler fBeanHandlerProd) {
+                      FullBeanHandler fBeanHandler) {
 		List<SolrInputDocument> docList = new ArrayList<>();
          //For every document
          for (SolrDocument doc : segment) {
@@ -258,10 +204,10 @@ public class ReadWriter implements Runnable {
                 docList.add(inputDoc);
                 
                 //Save the individual classes in the Mongo cluster
-                fBeanHandler.saveEdmClasses(fBean, true);
+                //fBeanHandler.saveEdmClasses(fBean, true);
                 //fBeanHandlerProd.saveEdmClasses(fBean,true);
                 //and then save the records themselves (this does not happen in one go, because of UIM)
-                targetMongo.getDatastore().save(fBean);
+                //targetMongo.getDatastore().save(fBean);
                 //targetMongoProd.getDatastore().save(fBean);
             } catch (Exception ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, "Got exception for id: " +id, ex);
@@ -273,7 +219,7 @@ public class ReadWriter implements Runnable {
         try {
             //add the documents in Solr..they will become available..no need to commit.. PATIENZA
             cloudServer.add(docList);
-            cloudServerProd.add(docList);
+            //cloudServerProd.add(docList);
         } catch (SolrServerException | IOException ex) {
             Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
         }
