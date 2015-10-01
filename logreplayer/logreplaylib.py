@@ -167,16 +167,6 @@ class LogReplayer(object):
 
 
 
-    def old_handle_request(self, url):
-        """
-        This basic method only curls the url not caring about success/fails if you want to process the output
-        override this
-        """
-        if url.find('"') > -1:
-            print('found double quote in url, that is not tested...')
-        cmd = 'curl "%s" &' % url
-        status = subprocess.call(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
     # =============================================================================
     #
     # Override parse_logline()
