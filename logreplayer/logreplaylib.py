@@ -1,14 +1,15 @@
 """Replay requests from a log file, subclass with handlers for the specific format.
 - Takes time between requests into account, with option to speed up the replay.
   Inspired by https://github.com/chromano/apache-log-replay
-  Written 2015-09-30 by jacob.lundqvist@europeana.eu
+  Initially Written 2015-09-30 by jacob.lundqvist@europeana.eu
   License: EUPL
 
-  The single threaded mode is actually still using subprocesses, but waits for them to complete before running the next
+  To use on your own logfiles, implement your own parse_logline() and you should be ready to go
+  I have suplied a few reference implemenations you can use as template.
 """
 
-import subprocess
-import sys
+
+import tempfile
 import time
 import requests
 from optparse import OptionParser
@@ -16,11 +17,17 @@ import multiprocessing
 
 
 class LogReplayer(object):
-    TIME_PROGRESS  = 2 # intervall for showing progress
-
     def __init__(self):
         """Parse command line options."""
-        usage = "usage: %prog [options] logfile"
+        usage = "usage: %prog [options] logfile\n\n" \
+                "  Typical usage cases:\n\n" \
+                "    regular replay of logs\n" \
+                "       potentially use -s to speed it up\n\n" \
+                "    replay logfile at full speed sequentially\n" \
+                "       -1\n\n" \
+                "    stress test, ignoring timestamps (where X is number of worker threads)\n" \
+                "       -i -m X\n" \
+
         parser = OptionParser(usage)
         parser.add_option('-s', '--speedup',
             help='make time run faster by factor SPEEDUP',
@@ -31,11 +38,14 @@ class LogReplayer(object):
                           help='run new request as soon as one is completed, ignoring timestamps',
                           dest='sinlge', action="store_true", default=False)
         parser.add_option('-m', '--maxworkers',
-                          help='max pending requests',
+                          help='max pending requests (defaults to 15)',
                           dest='max_workers', type='int', default=15)
-        parser.add_option('-t', '--ignorets',
+        parser.add_option('-i', '--ignorets',
                           help='ignore timestamps (-m controlls number of concurrent threads)',
-                          dest='ignore_ts', action="store_true", default=False)
+                          dest='use_timestamps', action="store_false", default=True)
+        parser.add_option('-p', '--progress',
+                          help='progress intervall (defaults to 3)',
+                          dest='progress', type='int', default=3)
         self.custom_options(parser)
         (self.options, args) = parser.parse_args()
         if len(args) == 1:
@@ -49,6 +59,7 @@ class LogReplayer(object):
         self.verify_options(parser)
         self.workers_running = 0
         self.urls_processed = 0
+        self.urls_processed_last = 0 # used to calculate delta between updates
         self.queue_results = multiprocessing.Queue()
         self.workers = {}
         self.failed_requests = {}
@@ -78,21 +89,25 @@ class LogReplayer(object):
 
     def run(self):
         print('')
+        num_lines = sum(1 for line in open(self.fname))
+        print('Processing requests from: %s - contains %i lines (some might not be useable)' % (self.fname, num_lines))
         if self.options.sinlge:
-            self.options.ignore_ts = True
+            self.options.use_timestamps = False
             self.options.max_workers = 1
             print('Will run in sequential mode and send the next request as soon as the previous returns')
-        else:
+        if self.options.use_timestamps:
             print('Will replay the logfile at %i times the original speed based on timestamps (adjust with -s)' % self.options.speedup)
-        print('Status will be updated every %i seconds' % self.TIME_PROGRESS)
-        print('Processing timestamps and requests from: %s' % self.fname)
+        else:
+            print('Will try to keep all assigned workers occupied, ignoring timestamps')
         print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
+        print('Status will be updated every %i seconds (adjust with -p)' % self.options.progress)
+        print('')
         t_offset = self.t_progress = time.time()
         for ts, url in self.logfile_read():
             if not url:
                 continue # not usable line in the logfile
             has_waited = False
-            if not self.options.ignore_ts:
+            if self.options.use_timestamps:
                  # wait until we are ready for next line accd to logfile timing
                 while (ts/self.options.speedup) > (time.time() - t_offset):
                      if not has_waited:
@@ -101,17 +116,27 @@ class LogReplayer(object):
 
             self.handle_request(url)
 
-            b = True
-            while self.workers_running >= self.options.max_workers:
-                self.process_completed_tasks()
+            while self.workers_running > self.options.max_workers:
+                self.maybe_show_progres()
                 time.sleep(0.01)
-                b = False # queue has already been processed
-            self.maybe_show_progres(process_queue=b)
+            else:
+                self.maybe_show_progres()
 
         print('Waiting for all requests to complete...')
         while self.workers_running:
             self.maybe_show_progres()
-        print('>>>>> logfile completed <<<<<')
+        print('>>>>> logfile completed, replayed %i urls <<<<<' % self.urls_processed)
+        if self.failed_requests:
+            f = tempfile.NamedTemporaryFile('w', prefix='logreplay-', delete=False)
+            print('Failed requests, by kind and count (saved to %s)' % f.name)
+            f.write('logfile being replayed: %s\n' % self.fname)
+            for key in self.failed_requests:
+                msg = '%s %i' %(key, len(self.failed_requests[key]))
+                print(msg)
+                f.write(msg + '\n')
+                for url in self.failed_requests[key]:
+                    f.write('\t%s\n' % url)
+            f.close()
 
 
     def handle_request(self, url):
@@ -130,17 +155,15 @@ class LogReplayer(object):
         This basic method only curls the url not caring about success/fails if you want to process the output
         override this
         """
-        if url.find('"') > -1:
-            print('found double quote in url [%s], that is not tested...' % url)
-
-        #print('requesting: %s' % url)
         try:
-            r = requests.get(url)
+            #print(url) # only use for debug...
+            headers = {'User-Agent': 'logreplaylib.py 1.0'}
+            r = requests.get(url, headers=headers, timeout=30)
             status_code = r.status_code
             response_time = r.elapsed.microseconds / 1000000
         except:
             # probably no such host or similar
-            status_code = 999
+            status_code = 'other'
             response_time = 0.01
         p = multiprocessing.current_process()
         queue.put({'url' :url,
@@ -149,34 +172,12 @@ class LogReplayer(object):
                    'response_time' :response_time})
 
     def maybe_show_progres(self, process_queue = True):
-        if self.t_progress + self.TIME_PROGRESS < time.time():
-            self.t_progress += self.TIME_PROGRESS
-            if process_queue:
-                self.process_completed_tasks()
+        if process_queue:
+            self.process_completed_tasks()
+        if self.t_progress + self.options.progress < time.time():
+            self.t_progress += self.options.progress
             self.show_progress()
         return
-
-    def show_progress(self):
-        completed = len(self.timings)
-        failed = 0
-        for k in self.failed_requests.keys():
-            failed += len(self.failed_requests[k])
-        try:
-            average = sum(self.timings) / float(completed)
-        except:
-            average = 0
-        count = self.urls_processed
-        succeeded = completed - failed
-        try:
-            failed_ratio = failed/(count - self.workers_running) * 100
-        except:
-            failed_ratio = 0
-        msg = 'Sent:%i\t pending:%i\t fail ratio:%.1f' % (self.urls_processed, self.workers_running, failed_ratio)
-        if self.options.sinlge:
-            msg += '\t sequential mode'
-        else:
-            msg += '\t speed:%i' % self.options.speedup
-        print(msg)
 
     def process_completed_tasks(self):
         while not self.queue_results.empty():
@@ -193,6 +194,28 @@ class LogReplayer(object):
                     self.failed_requests[status] = []
                 self.failed_requests[status].append(result['url'])
         return
+
+    def show_progress(self):
+        completed = len(self.timings)
+        delta = (completed - self.urls_processed_last) / float(self.options.progress or 1)
+        self.urls_processed_last = completed
+        failed = 0
+        for k in self.failed_requests.keys():
+            failed += len(self.failed_requests[k])
+        try:
+            average = sum(self.timings) / float(completed)
+        except:
+            average = 0
+        count = self.urls_processed
+        succeeded = completed - failed
+        try:
+            failed_ratio = failed/(count - self.workers_running) * 100
+        except:
+            failed_ratio = 0
+        msg = 'Sent:%i \tpending:%i \tcompleted/s:%.1f \tfail ratio:%.1f' % (self.urls_processed, self.workers_running, delta, failed_ratio)
+        if self.options.use_timestamps and (self.workers_running >= self.options.max_workers):
+            msg +='\t >> All workers waiting for server! <<'
+        print(msg)
 
 
 

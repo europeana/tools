@@ -10,6 +10,11 @@ from logreplaylib import LogReplayer
 
 """ =============================================================================
 Handling our solr logfiles
+
+  Notice, this app can easilly kill backends, only ever run it vs servers you own and control,
+  this traffic is easy to track and could be considered Denial of Service if directed to third party servers!!!
+
+
 """
 class SolrLogReplayer(LogReplayer):
     def custom_options(self, parser):
@@ -25,7 +30,6 @@ class SolrLogReplayer(LogReplayer):
         try:
             s, q = line.split('Solr query: q=')
             url = self.options.url + q
-            url = 'http://www.europeana.eu/portal/record/07602/6B7305AB23BBB256A2C78012DD300510A120CBAF.html'
             s2 = s.split('+')[0].split('.')[0]
             dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
             ts = time.mktime(dt.timetuple())

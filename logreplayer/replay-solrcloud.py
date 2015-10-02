@@ -10,6 +10,11 @@ from logreplaylib import LogReplayer
 
 """ =============================================================================
 Handling our solr logfiles
+
+  Notice, this app can easilly kill backends, only ever run it vs servers you own and control,
+  this traffic is easy to track and could be considered Denial of Service if directed to third party servers!!!
+
+
 """
 class SolrCloudLogReplayer(LogReplayer):
     def parse_logline(self, line):
