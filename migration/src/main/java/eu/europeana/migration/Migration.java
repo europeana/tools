@@ -75,7 +75,7 @@ public class Migration {
             sourceSolr.setDefaultCollection("search_1");
             sourceSolr.connect();
             //sourceSolr = new HttpSolrServer(srcSolrUrl);
-            sourceMongo = new EdmMongoServerImpl(mongo, "europeana_test1", null, null);
+            sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
             
             ingestion = Target.INGESTION;
 
