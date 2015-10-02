@@ -117,8 +117,10 @@ class LogReplayer(object):
         print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
         print('Status will be updated every %i seconds (adjust with -p)' % self.options.progress)
         print('')
+        self.lines_processed = 0
         t_offset = self.t_progress = time.time()
         for ts, url in self.logfile_read():
+            self.lines_processed += 1
             if not url:
                 continue # not usable line in the logfile
             has_waited = False
@@ -150,7 +152,7 @@ class LogReplayer(object):
                 print(msg)
                 f.write(msg + '\n')
                 for url in self.failed_requests[key]:
-                    f.write('\t%s\n' % url)
+                    f.write('\t%s\n' % url.encode('utf-8'))
             f.close()
         else:
             print('\tAll requests succeeded!')
@@ -209,7 +211,7 @@ class LogReplayer(object):
     def show_progress(self):
         completed = len(self.timings)
 
-        parts = ['Sent: %i (%.1f%%)' % (self.urls_processed, self.urls_processed/float(self.num_lines or 1.0)*100)]
+        parts = ['Sent: %i (%.1f%%)' % (self.urls_processed, self.lines_processed/float(self.num_lines or 1.0)*100)]
         parts.append('pending: %i' % len(self.workers))
 
         delta = (completed - self.urls_processed_last) / float(self.options.progress or 1)
@@ -220,6 +222,7 @@ class LogReplayer(object):
         parts.append('avg.resp time: %.1f' % average)
 
         failed = 0
+
         for k in self.failed_requests.keys():
             failed += len(self.failed_requests[k])
         failed_ratio = failed/((self.urls_processed - len(self.workers)) or 1) * 100
