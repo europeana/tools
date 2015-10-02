@@ -28,11 +28,14 @@ class LogReplayer(object):
             type='int',
             default=1)
         parser.add_option('-1', '--singlethread',
-                          help='run new request as soon as one is completed',
+                          help='run new request as soon as one is completed, ignoring timestamps',
                           dest='sinlge', action="store_true", default=False)
         parser.add_option('-m', '--maxworkers',
                           help='max pending requests',
                           dest='max_workers', type='int', default=15)
+        parser.add_option('-t', '--ignorets',
+                          help='ignore timestamps (-m controlls number of concurrent threads)',
+                          dest='ignore_ts', action="store_true", default=False)
         self.custom_options(parser)
         (self.options, args) = parser.parse_args()
         if len(args) == 1:
@@ -76,6 +79,8 @@ class LogReplayer(object):
     def run(self):
         print('')
         if self.options.sinlge:
+            self.options.ignore_ts = True
+            self.options.max_workers = 1
             print('Will run in sequential mode and send the next request as soon as the previous returns')
         else:
             print('Will replay the logfile at %i times the original speed based on timestamps (adjust with -s)' % self.options.speedup)
@@ -83,30 +88,25 @@ class LogReplayer(object):
         print('Processing timestamps and requests from: %s' % self.fname)
         print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
         t_offset = self.t_progress = time.time()
-        idx = 0
         for ts, url in self.logfile_read():
             if not url:
                 continue # not usable line in the logfile
-            idx += 1
             has_waited = False
-            if not self.options.sinlge:
+            if not self.options.ignore_ts:
                  # wait until we are ready for next line accd to logfile timing
                 while (ts/self.options.speedup) > (time.time() - t_offset):
                      if not has_waited:
                          has_waited = True
                      time.sleep(0.001)
+
             self.handle_request(url)
-            if self.options.sinlge:
-                # in single threaded mode, wait for task to complete
-                while self.workers_running:
-                    time.sleep(0.01)
-                    self.process_completed_tasks()
-                    self.maybe_show_progres()
-            else:
-                self.maybe_show_progres()
+
+            b = True
             while self.workers_running >= self.options.max_workers:
                 self.process_completed_tasks()
                 time.sleep(0.01)
+                b = False # queue has already been processed
+            self.maybe_show_progres(process_queue=b)
 
         print('Waiting for all requests to complete...')
         while self.workers_running:
@@ -148,14 +148,15 @@ class LogReplayer(object):
                    'pid' :p.pid,
                    'response_time' :response_time})
 
-    def maybe_show_progres(self):
+    def maybe_show_progres(self, process_queue = True):
         if self.t_progress + self.TIME_PROGRESS < time.time():
             self.t_progress += self.TIME_PROGRESS
-            self.handle_progress()
+            if process_queue:
+                self.process_completed_tasks()
+            self.show_progress()
         return
 
-    def handle_progress(self):
-        self.process_completed_tasks()
+    def show_progress(self):
         completed = len(self.timings)
         failed = 0
         for k in self.failed_requests.keys():
@@ -176,8 +177,6 @@ class LogReplayer(object):
         else:
             msg += '\t speed:%i' % self.options.speedup
         print(msg)
-
-
 
     def process_completed_tasks(self):
         while not self.queue_results.empty():
