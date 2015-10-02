@@ -4,6 +4,8 @@
   Initially Written 2015-09-30 by jacob.lundqvist@europeana.eu
   License: EUPL
 
+  Tested with Python 2.7.6, 3.4.3
+
   To use on your own logfiles, implement your own parse_logline() and you should be ready to go
   I have suplied a few reference implemenations you can use as template.
 
