@@ -58,12 +58,16 @@ public class Migration {
         Mongo mongo;
         try {
             properties.load(Migration.class.getResourceAsStream("/migration.properties"));
-            String srcMongoUrl = properties.getProperty("source.mongo");
+            String[] srcMongoUrl = properties.getProperty("source.mongo").split(",");
             String[] srcSolrUrl = properties.getProperty("source.solr").split(",");
             String srcSolrZookeeperUrl = properties.getProperty("source.zookeeper");
-            
+            List<ServerAddress> addresses = new ArrayList<>();
+        		for (String mongoStr : srcMongoUrl) {
+        		    ServerAddress address = new ServerAddress(mongoStr, 27017);
+        		    addresses.add(address);
+        		}
+        		mongo = new Mongo(addresses);
             //Connect to Solr and Mongo (source)
-            mongo = new Mongo(srcMongoUrl, 27017);
             /*
              LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrl);
                 this.targetSolr = new CloudSolrServer(targetZookeeper[0], lbTarget);
@@ -106,9 +110,7 @@ public class Migration {
                 String nextCursorMark = resp.getNextCursorMark();
                 
                 //Process
-				Logger.getLogger(Migration.class.getName()).log(
-						Level.INFO, "*** Migrating the batch #" + (i / 10000 + 1)
-																+ " started. ***");
+				Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Migrating the batch #{0} started. ***", (i / 10000 + 1));
                 doCustomProcessingOfResults(resp);
                 
                 //Exit if reached the end
@@ -121,14 +123,8 @@ public class Migration {
                 i += 10000;
                 time = System.currentTimeMillis() - time;
                 //Logging
-				Logger.getLogger(Migration.class.getName()).log(
-						Level.INFO,
-						"*** Time spent for migrating the batch: " + time
-								+ " milliseconds which is around "
-								+ (int) ((time / 1000) / 60) + " minutes "
-								+ (int) ((time / 1000) % 60) + " seconds. ***");
-                Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Added " 
-                        + i + " documents. ***");
+				Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Time spent for migrating the batch: {0} milliseconds which is around {1} minutes {2} seconds. ***", new Object[]{time, (int) ((time / 1000) / 60), (int) ((time / 1000) % 60)});
+                Logger.getLogger(Migration.class.getName()).log(Level.INFO, "*** Added {0} documents. ***", i);
                 if (i==15000000){
                     done = true;
                 }
