@@ -71,7 +71,7 @@ public class Migration {
                 this.targetSolr.connect();
              */
             LBHttpSolrServer lbTarget = new LBHttpSolrServer(srcSolrUrl);
-            sourceSolr = new CloudSolrServer(srcSolrZookeeperUrl);
+            sourceSolr = new CloudSolrServer(srcSolrZookeeperUrl,lbTarget);
             sourceSolr.setDefaultCollection("search_1");
             sourceSolr.connect();
             //sourceSolr = new HttpSolrServer(srcSolrUrl);
