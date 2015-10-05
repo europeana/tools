@@ -122,22 +122,22 @@ class LogReplayer(object):
         for ts, url in self.logfile_read():
             self.lines_processed += 1
             if not url:
-                continue # not usable line in the logfile
-            has_waited = False
+                # not usable line in the logfile
+                continue
             if self.options.use_timestamps:
                  # wait until we are ready for next line accd to logfile timing
                 while (ts/self.options.speedup) > (time.time() - t_offset):
-                     if not has_waited:
-                         has_waited = True
                      time.sleep(0.001)
-
-            self.handle_request(url)
-
-            while len(self.workers) > self.options.max_workers:
+            #
+            # Make sure we stay within limits and dont do an unintentional denial of service...
+            #
+            while len(self.workers) >= self.options.max_workers:
                 self.maybe_show_progres()
                 time.sleep(0.01)
             else:
                 self.maybe_show_progres()
+
+            self.handle_request(url)
 
         print('Waiting for all requests to complete...')
         while len(self.workers):
@@ -146,7 +146,7 @@ class LogReplayer(object):
         if self.failed_requests:
             f = tempfile.NamedTemporaryFile('w', prefix='logreplay-', delete=False)
             print('Failed requests, by kind and count (saved to %s)' % f.name)
-            f.write('logfile being replayed: %s\n' % self.fname)
+            f.write('logfile being re-played: %s\n' % self.fname)
             for key in self.failed_requests:
                 msg = '%s %i' %(key, len(self.failed_requests[key]))
                 print(msg)
@@ -156,7 +156,6 @@ class LogReplayer(object):
             f.close()
         else:
             print('\tAll requests succeeded!')
-
 
     def handle_request(self, url):
         p = multiprocessing.Process(target=self.request_worker, args=(self.queue_results, url))
