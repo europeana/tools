@@ -38,7 +38,7 @@ class LogReplayer(object):
                 "  Typical usage cases:\n\n" \
                 "    regular replay of logs\n" \
                 "       potentially use -s to speed it up\n\n" \
-                "    replay logfile at full speed sequentially\n" \
+                "    replay logfile at full speed sequentially, ignoring timestamps\n" \
                 "       -1\n\n" \
                 "    stress test, ignoring timestamps (where X is number of worker threads)\n" \
                 "       -i -m X\n" \
