@@ -51,12 +51,8 @@ class SolrCloudLogReplayer(LogReplayer):
             i = int(q.split('start=')[1].split('&')[0])
         except:
             raise StandardError('offset was not int - this shouldnt really happen')
-        print("i", i)
-        print("mofs", self.options.max_offset)
         if i > self.options.max_offset:
-            print("param refused")
             raise StandardError('offset to high, skip this line')
-        print("param accepted")
         return
 
 

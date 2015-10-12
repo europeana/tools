@@ -158,12 +158,10 @@ class LogReplayer(object):
             print('\tAll requests succeeded!')
 
     def handle_request(self, url):
-        print('url:', url)
         p = multiprocessing.Process(target=self.request_worker, args=(self.queue_results, url))
         p.start()
         while not p.pid:
             # wait for it to start
-            print ('_')
             time.time(0.001)
         self.workers[p.pid] = p
         self.urls_processed += 1
@@ -184,7 +182,6 @@ class LogReplayer(object):
                    'status' :status_code,
                    'pid' :p.pid,
                    'response_time' :response_time})
-        print('completed:', url)
 
     def maybe_show_progres(self, process_queue = True):
         if process_queue:
