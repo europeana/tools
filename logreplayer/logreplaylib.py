@@ -4,8 +4,23 @@
   Initially Written 2015-09-30 by jacob.lundqvist@europeana.eu
   License: EUPL
 
+  Tested with Python 2.7.6, 3.4.3
+
   To use on your own logfiles, implement your own parse_logline() and you should be ready to go
   I have suplied a few reference implemenations you can use as template.
+
+  Typical hooks for subclasses:
+
+    custom_options(self, parser)
+        Add your extra options here
+
+    verify_options(self, parser)
+        Check that your extra param(-s) are valid
+
+    parse_logline(self, line):
+        Override to handle your specific log format, should return a timestamp, and the finalised url
+            ts, url
+            if the line couldnt be parsed, return 0, None
 """
 
 
@@ -23,7 +38,7 @@ class LogReplayer(object):
                 "  Typical usage cases:\n\n" \
                 "    regular replay of logs\n" \
                 "       potentially use -s to speed it up\n\n" \
-                "    replay logfile at full speed sequentially\n" \
+                "    replay logfile at full speed sequentially, ignoring timestamps\n" \
                 "       -1\n\n" \
                 "    stress test, ignoring timestamps (where X is number of worker threads)\n" \
                 "       -i -m X\n" \
@@ -57,13 +72,13 @@ class LogReplayer(object):
         if self.options.max_workers < 1:
             parser.error('max_workers must be > 0')
         self.verify_options(parser)
-        self.workers_running = 0
-        self.urls_processed = 0
+        self.num_lines = 0 # file length logfile
+        self.urls_processed = 0 # urls sent
         self.urls_processed_last = 0 # used to calculate delta between updates
-        self.queue_results = multiprocessing.Queue()
-        self.workers = {}
-        self.failed_requests = {}
+        self.workers = {} # active workers
+        self.failed_requests = {} # index of all failed requests, defined as non 200 results
         self.timings = []
+        self.queue_results = multiprocessing.Queue()
 
     def custom_options(self, parser):
         "Use this as hook for defining custom options"
@@ -89,8 +104,8 @@ class LogReplayer(object):
 
     def run(self):
         print('')
-        num_lines = sum(1 for line in open(self.fname))
-        print('Processing requests from: %s - contains %i lines (some might not be useable)' % (self.fname, num_lines))
+        self.num_lines = sum(1 for line in open(self.fname))
+        print('Processing requests from: %s - contains %i lines (some might not be useable)' % (self.fname, self.num_lines))
         if self.options.sinlge:
             self.options.use_timestamps = False
             self.options.max_workers = 1
@@ -102,42 +117,45 @@ class LogReplayer(object):
         print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
         print('Status will be updated every %i seconds (adjust with -p)' % self.options.progress)
         print('')
+        self.lines_processed = 0
         t_offset = self.t_progress = time.time()
         for ts, url in self.logfile_read():
+            self.lines_processed += 1
             if not url:
-                continue # not usable line in the logfile
-            has_waited = False
+                # not usable line in the logfile
+                continue
             if self.options.use_timestamps:
                  # wait until we are ready for next line accd to logfile timing
                 while (ts/self.options.speedup) > (time.time() - t_offset):
-                     if not has_waited:
-                         has_waited = True
                      time.sleep(0.001)
-
-            self.handle_request(url)
-
-            while self.workers_running > self.options.max_workers:
+            #
+            # Make sure we stay within limits and dont do an unintentional denial of service...
+            #
+            while len(self.workers) >= self.options.max_workers:
                 self.maybe_show_progres()
                 time.sleep(0.01)
             else:
                 self.maybe_show_progres()
 
+            self.handle_request(url)
+
         print('Waiting for all requests to complete...')
-        while self.workers_running:
+        while len(self.workers):
             self.maybe_show_progres()
-        print('>>>>> logfile completed, replayed %i urls <<<<<' % self.urls_processed)
+        print('>>>>> logfile completed, re-played %i urls <<<<<' % self.urls_processed)
         if self.failed_requests:
             f = tempfile.NamedTemporaryFile('w', prefix='logreplay-', delete=False)
             print('Failed requests, by kind and count (saved to %s)' % f.name)
-            f.write('logfile being replayed: %s\n' % self.fname)
+            f.write('logfile being re-played: %s\n' % self.fname)
             for key in self.failed_requests:
                 msg = '%s %i' %(key, len(self.failed_requests[key]))
                 print(msg)
                 f.write(msg + '\n')
                 for url in self.failed_requests[key]:
-                    f.write('\t%s\n' % url)
+                    f.write('\t%s\n' % url.encode('utf-8'))
             f.close()
-
+        else:
+            print('\tAll requests succeeded!')
 
     def handle_request(self, url):
         p = multiprocessing.Process(target=self.request_worker, args=(self.queue_results, url))
@@ -147,24 +165,19 @@ class LogReplayer(object):
             print ('_')
             time.time(0.001)
         self.workers[p.pid] = p
-        self.workers_running += 1
         self.urls_processed += 1
 
     def request_worker(self, queue, url):
-        """
-        This basic method only curls the url not caring about success/fails if you want to process the output
-        override this
-        """
         try:
             #print(url) # only use for debug...
             headers = {'User-Agent': 'logreplaylib.py 1.0'}
             r = requests.get(url, headers=headers, timeout=30)
             status_code = r.status_code
-            response_time = r.elapsed.microseconds / 1000000
+            response_time = r.elapsed.microseconds / 1000000.0
         except:
             # probably no such host or similar
             status_code = 'other'
-            response_time = 0.01
+            response_time = 0.001
         p = multiprocessing.current_process()
         queue.put({'url' :url,
                    'status' :status_code,
@@ -185,7 +198,6 @@ class LogReplayer(object):
             p = self.workers[result['pid']]
             p.join() # let it finish so we dont end up with zombies...
             del self.workers[result['pid']]
-            self.workers_running -= 1
             self.timings.append(result['response_time'])
 
             status = result['status']
@@ -197,24 +209,28 @@ class LogReplayer(object):
 
     def show_progress(self):
         completed = len(self.timings)
+
+        parts = ['Sent: %i (%.1f%%)' % (self.urls_processed, self.lines_processed/float(self.num_lines or 1.0)*100)]
+        parts.append('pending: %i' % len(self.workers))
+
         delta = (completed - self.urls_processed_last) / float(self.options.progress or 1)
         self.urls_processed_last = completed
+        parts.append('completed/s: %.1f' % delta)
+
+        average = sum(self.timings) / float((completed or 1))
+        parts.append('avg.resp time: %.1f' % average)
+
         failed = 0
+
         for k in self.failed_requests.keys():
             failed += len(self.failed_requests[k])
-        try:
-            average = sum(self.timings) / float(completed)
-        except:
-            average = 0
-        count = self.urls_processed
-        succeeded = completed - failed
-        try:
-            failed_ratio = failed/(count - self.workers_running) * 100
-        except:
-            failed_ratio = 0
-        msg = 'Sent:%i \tpending:%i \tcompleted/s:%.1f \tfail ratio:%.1f' % (self.urls_processed, self.workers_running, delta, failed_ratio)
-        if self.options.use_timestamps and (self.workers_running >= self.options.max_workers):
-            msg +='\t >> All workers waiting for server! <<'
+        failed_ratio = failed/((self.urls_processed - len(self.workers)) or 1) * 100
+        if failed_ratio:
+            parts.append('fail%% : %.1f' % failed_ratio)
+
+        if self.options.use_timestamps and (len(self.workers) >= self.options.max_workers):
+            parts.append('>> All workers waiting for server! <<')
+        msg = ' \t'.join(parts)
         print(msg)
 
 
