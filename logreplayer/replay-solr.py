@@ -27,21 +27,12 @@ class SolrLogReplayer(LogReplayer):
             parser.error('You must specify -u')
 
     def parse_logline(self, line):
-        try:
-            s, q = line.split('Solr query: q=')
-            url = self.options.url + q
-            s2 = s.split('+')[0].split('.')[0]
-            dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
-            ts = time.mktime(dt.timetuple())
-        except:
-            # Failed to parse line
-            ts = 0
-            url = None
+        s, q = line.split('Solr query: q=')
+        url = self.options.url + q
+        s2 = s.split('+')[0].split('.')[0]
+        dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
+        ts = time.mktime(dt.timetuple())
         return ts, url
-
-
-
-
 
 
 if __name__ == "__main__":

@@ -30,18 +30,13 @@ class SolrCloudLogReplayer(LogReplayer):
             dest='max_offset', type='int', default=0)
 
     def parse_logline(self, line):
-        try:
-            s, q = line.split('Solr query: q=')
-            self.filter_out_high_start_queries(q)
-            idx = random.randint(1,6)
-            url = "http://sol%i.eanadev.org:9191/solr/search_1/select?q=%s" % (idx, q)
-            s2 = s.split('+')[0].split('.')[0]
-            dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
-            ts = time.mktime(dt.timetuple())
-        except:
-            # Failed to parse line
-            ts = 0
-            url = None
+        s, q = line.split('Solr query: q=')
+        self.filter_out_high_start_queries(q)
+        idx = random.randint(1,6)
+        url = "http://sol%i.eanadev.org:9191/solr/search_1/select?q=%s" % (idx, q)
+        s2 = s.split('+')[0].split('.')[0]
+        dt = datetime.datetime.strptime(s2, "%Y-%m-%dT%H:%M:%S")
+        ts = time.mktime(dt.timetuple())
         return ts, url
 
     def filter_out_high_start_queries(self, q):

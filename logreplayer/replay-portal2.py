@@ -51,19 +51,16 @@ class Portal2LogReplayer(LogReplayer):
             parser.error('url param can not end with a "/"')
 
     def parse_logline(self, line):
-        try:
-            if line.find('"action":"BRIEF_RESULT"') > -1:
-                s = self.extract_url(line)
-                s2 =s.split('search.html?')[1]
-                url = '%s/search.html?%s' % (self.options.url, s2)
-            elif line.find('"action":"FULL_RESULT_HMTL"') > -1:
-                s = self.extract_url(line)
-                s2 = s.split('/record/')[1]
-                url = '%s/record/%s' % (self.options.url, s2)
-            else:
-                raise StandardError('neither query or record present')
-        except:
-            return 0, None # line could not be used
+        if line.find('"action":"BRIEF_RESULT"') > -1:
+            s = self.extract_url(line)
+            s2 =s.split('search.html?')[1]
+            url = '%s/search.html?%s' % (self.options.url, s2)
+        elif line.find('"action":"FULL_RESULT_HMTL"') > -1:
+            s = self.extract_url(line)
+            s2 = s.split('/record/')[1]
+            url = '%s/record/%s' % (self.options.url, s2)
+        else:
+            raise StandardError('neither query or record present')
         t = line.split('.')[0]
         dt = datetime.datetime.strptime(t, "%Y-%m-%dT%H:%M:%S")
         ts = time.mktime(dt.timetuple())
