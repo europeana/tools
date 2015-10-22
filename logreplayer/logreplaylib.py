@@ -27,6 +27,7 @@
 import tempfile
 import time
 import requests
+import sys
 from optparse import OptionParser
 import multiprocessing
 
@@ -79,6 +80,7 @@ class LogReplayer(object):
         self.failed_requests = {} # index of all failed requests, defined as non 200 results
         self.timings = []
         self.queue_results = multiprocessing.Queue()
+        self.loglvl = 1  # mostly for debug, default is 1
 
     def custom_options(self, parser):
         "Use this as hook for defining custom options"
@@ -96,7 +98,12 @@ class LogReplayer(object):
         with open(self.fname, 'r') as fh:
             for line in fh:
                 #print ('logfile_read() processing line')
-                ts, url = self.parse_logline(line[:-1])
+                try:
+                    ts, url = self.parse_logline(line[:-1])
+                except:
+                    # line could not be parsed
+                    self.log('!', lvl=1, lf=False)
+                    ts, url = 0, None
                 if first_line and ts:
                     ts_offset = ts
                     first_line = False
@@ -116,6 +123,11 @@ class LogReplayer(object):
             print('Will try to keep all assigned workers occupied, ignoring timestamps')
         print('Will use a maximum of %i workers (adjust with -m)' % self.options.max_workers)
         print('Status will be updated every %i seconds (adjust with -p)' % self.options.progress)
+        if self.loglvl >= 1:
+            print('! will be printed for not usable loglines')
+        if self.loglvl >= 2:
+            print('> will be printed for each request sent')
+            print('< will be printed for each request recieved')
         print('')
         self.lines_processed = 0
         t_offset = self.t_progress = time.time()
@@ -162,7 +174,6 @@ class LogReplayer(object):
         p.start()
         while not p.pid:
             # wait for it to start
-            print ('_')
             time.time(0.001)
         self.workers[p.pid] = p
         self.urls_processed += 1
@@ -171,7 +182,10 @@ class LogReplayer(object):
         try:
             #print(url) # only use for debug...
             headers = {'User-Agent': 'logreplaylib.py 1.0'}
+            self.log('>', lvl=2, lf=False)
+            self.log(url, lvl=3)
             r = requests.get(url, headers=headers, timeout=30)
+            self.log('<', lvl=2, lf=False)
             status_code = r.status_code
             response_time = r.elapsed.microseconds / 1000000.0
         except:
@@ -229,10 +243,17 @@ class LogReplayer(object):
             parts.append('fail%% : %.1f' % failed_ratio)
 
         if self.options.use_timestamps and (len(self.workers) >= self.options.max_workers):
-            parts.append('>> All workers waiting for server! <<')
+            parts.append('>> All workers waiting for response! <<')
         msg = ' \t'.join(parts)
-        print(msg)
+        self.log(msg, lvl=0)
 
+    def log(self, msg, lvl=1, lf=True):
+        if lvl > self.loglvl:
+            return
+        if lf:
+            msg += '\n'
+        sys.stdout.write(msg)
+        sys.stdout.flush()
 
 
     # =============================================================================
