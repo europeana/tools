@@ -267,13 +267,5 @@ class LogReplayer(object):
             ts, url
             if the line couldnt be parsed, return 0, None
         """
-        ts = time.time()
-        url = 'http://europeana.eu'
-        return ts, url
-
-
-
-
-
-
-
+        print('***  ERROR: You have to implement parse_logline()  in your subclass!!!  ***')
+        return 0, None
