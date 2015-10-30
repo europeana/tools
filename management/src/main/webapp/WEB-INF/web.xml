@@ -20,8 +20,12 @@
 		<servlet-class>eu.europeana.record.management.server.LogEntryServiceImpl</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>system</servlet-name>
-		<servlet-class>eu.europeana.record.management.server.SystemServiceImpl</servlet-class>
+		<servlet-name>solr-system</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.SolrSystemServiceImpl</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>mongo-system</servlet-name>
+		<servlet-class>eu.europeana.record.management.server.MongoSystemServiceImpl</servlet-class>
 	</servlet>
 
 	<servlet>
@@ -46,10 +50,16 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
-		<servlet-name>system</servlet-name>
-		<url-pattern>/RecordManager/system</url-pattern>
+		<servlet-name>solr-system</servlet-name>
+		<url-pattern>/RecordManager/solr-system</url-pattern>
 	</servlet-mapping>
 
+
+<servlet-mapping>
+		<servlet-name>mongo-system</servlet-name>
+		<url-pattern>/RecordManager/mongo-system</url-pattern>
+	</servlet-mapping>
+	
 	<servlet-mapping>
 		<servlet-name>log</servlet-name>
 		<url-pattern>/RecordManager/log</url-pattern>

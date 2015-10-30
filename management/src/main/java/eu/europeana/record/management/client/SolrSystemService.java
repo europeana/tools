@@ -21,7 +21,7 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
-import eu.europeana.record.management.shared.dto.SystemDTO;
+import eu.europeana.record.management.shared.dto.SolrSystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
 
 /**
@@ -31,8 +31,8 @@ import eu.europeana.record.management.shared.dto.UserDTO;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
-@RemoteServiceRelativePath("system")
-public interface SystemService extends RemoteService {
+@RemoteServiceRelativePath("solr-system")
+public interface SolrSystemService extends RemoteService {
 
 	/**
 	 * Create a new system
@@ -42,7 +42,7 @@ public interface SystemService extends RemoteService {
 	 * @param userDTO
 	 *            The user that creates the system
 	 */
-	void createSystem(SystemDTO systemDTO, UserDTO userDTO);
+	void createSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO);
 
 	/**
 	 * Update a selected system
@@ -52,7 +52,7 @@ public interface SystemService extends RemoteService {
 	 * @param userDTO
 	 *            The user that updates the system
 	 */
-	void updateSystem(SystemDTO systemDTO, UserDTO userDTO);
+	void updateSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO);
 
 	/**
 	 * Delete a system
@@ -62,7 +62,7 @@ public interface SystemService extends RemoteService {
 	 * @param userDTO
 	 *            The user that deletes the system
 	 */
-	void deleteSystem(SystemDTO systemDTO, UserDTO userDTO);
+	void deleteSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO);
 
 	/**
 	 * Show a list of all the systems the system can communicate with
@@ -71,7 +71,7 @@ public interface SystemService extends RemoteService {
 	 *            the user that requested the systems
 	 * @return A list of all the available systems
 	 */
-	List<SystemDTO> showAllSystems(UserDTO userDTO);
+	List<SolrSystemDTO> showAllSolrSystems(UserDTO userDTO);
 
-	boolean optimize(SystemDTO sustemDTO, UserDTO userDTO);
+	boolean optimize(SolrSystemDTO sustemDTO, UserDTO userDTO);
 }

@@ -90,4 +90,9 @@ public interface Dao<I extends DBEntity> {
 	 * Close the connection to the database
 	 */
 	void close();
+	
+	/**
+	 * Checks is the entity manager is open
+	 */
+	boolean isOpen();
 }

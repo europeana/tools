@@ -20,6 +20,8 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -28,6 +30,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -41,30 +44,34 @@ import eu.europeana.record.management.database.enums.LogEntryType;
  * 
  */
 @Entity
+@Table(name = "LOG_ENTRIES")
 @NamedQueries({ @NamedQuery(name = "findByUser", query = "Select l from LogEntry l where l.user = ?1") })
 public class LogEntry implements DBEntity {
-
+	
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 7006606378866760636L;
+	private static final long serialVersionUID = 1L;
+
+	private Long id;
+	
+	private UserObj user;
+	
+	private LogEntryType action;
+	
+	private String message;
+
+	private Date timestamp;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "user_id", referencedColumnName = "id")
-	UserObj user;
-	@Column(name = "action")
-	LogEntryType action;
-	@Column(name = "message")
-	String message;
-	@Column(name = "timestamp")
-	@Temporal(TemporalType.TIMESTAMP)
-	Date timestamp;
-	
-
+	@Column(name = "ID", nullable = false)
 	public Long getId() {
 		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	/**
@@ -72,6 +79,8 @@ public class LogEntry implements DBEntity {
 	 * 
 	 * @return The user
 	 */
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "USER_ID", referencedColumnName = "ID")
 	public UserObj getUser() {
 		return user;
 	}
@@ -85,6 +94,8 @@ public class LogEntry implements DBEntity {
 	 * 
 	 * @return The type of action
 	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "ACTION")
 	public LogEntryType getAction() {
 		return action;
 	}
@@ -98,6 +109,7 @@ public class LogEntry implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "MESSAGE")
 	public String getMessage() {
 		return message;
 	}
@@ -111,6 +123,8 @@ public class LogEntry implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "TIME_STAMP")
+	@Temporal(TemporalType.TIMESTAMP)
 	public Date getTimestamp() {
 		return timestamp;
 	}
@@ -119,8 +133,6 @@ public class LogEntry implements DBEntity {
 		this.timestamp = timestamp;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+
 
 }

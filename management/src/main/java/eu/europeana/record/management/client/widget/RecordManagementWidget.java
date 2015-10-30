@@ -57,10 +57,10 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import eu.europeana.record.management.client.Messages;
 import eu.europeana.record.management.client.RecordService;
 import eu.europeana.record.management.client.RecordServiceAsync;
-import eu.europeana.record.management.client.SystemService;
-import eu.europeana.record.management.client.SystemServiceAsync;
+import eu.europeana.record.management.client.SolrSystemService;
+import eu.europeana.record.management.client.SolrSystemServiceAsync;
 import eu.europeana.record.management.shared.dto.Record;
-import eu.europeana.record.management.shared.dto.SystemDTO;
+import eu.europeana.record.management.shared.dto.SolrSystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
 import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
 
@@ -73,11 +73,11 @@ import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
  */
 public class RecordManagementWidget implements AbstractWidget {
 	RecordServiceAsync recordService = GWT.create(RecordService.class);
-	final SystemServiceAsync systemService = GWT.create(SystemService.class);
+	final SolrSystemServiceAsync systemService = GWT.create(SolrSystemService.class);
 
 	final List<Record> recordsToRemove = new ArrayList<Record>();
 	AsyncDataProvider<Record> recordDataProvider;
-	AsyncDataProvider<SystemDTO> systemDP;
+	AsyncDataProvider<SolrSystemDTO> systemDP;
 	DataGrid<Record> records;
 	UserDTO user;
 
@@ -356,9 +356,9 @@ public class RecordManagementWidget implements AbstractWidget {
 
 	private Widget createOptimizeSolrPanel() {
 		DecoratorPanel dp = new DecoratorPanel();
-		final List<SystemDTO> solrList = new ArrayList<SystemDTO>();
-		systemService.showAllSystems(user,
-				new AsyncCallback<List<SystemDTO>>() {
+		final List<SolrSystemDTO> solrList = new ArrayList<SolrSystemDTO>();
+		systemService.showAllSolrSystems(user,
+				new AsyncCallback<List<SolrSystemDTO>>() {
 
 					@Override
 					public void onFailure(Throwable arg0) {
@@ -367,8 +367,8 @@ public class RecordManagementWidget implements AbstractWidget {
 					}
 
 					@Override
-					public void onSuccess(List<SystemDTO> arg0) {
-						for (SystemDTO system : arg0) {
+					public void onSuccess(List<SolrSystemDTO> arg0) {
+						for (SolrSystemDTO system : arg0) {
 							if (system.getType().equals("SOLR")) {
 								solrList.add(system);
 							}
@@ -378,39 +378,39 @@ public class RecordManagementWidget implements AbstractWidget {
 
 				});
 
-		ProvidesKey<SystemDTO> key = new ProvidesKey<SystemDTO>() {
+		ProvidesKey<SolrSystemDTO> key = new ProvidesKey<SolrSystemDTO>() {
 
 			@Override
-			public Object getKey(SystemDTO arg0) {
+			public Object getKey(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
-				return arg0.getUrl();
+				return arg0.getUrls();
 			}
 		};
-		TextColumn<SystemDTO> solrListColumn = new TextColumn<SystemDTO>() {
+		TextColumn<SolrSystemDTO> solrListColumn = new TextColumn<SolrSystemDTO>() {
 
 			@Override
-			public String getValue(SystemDTO arg0) {
+			public String getValue(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
-				return arg0.getUrl();
+				return arg0.getUrls();
 			}
 		};
-		CellTable<SystemDTO> systems = new CellTable<SystemDTO>(key);
+		CellTable<SolrSystemDTO> systems = new CellTable<SolrSystemDTO>(key);
 		systems.setTitle(Messages.AVAILABLESYSTEMS);
 		ButtonCell optimize = new ButtonCell();
-		Column<SystemDTO, String> optimizeColumn = new Column<SystemDTO, String>(
+		Column<SolrSystemDTO, String> optimizeColumn = new Column<SolrSystemDTO, String>(
 				optimize) {
 
 			@Override
-			public String getValue(SystemDTO arg0) {
+			public String getValue(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
 				return "Optimize";
 
 			}
 		};
 
-		optimizeColumn.setFieldUpdater(new FieldUpdater<SystemDTO, String>() {
+		optimizeColumn.setFieldUpdater(new FieldUpdater<SolrSystemDTO, String>() {
 
-			public void update(int arg0, SystemDTO arg1, String arg2) {
+			public void update(int arg0, SolrSystemDTO arg1, String arg2) {
 				if (Window
 						.confirm("This can take a long time and will make this server unresponsive.\n Are you sure you want to proceed?")) {
 					final long now = new Date().getTime();

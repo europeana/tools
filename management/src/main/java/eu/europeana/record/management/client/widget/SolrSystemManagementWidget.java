@@ -32,10 +32,11 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DecoratorPanel;
 import com.google.gwt.user.client.ui.FlexTable;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
@@ -44,9 +45,10 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
 import eu.europeana.record.management.client.Messages;
-import eu.europeana.record.management.client.SystemService;
-import eu.europeana.record.management.client.SystemServiceAsync;
-import eu.europeana.record.management.shared.dto.SystemDTO;
+import eu.europeana.record.management.client.SolrSystemService;
+import eu.europeana.record.management.client.SolrSystemServiceAsync;
+import eu.europeana.record.management.database.enums.ProfileType;
+import eu.europeana.record.management.shared.dto.SolrSystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
 
 /**
@@ -55,16 +57,29 @@ import eu.europeana.record.management.shared.dto.UserDTO;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
-public class SystemManagementWidget implements AbstractWidget {
+public class SolrSystemManagementWidget implements AbstractWidget {
 
-	final SystemServiceAsync systemService = GWT.create(SystemService.class);
-	final Label systemUrlLabel = new Label(Messages.SYSTEMURL);
-	final Label systemTypeLabel = new Label(Messages.SYSTEMTYPE);
-	final TextBox systemUrlValue = new TextBox();
-	final ListBox systemTypeValue = new ListBox();
+	final SolrSystemServiceAsync systemService = GWT.create(SolrSystemService.class);
+	final Label systemUrlsLabel = new Label(Messages.SYSTEMURL);
+	final Label solrCoreLabel = new Label(Messages.SOLRCORE);
+	final Label solrZookeeperURLLabel = new Label(Messages.SOLRZOOKEEPER);
+	final Label profileTypeLabel = new Label(Messages.PROFILETYPE);
+	
+	final Label systemUserNameLabel = new Label(Messages.SYSTEMUSERNAME);
+	final Label systemPasswordLabel = new Label(Messages.SYSTEMPASSWORD);
+	
+	
+	final TextBox systemUrlsValue = new TextBox();
+	final TextBox solrCoreValue = new TextBox();
+	final TextBox solrZookeeperURLValue = new TextBox();
+	final ListBox profileTypeValue = new ListBox();
+	
+	final TextBox systemUserNameValue = new TextBox();
+	final PasswordTextBox systemPasswordValue = new PasswordTextBox();
+	
 	UserDTO user;
-	final List<SystemDTO> systemDTOs = new ArrayList<SystemDTO>();
-	AsyncDataProvider<SystemDTO> systemDP;
+	final List<SolrSystemDTO> systemDTOs = new ArrayList<SolrSystemDTO>();
+	AsyncDataProvider<SolrSystemDTO> systemDP;
 
 	/**
 	 * Instantiate the Widget with a User (The information contained here are
@@ -72,75 +87,80 @@ public class SystemManagementWidget implements AbstractWidget {
 	 * 
 	 * @param The user to create the widget for
 	 */
-	public SystemManagementWidget(UserDTO user) {
+	public SolrSystemManagementWidget(UserDTO user) {
 		this.user = user;
-		systemDP = new AsyncDataProvider<SystemDTO>() {
+		systemDP = new AsyncDataProvider<SolrSystemDTO>() {
 
 			@Override
-			protected void onRangeChanged(HasData<SystemDTO> arg0) {
+			protected void onRangeChanged(HasData<SolrSystemDTO> arg0) {
 				// TODO Auto-generated method stub
 				getData();
 
 			}
 
 		};
-		systemTypeValue.addItem("SOLR");
-		systemTypeValue.addItem("MONGO");
+		
+		profileTypeValue.addItem(Messages.PROFILETYPE_ACCEPTANCE_PORTAL, "ACCEPTANCE_PORTAL");
+		profileTypeValue.addItem(Messages.PROFILETYPE_LIVE_PORTAL, "LIVE_PORTAL");
+		
+
 
 	}
 
 	public Widget createWidget(Object... obj) {
-		HorizontalPanel sp = new HorizontalPanel();
-		sp.add(createNewSystem());
+		VerticalPanel sp = new VerticalPanel();
 		sp.add(showSystems());
+		sp.add(createNewSystem());
+		sp.setWidth("800px");
 		return sp;
 	}
 
 	private Widget showSystems() {
 		DecoratorPanel vp = new DecoratorPanel();
-		ProvidesKey<SystemDTO> key = new ProvidesKey<SystemDTO>() {
+		ProvidesKey<SolrSystemDTO> key = new ProvidesKey<SolrSystemDTO>() {
 
 			@Override
-			public Object getKey(SystemDTO arg0) {
+			public Object getKey(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
 				return arg0.getId();
 			}
 		};
-		CellTable<SystemDTO> systems = new CellTable<SystemDTO>(key);
+		CellTable<SolrSystemDTO> systems = new CellTable<SolrSystemDTO>(key);
 		systems.setTitle(Messages.AVAILABLESYSTEMS);
-		TextColumn<SystemDTO> systemName = new TextColumn<SystemDTO>() {
+		TextColumn<SolrSystemDTO> systemName = new TextColumn<SolrSystemDTO>() {
 
 			@Override
-			public String getValue(SystemDTO arg0) {
+			public String getValue(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
-				return arg0.getUrl();
+				return arg0.getUrls();
 			}
 
 		};
-		TextColumn<SystemDTO> systemType = new TextColumn<SystemDTO>() {
+		
+		TextColumn<SolrSystemDTO> systemProfileType = new TextColumn<SolrSystemDTO>() {
 
 			@Override
-			public String getValue(SystemDTO arg0) {
-				// TODO Auto-generated method stub
-				return arg0.getType();
+			public String getValue(SolrSystemDTO arg0) {
+				return "ACCEPTANCE_PORTAL".equals(arg0.getProfileType())? Messages.PROFILETYPE_ACCEPTANCE_PORTAL : Messages.PROFILETYPE_LIVE_PORTAL ;
 			}
 		};
+		
 		ButtonCell delete = new ButtonCell();
-		Column<SystemDTO, String> deleteColumn = new Column<SystemDTO, String>(
+		Column<SolrSystemDTO, String> deleteColumn = new Column<SolrSystemDTO, String>(
 				delete) {
 
 			@Override
-			public String getValue(SystemDTO arg0) {
+			public String getValue(SolrSystemDTO arg0) {
 				// TODO Auto-generated method stub
 				return "Delete";
 
 			}
 		};
 
-		deleteColumn.setFieldUpdater(new FieldUpdater<SystemDTO, String>() {
+		deleteColumn.setFieldUpdater(new FieldUpdater<SolrSystemDTO, String>() {
 
-			public void update(int arg0, SystemDTO arg1, String arg2) {
-				systemService.deleteSystem(arg1, user,
+			public void update(int arg0, SolrSystemDTO arg1, String arg2) {
+				systemService.deleteSolrSystem(arg1, user,
 						new AsyncCallback<Void>() {
 
 							public void onFailure(Throwable arg0) {
@@ -159,29 +179,31 @@ public class SystemManagementWidget implements AbstractWidget {
 			}
 		});
 		systems.addColumn(systemName, Messages.SYSTEMURL);
-		systems.addColumn(systemType, Messages.SYSTEMTYPE);
+		systems.addColumn(systemProfileType, Messages.PROFILETYPE);
 		systems.addColumn(deleteColumn, Messages.REMOVESYSTEM);
 
 		systemDP.addDataDisplay(systems);
 
-		final SingleSelectionModel<SystemDTO> selectionModel = new SingleSelectionModel<SystemDTO>(
+		final SingleSelectionModel<SolrSystemDTO> selectionModel = new SingleSelectionModel<SolrSystemDTO>(
 				key);
 		systems.setSelectionModel(selectionModel);
 		selectionModel
 				.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 
 					public void onSelectionChange(SelectionChangeEvent arg0) {
-						SystemDTO selectedSystem = selectionModel
+						SolrSystemDTO selectedSystem = selectionModel
 								.getSelectedObject();
-						systemUrlValue.setText(selectedSystem.getUrl());
-						systemTypeValue
+						systemUrlsValue.setText(selectedSystem.getUrls());
+						solrCoreValue.setText(selectedSystem.getSolrCore());
+						solrZookeeperURLValue.setText(selectedSystem.getZookeeperURL());
+						profileTypeValue
 								.setSelectedIndex(retrieveSelectedIndex(selectedSystem
-										.getType()));
+										.getProfileType()));
 					}
 
 					private int retrieveSelectedIndex(String type) {
-						for (int i = 0; i < systemTypeValue.getItemCount(); i++) {
-							if (systemTypeValue.getItemText(i).equals(
+						for (int i = 0; i < profileTypeValue.getItemCount(); i++) {
+							if (profileTypeValue.getItemText(i).equals(
 									type.toString())) {
 								return i;
 							}
@@ -190,14 +212,15 @@ public class SystemManagementWidget implements AbstractWidget {
 					}
 				});
 		vp.add(systems);
+		systems.setWidth("800px");
 		return vp;
 	}
 
 	private void getData() {
-		systemService.showAllSystems(user,
-				new AsyncCallback<List<SystemDTO>>() {
+		systemService.showAllSolrSystems(user,
+				new AsyncCallback<List<SolrSystemDTO>>() {
 
-					public void onSuccess(List<SystemDTO> arg0) {
+					public void onSuccess(List<SolrSystemDTO> arg0) {
 						// TODO Auto-generated method stub
 
 						systemDTOs.clear();
@@ -216,20 +239,38 @@ public class SystemManagementWidget implements AbstractWidget {
 	private Widget createNewSystem() {
 		DecoratorPanel vp = new DecoratorPanel();
 		FlexTable ft = new FlexTable();
-		ft.setWidget(0, 0, systemUrlLabel);
-		ft.setWidget(0, 1, systemUrlValue);
-		ft.setWidget(1, 0, systemTypeLabel);
-		ft.setWidget(1, 1, systemTypeValue);
+		
+		systemUrlsValue.setWidth("500px");
+
+		
+		ft.setWidget(0, 0, systemUrlsLabel);
+		ft.setWidget(0, 1, systemUrlsValue);
+		ft.setWidget(1, 0, solrCoreLabel);
+		ft.setWidget(1, 1, solrCoreValue);
+		ft.setWidget(2, 0, solrZookeeperURLLabel);
+		ft.setWidget(2, 1, solrZookeeperURLValue);
+		ft.setWidget(3, 0, profileTypeLabel);
+		ft.setWidget(3, 1, profileTypeValue);
+		ft.setWidget(4, 0, systemUserNameLabel);
+		ft.setWidget(4, 1, systemUserNameValue);
+		ft.setWidget(5, 0, systemPasswordLabel);
+		ft.setWidget(5, 1, systemPasswordValue);
+		
+		
 		Button save = new Button(Messages.SAVE);
 		save.addClickHandler(new ClickHandler() {
 
 			public void onClick(ClickEvent arg0) {
 				// TODO Auto-generated method stub
-				final SystemDTO systemDTO = new SystemDTO();
-				systemDTO.setUrl(systemUrlValue.getValue());
-				systemDTO.setType(systemTypeValue.getItemText(systemTypeValue
+				final SolrSystemDTO systemDTO = new SolrSystemDTO();
+				systemDTO.setUrls(systemUrlsValue.getValue());
+				systemDTO.setProfileType(profileTypeValue.getValue(profileTypeValue
 						.getSelectedIndex()));
-				systemService.createSystem(systemDTO, user,
+				systemDTO.setSolrCore(solrCoreValue.getValue());
+				systemDTO.setZookeeperURL(solrZookeeperURLValue.getValue());
+				systemDTO.setUserName(systemUserNameValue.getValue());
+				systemDTO.setPassword(systemPasswordValue.getValue());
+				systemService.createSolrSystem(systemDTO, user,
 						new AsyncCallback<Void>() {
 
 							public void onSuccess(Void arg0) {
@@ -244,8 +285,10 @@ public class SystemManagementWidget implements AbstractWidget {
 						});
 			}
 		});
-		ft.setWidget(2, 1, save);
+		ft.setWidget(6, 1, save);
+		ft.setWidth("700px");
 		vp.add(ft);
+		vp.setWidth("800px");
 		return vp;
 	}
 

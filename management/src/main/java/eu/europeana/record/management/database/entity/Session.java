@@ -40,29 +40,31 @@ import eu.europeana.record.management.database.dao.DBEntity;
  * 
  */
 @Entity
-@Table(name = "Session")
+@Table(name = "SESSIONS")
 @NamedQueries({ @NamedQuery(name = "findLoginByUser", query = "Select s from Session s where s.user = ?1") })
 public class Session implements DBEntity {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -6039952427223578020L;
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
-	@OneToOne
-	@JoinColumn(name = "user_id", referencedColumnName = "id")
-	UserObj user;
+	private static final long serialVersionUID = 1L;
 
-	@Column(name = "lastLogin")
-	@Temporal(TemporalType.TIMESTAMP)
-	Date lastLogin;
+	private Long id;
+
+	private UserObj user;
+
+	private Date lastLogin;
 
 	@Override
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ID", nullable = false)
 	public Long getId() {
-		// TODO Auto-generated method stub
 		return this.id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	/**
@@ -70,6 +72,8 @@ public class Session implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@OneToOne
+	@JoinColumn(name = "USER_ID", referencedColumnName = "id")
 	public UserObj getUser() {
 		return user;
 	}
@@ -83,6 +87,8 @@ public class Session implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "LAST_LOGIN")
+	@Temporal(TemporalType.TIMESTAMP)
 	public Date getLastLogin() {
 		return lastLogin;
 	}
@@ -91,8 +97,6 @@ public class Session implements DBEntity {
 		this.lastLogin = lastLogin;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+
 
 }

@@ -17,15 +17,20 @@
 package eu.europeana.record.management.database.entity;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import javax.persistence.Inheritance;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import eu.europeana.record.management.database.dao.DBEntity;
+import eu.europeana.record.management.database.enums.ProfileType;
 import eu.europeana.record.management.database.enums.SystemType;
 
 /**
@@ -35,38 +40,36 @@ import eu.europeana.record.management.database.enums.SystemType;
  * 
  */
 @Entity
-@Table(name = "SystemObj")
-@NamedQueries({ @NamedQuery(name = "findSystems", query = "Select s from SystemObj s where s.active=true"),
-	@NamedQuery(name = "findOneSystem", query = "Select s from SystemObj s where s.url = ?1")})
+@Inheritance
+@DiscriminatorColumn(name = "STYPE", discriminatorType = DiscriminatorType.STRING)
+@Table(name = "SYSTEM_OBJS", uniqueConstraints = @UniqueConstraint(columnNames = {
+		"STYPE", "URLS" }))
 public class SystemObj implements DBEntity {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -5281432844703329086L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
+	private Long id;
 
-	SystemType type;
-	@Column(name = "url", unique = true, updatable = true)
-	String url;
-	@Column(name = "active")
-	Boolean active;
+	private SystemType type;
 	
-	
-	public Boolean getActive() {
-		return active;
-	}
+	private ProfileType profileType;
 
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
+	private String urls;
+
+	
+	private String userName;
+	
+	private String password;
+
 	/**
 	 * Solr or Mongo
 	 * 
 	 * @return SOLR or MONGO
 	 */
+	@Enumerated(EnumType.STRING)
+	@Column(name = "STYPE", insertable = false, updatable = false)
 	public SystemType getType() {
 		return type;
 	}
@@ -80,21 +83,52 @@ public class SystemObj implements DBEntity {
 	 * 
 	 * @return The system url
 	 */
-	public String getUrl() {
-		return url;
+	@Column(name = "URLS", updatable = true)
+	public String getUrls() {
+		return urls;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setUrls(String urls) {
+		this.urls = urls;
 	}
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ID", nullable = false)
+	public Long getId() {
+		return id;
+	}
+	
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-	public Long getId() {
-		// TODO Auto-generated method stub
-		return id;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "PROFILE_TYPE", insertable = true, updatable = false)
+	public ProfileType getProfileType() {
+		return profileType;
+	}
+
+	public void setProfileType(ProfileType profileType) {
+		this.profileType = profileType;
+	}
+
+	@Column(name = "USERNAME")
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	@Column(name = "PASSWORD")
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 }

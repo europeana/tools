@@ -1,36 +1,18 @@
-/*
- * Copyright 2007-2012 The Europeana Foundation
- *
- *  Licenced under the EUPL, Version 1.1 (the "Licence") and subsequent versions as approved
- *  by the European Commission;
- *  You may not use this work except in compliance with the Licence.
- * 
- *  You may obtain a copy of the Licence at:
- *  http://joinup.ec.europa.eu/software/page/eupl
- *
- *  Unless required by applicable law or agreed to in writing, software distributed under
- *  the Licence is distributed on an "AS IS" basis, without warranties or conditions of
- *  any kind, either express or implied.
- *  See the Licence for the specific language governing permissions and limitations under
- *  the Licence.
- */
 package eu.europeana.record.management.shared.dto;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-import eu.europeana.record.management.database.enums.SystemType;
-
-/**
- * A data transformation object for a SystemObj
- * 
- * @author Yorgos.Mamakis@ kb.nl
- * 
- */
-public class SystemDTO implements IsSerializable {
-
+public abstract class SystemDTO implements IsSerializable{
+	
 	private Long id;
-	private String type;
-	private String url;
+	
+	private String profileType;
+
+	private String urls;
+
+	private String userName;
+	
+	private String password;
 
 	public Long getId() {
 		return id;
@@ -40,20 +22,38 @@ public class SystemDTO implements IsSerializable {
 		this.id = id;
 	}
 
-	public String getType() {
-		return type;
+	public String getProfileType() {
+		return profileType;
 	}
 
-	public void setType(String type) {
-		this.type = type;
+	public void setProfileType(String profileType) {
+		this.profileType = profileType;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getUrls() {
+		return urls;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setUrls(String urls) {
+		this.urls = urls;
 	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
+	
 
 }

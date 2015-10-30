@@ -38,8 +38,22 @@ public class Messages {
 	public final static String MYINFORMATION = "My Information";
 	public final static String LOGS = "Logs";
 	public final static String AVAILABLEUSERS = "Available Users";
-	public final static String SYSTEMURL = "System URL";
+	public final static String SYSTEMURL = "System URLs";
 	public final static String SYSTEMTYPE = "Server Type";
+	
+	public final static String SYSTEMUSERNAME = "Server User Name";
+	public final static String SYSTEMPASSWORD = "Server Password";
+	
+	public final static String PROFILETYPE = "Profile Type";
+	
+	public final static String PROFILETYPE_ACCEPTANCE_PORTAL = "Acceptance Portal";
+	public final static String PROFILETYPE_LIVE_PORTAL = "Live Portal";
+	
+	public final static String SOLRCORE = "Solr Core";
+	public final static String SOLRZOOKEEPER = "Solr Zookeeper URL";
+	
+	public final static String MONGODBNAME = "Mongo DB Name";
+	
 	public final static String AVAILABLESYSTEMS = "Available Systems";
 	public final static String COLLECTIONNAME = "Collection Name";
 	public final static String REMOVECOLLECTION = "Remove Collection";
@@ -47,7 +61,8 @@ public class Messages {
 	public final static String VALUE = "Value";
 	public final static String BATCHREMOVE = "Batch Remove";
 	public final static String RECORDMANAGEMENT = "Record Management";
-	public final static String SYSTEMMANAGEMENT = "System Management";
+	public final static String SOLRSYSTEMMANAGEMENT = "Solr System Management";
+	public final static String MONGOSYSTEMMANAGEMENT = "Mongo System Management";
 	public final static String USERMANAGEMENT = "User Management";
 	public final static String REMOVESYSTEM = "Remove System";
 	public final static String DELETERECORDS = "Delete Records";

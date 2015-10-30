@@ -16,8 +16,11 @@
  */
 package eu.europeana.record.management.server;
 
+import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.List;
+
+import org.apache.solr.client.solrj.SolrServerException;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -25,35 +28,42 @@ import eu.europeana.record.management.client.RecordService;
 import eu.europeana.record.management.database.dao.Dao;
 import eu.europeana.record.management.database.dao.impl.DaoImpl;
 import eu.europeana.record.management.database.dao.impl.PersistentEntityManager;
+import eu.europeana.record.management.database.entity.MongoSystemObj;
+import eu.europeana.record.management.database.entity.SolrSystemObj;
 import eu.europeana.record.management.database.entity.SystemObj;
 import eu.europeana.record.management.database.entity.UserObj;
 import eu.europeana.record.management.database.enums.LogEntryType;
-import eu.europeana.record.management.database.enums.SystemType;
-import eu.europeana.record.management.server.components.MongoServer;
-import eu.europeana.record.management.server.components.Server;
-import eu.europeana.record.management.server.components.SolrServer;
+import eu.europeana.record.management.server.components.MongoService;
+import eu.europeana.record.management.server.components.SolrService;
 import eu.europeana.record.management.server.util.LogUtils;
 import eu.europeana.record.management.shared.dto.Record;
 import eu.europeana.record.management.shared.dto.UserDTO;
 import eu.europeana.record.management.shared.exceptions.NoRecordException;
 import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
+
 /**
  * @see RecordService.java
  * @author Yorgos.Mamakis@ kb.nl
  *
  */
-public class RecordServiceImpl extends RemoteServiceServlet implements
-		RecordService {
+public class RecordServiceImpl extends RemoteServiceServlet implements RecordService {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 7222025566809300662L;
-	Dao<SystemObj> systemDao;
-	Dao<UserObj> userDao;
+	private Dao<SystemObj> systemDao;
+	private Dao<UserObj> userDao;
+	private SolrService solrService;
+	private MongoService mongoService;
+
 	boolean enableLogging = true;
 
 	public Dao<SystemObj> getSystemDao() {
-		return systemDao;
+		if (this.systemDao == null || !this.userDao.isOpen() ) {
+			this.systemDao = createSystemDao();
+		}
+
+		return this.systemDao;
 	}
 
 	public void setSystemDao(Dao<SystemObj> systemDao) {
@@ -61,7 +71,35 @@ public class RecordServiceImpl extends RemoteServiceServlet implements
 	}
 
 	public Dao<UserObj> getUserDao() {
-		return userDao;
+		if (this.userDao == null || !this.userDao.isOpen() ) {
+			this.userDao = (Dao<UserObj>) createUserDao();
+		}
+
+		return this.userDao;
+	}
+
+	public SolrService getSolrService() {
+		if (this.solrService == null) {
+			this.solrService = new SolrService();
+		}
+
+		return this.solrService;
+	}
+
+	public void setSolrService(SolrService solrService) {
+		this.solrService = solrService;
+	}
+
+	public MongoService getMongoService() {
+		if (this.mongoService == null) {
+			this.mongoService = new MongoService();
+		}
+
+		return this.mongoService;
+	}
+
+	public void setMongoService(MongoService mongoService) {
+		this.mongoService = mongoService;
 	}
 
 	public void setUserDao(Dao<UserObj> userDao) {
@@ -72,54 +110,46 @@ public class RecordServiceImpl extends RemoteServiceServlet implements
 		enableLogging = enable;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Dao<UserObj> createUserDao() {
-		return new DaoImpl(UserObj.class,
-				PersistentEntityManager.getManager());
+		return new DaoImpl<UserObj>(UserObj.class, PersistentEntityManager.getManager());
 	}
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+
 	public Dao<SystemObj> createSystemDao() {
-		return new DaoImpl(SystemObj.class,
-				PersistentEntityManager.getManager());
+		return new DaoImpl<SystemObj>(SystemObj.class, PersistentEntityManager.getManager());
 	}
-	@SuppressWarnings("unchecked")
-	public void delete(Record record, UserDTO userDTO) throws UniqueRecordException,NoRecordException{
+
+
+	public void delete(Record record, UserDTO userDTO) throws UniqueRecordException, NoRecordException {
 		try {
 			record = find(record, userDTO);
 			if (record != null) {
-				Dao<SystemObj> systemDao = this.systemDao == null ? (Dao<SystemObj>) createSystemDao()
-						: this.systemDao;
-				Dao<UserObj> userDao = this.userDao == null ? (Dao<UserObj>) createUserDao()
-						: this.userDao;
-				List<SystemObj> systems = systemDao.findAll(SystemObj.class);
-				UserObj user = userDao.findByPK((userDTO.getId()));
+
+				List<SystemObj> systems = getSystemDao().findAll(SystemObj.class);
+				UserObj user = getUserDao().findByPK((userDTO.getId()));
 				for (SystemObj system : systems) {
-					Server server;
-					if (system.getType().equals(SystemType.SOLR)) {
-						server = new SolrServer();
 
+					if (system instanceof SolrSystemObj) {
+						getSolrService().deleteRecord((SolrSystemObj) system, record);
 					} else {
-						server = new MongoServer();
+						getMongoService().deleteRecord((MongoSystemObj) system, record);
 					}
-					server.setUrl(system.getUrl());
 
-					server.deleteRecord(record);
 					if (enableLogging) {
-						LogUtils.createLogEntry(LogEntryType.REMOVE, user,
-								"removed record " + record.getValue(),
+						LogUtils.createLogEntry(LogEntryType.REMOVE, user, "removed record " + record.getValue(),
 								new Date());
 					}
 				}
-				userDao.close();
-				systemDao.close();
+				getUserDao().close();
+				getSystemDao().close();
 			} else {
 				throw new NoRecordException("Record(s) could not be found");
 			}
 		} catch (Exception e) {
-			if(e instanceof UniqueRecordException){
-				throw (UniqueRecordException)e;
-			}else if (e instanceof NoRecordException){
-				throw (NoRecordException)e;
+			if (e instanceof UniqueRecordException) {
+				throw (UniqueRecordException) e;
+			} else if (e instanceof NoRecordException) {
+				throw (NoRecordException) e;
 			} else {
 				e.printStackTrace();
 			}
@@ -127,64 +157,54 @@ public class RecordServiceImpl extends RemoteServiceServlet implements
 
 	}
 
-	@SuppressWarnings("unchecked")
-	private Record find(Record record, UserDTO userDTO) throws UniqueRecordException{
-		Dao<SystemObj> systemDao = this.systemDao == null ? (Dao<SystemObj>) createSystemDao()
-				: this.systemDao;
-		Dao<UserObj> userDao = this.userDao == null ? (Dao<UserObj>) createUserDao()
-				: this.userDao;
-		List<SystemObj> systems = systemDao.findAll(SystemObj.class);
-		UserObj user = userDao.findByPK(userDTO.getId());
+	private Record find(Record record, UserDTO userDTO) throws UniqueRecordException {
+
+		List<SystemObj> systems = getSystemDao().findAll(SystemObj.class);
+		UserObj user = getUserDao().findByPK(userDTO.getId());
 		if (enableLogging) {
-			LogUtils.createLogEntry(LogEntryType.RETRIEVE, user,
-					"found systems", new Date());
+			LogUtils.createLogEntry(LogEntryType.RETRIEVE, user, "found systems", new Date());
 		}
-		try{
-		for (SystemObj system : systems) {
-			if (system.getType().equals(SystemType.SOLR)) {
-				SolrServer server = new SolrServer();
-				server.setUrl(system.getUrl());
-				
-				return server.identifyRecord(record);
+		try {
+			for (SystemObj system : systems) {
+				if (system instanceof SolrSystemObj) {
+					return getSolrService().identifyRecord((SolrSystemObj) system, record);
+				}
 			}
-		}
-		}catch(UniqueRecordException e){
+		} catch (UniqueRecordException e) {
 			throw e;
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
 		}
-		userDao.close();
-		systemDao.close();
+		getUserDao().close();
+		getSystemDao().close();
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void deleteCollection(String collectionName, UserDTO userDTO) {
 		try {
-			Dao<SystemObj> systemDao = this.systemDao == null ? (Dao<SystemObj>) createSystemDao()
-					: this.systemDao;
-			Dao<UserObj> userDao = this.userDao == null ? (Dao<UserObj>) createUserDao()
-					: this.userDao;
-			List<SystemObj> systems = systemDao.findAll(SystemObj.class);
+
+			List<SystemObj> systems = getSystemDao().findAll(SystemObj.class);
 
 			for (SystemObj system : systems) {
 				System.out.println("in Systems");
-				Server server;
-				if (system.getType().equals(SystemType.SOLR)) {
-					server = new SolrServer();
+
+				if (system instanceof SolrSystemObj) {					
+					getSolrService().deleteCollection((SolrSystemObj) system, collectionName);
 				} else {
-					server = new MongoServer();
+					getMongoService().deleteCollection((MongoSystemObj) system, collectionName);
 				}
-				server.setUrl(system.getUrl());
-				server.deleteCollection(collectionName);
+
 			}
-			UserObj user = userDao.findByPK(userDTO.getId());
-			userDao.close();
-			systemDao.close();
+			UserObj user = getUserDao().findByPK(userDTO.getId());
+			getUserDao().close();
+			getSystemDao().close();
 			if (enableLogging) {
-				LogUtils.createLogEntry(LogEntryType.REMOVE, user,
-						"removed collection " + collectionName, new Date());
+				LogUtils.createLogEntry(LogEntryType.REMOVE, user, "removed collection " + collectionName, new Date());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

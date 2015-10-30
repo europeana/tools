@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import eu.europeana.record.management.shared.dto.SystemDTO;
+import eu.europeana.record.management.shared.dto.SolrSystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
 
 /**
@@ -28,18 +28,18 @@ import eu.europeana.record.management.shared.dto.UserDTO;
  * @author Yorgos.Mamakis@ kb.nl
  * 
  */
-public interface SystemServiceAsync {
+public interface SolrSystemServiceAsync {
 
-	void createSystem(SystemDTO systemDTO, UserDTO userDTO,
+	void createSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO,
 			AsyncCallback<Void> callback);
 
-	void updateSystem(SystemDTO systemDTO, UserDTO userDTO,
+	void updateSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO,
 			AsyncCallback<Void> callback);
 
-	void deleteSystem(SystemDTO systemDTO, UserDTO userDTO,
+	void deleteSolrSystem(SolrSystemDTO systemDTO, UserDTO userDTO,
 			AsyncCallback<Void> callback);
 
-	void showAllSystems(UserDTO userDTO, AsyncCallback<List<SystemDTO>> callback);
+	void showAllSolrSystems(UserDTO userDTO, AsyncCallback<List<SolrSystemDTO>> callback);
 
-	void optimize(SystemDTO systemDTO, UserDTO userDTO, AsyncCallback<Boolean> callback);
+	void optimize(SolrSystemDTO systemDTO, UserDTO userDTO, AsyncCallback<Boolean> callback);
 }

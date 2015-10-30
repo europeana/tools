@@ -17,18 +17,22 @@
 package eu.europeana.record.management.server.components;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
-import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 
+import eu.europeana.record.management.database.entity.MongoSystemObj;
 import eu.europeana.record.management.shared.dto.Record;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Mongo Server implementation
@@ -36,14 +40,12 @@ import org.apache.commons.lang3.StringUtils;
  * @author Yorgos.Mamakis@ kb.nl
  *
  */
-public class MongoServer implements Server {
+public class MongoService implements ServerService<MongoSystemObj> {
 
-    String url;
 
-    public void deleteRecord(Record record) {
-        try {
-            Mongo mongo = new Mongo(url, 27017);
-            DB europeanaDB = mongo.getDB("europeana");
+
+    public void deleteRecord(MongoSystemObj server, Record record) {
+            DB europeanaDB = createMongoServerInstance(server);
             DBCollection records = europeanaDB.getCollection("record");
             DBCollection proxies = europeanaDB.getCollection("Proxy");
             DBCollection providedCHOs = europeanaDB
@@ -74,16 +76,13 @@ public class MongoServer implements Server {
             aggregations.remove(aggregationQuery, WriteConcern.JOURNAL_SAFE);
             europeanaAggregations.remove(europeanaAggregationQuery,
                     WriteConcern.JOURNAL_SAFE);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+       
     }
 
-    public void deleteCollection(String collectionName) {
+    public void deleteCollection(MongoSystemObj server, String collectionName) {
 
-        try {
-            Mongo mongo = new Mongo(url, 27017);
-            DB europeanaDB = mongo.getDB("europeana");
+ 
+            DB europeanaDB = createMongoServerInstance(server);
             DBCollection records = europeanaDB.getCollection("record");
             DBCollection proxies = europeanaDB.getCollection("Proxy");
             DBCollection providedCHOs = europeanaDB
@@ -121,23 +120,37 @@ public class MongoServer implements Server {
             aggregations.remove(aggregationQuery, WriteConcern.JOURNAL_SAFE);
             europeanaAggregations.remove(europeanaAggregationQuery,
                     WriteConcern.JOURNAL_SAFE);
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (MongoException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
+       
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
 
-    public Record identifyRecord(Record record) {
+
+    public Record identifyRecord(MongoSystemObj server, Record record) {
         throw new UnsupportedOperationException();
 
     }
+    
+	private DB createMongoServerInstance(MongoSystemObj systemObj)  {
+		
+		List<ServerAddress> addressesProduction = new ArrayList<ServerAddress>();
+        for (String mongoStr : systemObj.getUrls().split(",")) {
+            ServerAddress address;
+            try {
+                address = new ServerAddress(mongoStr, 27017);
+                addressesProduction.add(address);
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+		
+		Mongo tgtProductionMongo = new Mongo(addressesProduction);
+		DB europeanaDB = tgtProductionMongo.getDB("europeana");
+		if (StringUtils.isNotBlank(systemObj.getUserName())) {
+			europeanaDB.authenticate(systemObj.getUserName(), systemObj.getPassword().toCharArray());
+		}
+		return europeanaDB;
+		
+	}
 
 }

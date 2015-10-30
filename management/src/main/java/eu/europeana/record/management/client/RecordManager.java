@@ -41,9 +41,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import eu.europeana.record.management.client.widget.LogEntryWidget;
+import eu.europeana.record.management.client.widget.MongoSystemManagementWidget;
 import eu.europeana.record.management.client.widget.MyInfoWidget;
 import eu.europeana.record.management.client.widget.RecordManagementWidget;
-import eu.europeana.record.management.client.widget.SystemManagementWidget;
+import eu.europeana.record.management.client.widget.SolrSystemManagementWidget;
 import eu.europeana.record.management.client.widget.UserManagementWidget;
 import eu.europeana.record.management.shared.dto.UserDTO;
 
@@ -176,7 +177,9 @@ public class RecordManager implements EntryPoint {
                 panel.add(new MyInfoWidget().createWidget(user),Messages.MYINFORMATION);
 		panel.add(new LogEntryWidget().createWidget(user),Messages.LOGS);
 		panel.add(new RecordManagementWidget().createWidget(user),Messages.RECORDMANAGEMENT);
-		panel.add(new SystemManagementWidget(user).createWidget(),Messages.SYSTEMMANAGEMENT);
+		panel.add(new SolrSystemManagementWidget(user).createWidget(),Messages.SOLRSYSTEMMANAGEMENT);
+		panel.add(new MongoSystemManagementWidget(user).createWidget(),Messages.MONGOSYSTEMMANAGEMENT);
+
 		panel.add(new UserManagementWidget(user).createWidget(),Messages.USERMANAGEMENT);
 		panel.setHeight("100%");
 		panel.selectTab(0);

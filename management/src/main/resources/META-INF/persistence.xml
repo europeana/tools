@@ -8,6 +8,8 @@
 		<class>eu.europeana.record.management.database.entity.UserObj</class>
 		<class>eu.europeana.record.management.database.entity.LogEntry</class>
 		<class>eu.europeana.record.management.database.entity.SystemObj</class>
+		<class>eu.europeana.record.management.database.entity.MongoSystemObj</class>
+		<class>eu.europeana.record.management.database.entity.SolrSystemObj</class>
 		<class>eu.europeana.record.management.database.entity.Session</class>
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />

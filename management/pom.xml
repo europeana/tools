@@ -17,57 +17,65 @@
 		<webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	<repositories>
-		<repository>
-			<id>releases</id>
-			<url>http://artifactory.eanadev.org/artifactory/</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>sonatype-forge</id>
-			<url>https://repository.sonatype.org/content/groups/forge/</url>
-		</repository>
-		<repository>
-			<id>snapshots</id>
-			<url>http://europeanalabs.eu/artifactory/repo</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>ext-snapshots</id>
-			<url>http://europeanalabs.eu/artifactory/ext-snapshots-local</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>repo1</id>
-			<url>http://repo1.maven.org/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>ibiblio</id>
-			<url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
+	<!-- <repositories> -->
+	<!-- <repository> -->
+	<!-- <id>releases</id> -->
+	<!-- <url>http://artifactory.eanadev.org/artifactory/</url> -->
+	<!-- <snapshots> -->
+	<!-- <enabled>false</enabled> -->
+	<!-- </snapshots> -->
+	<!-- </repository> -->
+	<!-- <repository> -->
+	<!-- <id>sonatype-forge</id> -->
+	<!-- <url>https://repository.sonatype.org/content/groups/forge/</url> -->
+	<!-- </repository> -->
+	<!-- <repository> -->
+	<!-- <id>snapshots</id> -->
+	<!-- <url>http://europeanalabs.eu/artifactory/repo</url> -->
+	<!-- <releases> -->
+	<!-- <enabled>false</enabled> -->
+	<!-- </releases> -->
+	<!-- </repository> -->
+	<!-- <repository> -->
+	<!-- <id>ext-snapshots</id> -->
+	<!-- <url>http://europeanalabs.eu/artifactory/ext-snapshots-local</url> -->
+	<!-- <releases> -->
+	<!-- <enabled>true</enabled> -->
+	<!-- </releases> -->
+	<!-- </repository> -->
+	<!-- <repository> -->
+	<!-- <id>repo1</id> -->
+	<!-- <url>http://repo1.maven.org/maven2</url> -->
+	<!-- <snapshots> -->
+	<!-- <enabled>false</enabled> -->
+	<!-- </snapshots> -->
+	<!-- </repository> -->
+	<!-- <repository> -->
+	<!-- <id>ibiblio</id> -->
+	<!-- <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url> -->
+	<!-- <snapshots> -->
+	<!-- <enabled>false</enabled> -->
+	<!-- </snapshots> -->
+	<!-- </repository> -->
+	<!-- </repositories> -->
 	<dependencies>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
-			<version>4.2.1.Final</version>
+			<version>4.3.8.Final</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>4.3.8.Final</version>
+
+		</dependency>
+
 		<dependency>
 			<groupId>postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.2-1002.jdbc4</version>
+			<version>9.0-801.jdbc4</version>
 		</dependency>
 		<!-- an slf4j implementation is needed by hibernate so that it could log 
 			its *stuff* -->
@@ -116,10 +124,9 @@
 
 		<dependency>
 			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.0-api</artifactId>
-			<version>1.0.1.Final</version>
+			<artifactId>hibernate-jpa-2.1-api</artifactId>
+			<version>1.0.0.Final</version>
 		</dependency>
-
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -137,17 +144,17 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
-			<version>4.0.0</version>
+			<version>4.10.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-core</artifactId>
-			<version>4.0.0</version>
+			<version>4.10.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-test-framework</artifactId>
-			<version>4.0.0</version>
+			<version>4.10.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

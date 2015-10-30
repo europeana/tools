@@ -18,6 +18,8 @@ package eu.europeana.record.management.database.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -35,10 +37,11 @@ import eu.europeana.record.management.database.enums.Role;
  * 
  */
 @Entity
-@Table(name = "UserObj")
-@NamedQueries({ @NamedQuery(name = "findUsers", query = "Select u from UserObj u where u.username= ?1 and u.active=true"),
-	@NamedQuery(name = "findAllUsers", query = "Select u from UserObj u where u.active=true"),
-	@NamedQuery(name = "findInactiveUsers", query = "Select u from UserObj u where u.username= ?1")})
+@Table(name = "USERS")
+@NamedQueries({
+		@NamedQuery(name = "findUsers", query = "Select u from UserObj u where u.username= ?1 and u.active=true"),
+		@NamedQuery(name = "findAllUsers", query = "Select u from UserObj u where u.active=true"),
+		@NamedQuery(name = "findInactiveUsers", query = "Select u from UserObj u where u.username= ?1") })
 public class UserObj implements DBEntity {
 
 	/**
@@ -46,31 +49,23 @@ public class UserObj implements DBEntity {
 	 */
 	private static final long serialVersionUID = 5229410848838413358L;
 
+	private Long id;
+
+	private String username;
+
+	private String password;
+
+	private Role role;
+
+	private String name;
+
+	private String surname;
+
+	private Boolean active;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	Long id;
-
-	@Column(name = "username", unique = true, updatable = true)
-	String username;
-	@Column(name = "password")
-	String password;
-	@Column(name = "role")
-	Role role;
-	@Column(name = "name")
-	String name;
-	@Column(name = "surname")
-	String surname;
-	@Column(name = "active")
-	Boolean active;
-	
-	
-	public Boolean getActive() {
-		return active;
-	}
-
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
+	@Column(name = "ID", nullable = false)
 	public Long getId() {
 
 		return this.id;
@@ -81,6 +76,7 @@ public class UserObj implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "USERNAME", unique = true, updatable = true)
 	public String getUsername() {
 		return username;
 	}
@@ -94,6 +90,7 @@ public class UserObj implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "PASSWORD")
 	public String getPassword() {
 		return password;
 	}
@@ -107,6 +104,8 @@ public class UserObj implements DBEntity {
 	 * 
 	 * @return
 	 */
+	@Column(name = "ROLE")
+	@Enumerated(EnumType.STRING)
 	public Role getRole() {
 		return role;
 	}
@@ -115,6 +114,7 @@ public class UserObj implements DBEntity {
 		this.role = role;
 	}
 
+	@Column(name = "NAME")
 	public String getName() {
 		return name;
 	}
@@ -128,6 +128,7 @@ public class UserObj implements DBEntity {
 		this.name = name;
 	}
 
+	@Column(name = "SURNAME")
 	public String getSurname() {
 		return surname;
 	}
@@ -146,10 +147,19 @@ public class UserObj implements DBEntity {
 		this.id = id;
 	}
 
+	@Column(name = "ACTIVE")
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
+
 	@Override
 	public String toString() {
-		return "User: [username: " + this.username + ", name: " + this.name
-				+ ", surname: " + this.surname + ", Role: " + this.role + "]";
+		return "User: [username: " + this.username + ", name: " + this.name + ", surname: " + this.surname + ", Role: "
+				+ this.role + "]";
 
 	}
 

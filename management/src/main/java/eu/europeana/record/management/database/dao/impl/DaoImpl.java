@@ -97,4 +97,10 @@ public class DaoImpl<E extends DBEntity> implements Dao<E> {
 	public void close(){
 		em.close();
 	}
+	
+	@Override
+	public boolean  isOpen() {
+		return em.isOpen();
+		
+	}
 }
