@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Node;
 
 /**
  *
- * @author gmamakis
+ * @author gmamakis, luthien
  */
 
 public class Hierarchy {

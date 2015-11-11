@@ -36,7 +36,7 @@ import org.neo4j.kernel.impl.util.StringLogger;
 
 /**
  *
- * @author gmamakis
+ * @author gmamakis, luthien
  */
 @javax.ws.rs.Path("/startup")
 public class Startup {

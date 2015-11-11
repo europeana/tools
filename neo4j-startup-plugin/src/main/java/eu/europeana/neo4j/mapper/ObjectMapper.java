@@ -15,177 +15,50 @@ import org.neo4j.graphdb.Node;
 
 /**
  *
- * @author gmamakis
+ * @author gmamakis, luthien
  */
 public class ObjectMapper {
 
     public String toJson(Hierarchy hierarchy) {
         ObjectNode json = JsonNodeFactory.instance.objectNode();
-        ArrayNode parents = json.arrayNode();
-        for (Node parentNode : hierarchy.getParents()) {
-            ObjectNode parent = JsonNodeFactory.instance.objectNode();
-
-            Iterator<String> parentProperties = parentNode.getPropertyKeys().iterator();
-            while (parentProperties.hasNext()) {
-                String key = parentProperties.next();
-                Object obj = parentNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    parent.put(key, (String) parentNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    parent.put(key, (Boolean) parentNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    parent.put(key, (long) parentNode.getProperty(key));
-                } else {
-                    ArrayNode parentArray = parent.arrayNode();
-                    String[] props = (String[]) parentNode.getProperty(key);
-                    for (String str : props) {
-                        parentArray.add(str);
-                    }
-                    parent.put(key, parentArray);
-                }
-            }
-            parents.add(parent);
-        }
-        json.put("parents", parents);
-        ArrayNode fSiblings = json.arrayNode();
-        for (Node fsNode : hierarchy.getFollowingSiblings()) {
-            ObjectNode fSibling = JsonNodeFactory.instance.objectNode();
-
-            Iterator<String> fsProperties = fsNode.getPropertyKeys().iterator();
-            while (fsProperties.hasNext()) {
-                String key = fsProperties.next();
-                Object obj = fsNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    fSibling.put(key, (String) fsNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    fSibling.put(key, (Boolean) fsNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    fSibling.put(key, (long) fsNode.getProperty(key));
-                } else {
-                    ArrayNode fsArray = fSibling.arrayNode();
-                    String[] props = (String[]) fsNode.getProperty(key);
-                    for (String str : props) {
-                        fsArray.add(str);
-                    }
-                    fSibling.put(key, fsArray);
-                }
-            }
-            fSiblings.add(fSibling);
-        }
-        json.put("followingSiblings", fSiblings);
-
-        ArrayNode pSiblings = json.arrayNode();
-        for (Node psNode : hierarchy.getPreviousSiblings()) {
-            ObjectNode pSibling = JsonNodeFactory.instance.objectNode();
-
-            Iterator<String> psProperties = psNode.getPropertyKeys().iterator();
-            while (psProperties.hasNext()) {
-                String key = psProperties.next();
-                Object obj = psNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    pSibling.put(key, (String) psNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    pSibling.put(key, (Boolean) psNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    pSibling.put(key, (long) psNode.getProperty(key));
-                } else {
-                    ArrayNode psArray = pSibling.arrayNode();
-                    String[] props = (String[]) psNode.getProperty(key);
-                    for (String str : props) {
-                        psArray.add(str);
-                    }
-                    pSibling.put(key, psArray);
-                }
-            }
-            pSiblings.add(pSibling);
-        }
-        json.put("precedingSiblings", pSiblings);
-
-        ArrayNode fsChildren = json.arrayNode();
-        for (Node fsChildrenNode : hierarchy.getFollowingSiblingChildren()) {
-            ObjectNode fsChild = JsonNodeFactory.instance.objectNode();
-
-            Iterator<String> fsChildProperties = fsChildrenNode.getPropertyKeys().iterator();
-            while (fsChildProperties.hasNext()) {
-                String key = fsChildProperties.next();
-                Object obj = fsChildrenNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    fsChild.put(key, (String) fsChildrenNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    fsChild.put(key, (Boolean) fsChildrenNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    fsChild.put(key, (long) fsChildrenNode.getProperty(key));
-                } else {
-                    ArrayNode fsChildArray = fsChild.arrayNode();
-                    String[] props = (String[]) fsChildrenNode.getProperty(key);
-                    for (String str : props) {
-                        fsChildArray.add(str);
-                    }
-                    fsChild.put(key, fsChildArray);
-                }
-            }
-            fsChildren.add(fsChild);
-        }
-        json.put("followingSiblingChildren", fsChildren);
-
-        ArrayNode psChildren = json.arrayNode();
-        for (Node psChildrenNode : hierarchy.getPreviousSiblingChildren()) {
-            ObjectNode psChild = JsonNodeFactory.instance.objectNode();
-
-            Iterator<String> psChildProperties = psChildrenNode.getPropertyKeys().iterator();
-            while (psChildProperties.hasNext()) {
-                String key = psChildProperties.next();
-                Object obj = psChildrenNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    psChild.put(key, (String) psChildrenNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    psChild.put(key, (Boolean) psChildrenNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    psChild.put(key, (long) psChildrenNode.getProperty(key));
-                } else {
-                    ArrayNode psChildArray = psChild.arrayNode();
-                    String[] props = (String[]) psChildrenNode.getProperty(key);
-                    for (String str : props) {
-                        psChildArray.add(str);
-                    }
-                    psChild.put(key, psChildArray);
-                }
-            }
-            psChildren.add(psChild);
-        }
-        json.put("precedingSiblingChildren", psChildren);
-
+        json.put("parents", assimilate(hierarchy.getParents(), json.arrayNode()));
+        json.put("followingSiblings", assimilate(hierarchy.getFollowingSiblings(), json.arrayNode()));
+        json.put("precedingSiblings", assimilate(hierarchy.getPreviousSiblings(), json.arrayNode()));
+        json.put("followingSiblingChildren", assimilate(hierarchy.getFollowingSiblingChildren(), json.arrayNode()));
+        json.put("precedingSiblingChildren", assimilate(hierarchy.getPreviousSiblingChildren(), json.arrayNode()));
         return json.toString();
     }
 
     public String siblingsToJson(List<Node> siblingsList, String title) {
         ObjectNode json = JsonNodeFactory.instance.objectNode();
-        ArrayNode siblings = json.arrayNode();
-        for (Node siblingNode : siblingsList) {
-            ObjectNode sibling = JsonNodeFactory.instance.objectNode();
+        json.put(title, assimilate(siblingsList, json.arrayNode()));
+        return json.toString();
+    }
 
-            Iterator<String> siblingProperties = siblingNode.getPropertyKeys().iterator();
-            while (siblingProperties.hasNext()) {
-                String key = siblingProperties.next();
-                Object obj = siblingNode.getProperty(key);
-                if (obj.getClass().isAssignableFrom(String.class)) {
-                    sibling.put(key, (String) siblingNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Boolean.class)) {
-                    sibling.put(key, (Boolean) siblingNode.getProperty(key));
-                } else if (obj.getClass().isAssignableFrom(Long.class)) {
-                    sibling.put(key, (long) siblingNode.getProperty(key));
+    private ArrayNode assimilate(List<Node> brats, ArrayNode group) {
+        for (Node brat : brats) {
+            ObjectNode       individual = JsonNodeFactory.instance.objectNode();
+            Iterator<String> character  = brat.getPropertyKeys().iterator();
+            while (character.hasNext()) {
+                String trait  = character.next();
+                Object nature = brat.getProperty(trait);
+                if (nature.getClass().isAssignableFrom(String.class)) {
+                    individual.put(trait, (String) brat.getProperty(trait));
+                } else if (nature.getClass().isAssignableFrom(Boolean.class)) {
+                    individual.put(trait, (Boolean) brat.getProperty(trait));
+                } else if (nature.getClass().isAssignableFrom(Long.class)) {
+                    individual.put(trait, (long) brat.getProperty(trait));
                 } else {
-                    ArrayNode multiPropArray = sibling.arrayNode();
-                    String[] props = (String[]) siblingNode.getProperty(key);
-                    for (String str : props) {
-                        multiPropArray.add(str);
+                    ArrayNode spunk  = individual.arrayNode();
+                    String[]  spiwit = (String[]) brat.getProperty(trait);
+                    for (String pluck : spiwit) {
+                        spunk.add(pluck);
                     }
-                    sibling.put(key, multiPropArray);
+                    individual.put(trait, spunk);
                 }
             }
-            siblings.add(sibling);
+            group.add(individual);
         }
-        json.put(title, siblings);
-        return json.toString();
+        return group;
     }
 }
