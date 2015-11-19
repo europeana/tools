@@ -101,7 +101,7 @@ public class MongoSystemManagementWidget implements AbstractWidget {
 			}
 
 		};
-
+		
 		profileTypeValue.addItem(Messages.PROFILETYPE_ACCEPTANCE_PORTAL, "ACCEPTANCE_PORTAL");
 		profileTypeValue.addItem(Messages.PROFILETYPE_LIVE_PORTAL, "LIVE_PORTAL");
 
@@ -191,11 +191,14 @@ public class MongoSystemManagementWidget implements AbstractWidget {
 				MongoSystemDTO selectedSystem = selectionModel.getSelectedObject();
 				systemUrlsValue.setText(selectedSystem.getUrls());
 				profileTypeValue.setSelectedIndex(retrieveSelectedIndex(selectedSystem.getProfileType()));
+				mongoDBNameValue.setText(selectedSystem.getMongoDBName());
+				systemUserNameValue.setText(selectedSystem.getUserName());
+				systemPasswordValue.setText(selectedSystem.getPassword());
 			}
 
 			private int retrieveSelectedIndex(String type) {
 				for (int i = 0; i < profileTypeValue.getItemCount(); i++) {
-					if (profileTypeValue.getItemText(i).equals(type.toString())) {
+					if (profileTypeValue.getValue(i).equals(type.toString())) {
 						return i;
 					}
 				}

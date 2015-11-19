@@ -76,7 +76,9 @@ public class DaoImpl<E extends DBEntity> implements Dao<E> {
 	}
 
 	public void delete(E obj) {
-		update(obj);
+		em.getTransaction().begin();
+		em.remove(obj);
+		em.getTransaction().commit();
 	}
 
 	public List<E> findByQuery(String q, Object... args) {

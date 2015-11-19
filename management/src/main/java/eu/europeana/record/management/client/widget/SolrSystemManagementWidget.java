@@ -199,11 +199,13 @@ public class SolrSystemManagementWidget implements AbstractWidget {
 						profileTypeValue
 								.setSelectedIndex(retrieveSelectedIndex(selectedSystem
 										.getProfileType()));
+						systemUserNameValue.setText(selectedSystem.getUserName());
+						systemPasswordValue.setText(selectedSystem.getPassword());
 					}
 
 					private int retrieveSelectedIndex(String type) {
 						for (int i = 0; i < profileTypeValue.getItemCount(); i++) {
-							if (profileTypeValue.getItemText(i).equals(
+							if (profileTypeValue.getValue(i).equals(
 									type.toString())) {
 								return i;
 							}
