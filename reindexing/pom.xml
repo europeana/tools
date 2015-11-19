@@ -26,4 +26,16 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    <distributionManagement>
+	    <repository>
+    	  <id>artifactory.eanadev.org-releases</id>
+      		<name>artifactory.eanadev.org-releases</name>
+      		<url>http://artifactory.eanadev.org/artifactory/ext-release-local</url>
+    	</repository>
+    	<snapshotRepository>
+      		<id>artifactory.eanadev.org</id>
+      		<name>artifactory.eanadev.org-snapshot</name>
+      		<url>http://artifactory.eanadev.org/artifactory/ext-snapshot-local</url>
+    	</snapshotRepository>
+  	</distributionManagement>
 </project>

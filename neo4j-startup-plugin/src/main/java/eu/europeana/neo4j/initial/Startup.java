@@ -36,7 +36,7 @@ import org.neo4j.kernel.impl.util.StringLogger;
 
 /**
  *
- * @author gmamakis
+ * @author gmamakis, luthien
  */
 @javax.ws.rs.Path("/startup")
 public class Startup {
@@ -63,10 +63,8 @@ public class Startup {
         Transaction tx = db.beginTx();
         try {
             Node node = db.index().forNodes("edmsearch2").get("rdf_about", nodeId).getSingle();
-            long nodeIndex = getIndex(node.getId());
-            node.setProperty("index", nodeIndex);
             if (node.hasProperty("hasChildren")) {
-                long childrenCount = getChilrenCount(node.getProperty("rdf:about").toString());
+                long childrenCount = getChildrenCount(node.getProperty("rdf:about").toString());
                 node.setProperty("childrenCount", childrenCount);
             }
             if (node.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
@@ -80,9 +78,7 @@ public class Startup {
             while (testNode.hasProperty("hasParent")) {
                 Node newNode = db.index().forNodes("edmsearch2").get("rdf_about", testNode.getProperty("hasParent")).
                         getSingle();
-                long parentIndex = getIndex(newNode.getId());
-                long childrenCount = getChilrenCount(newNode.getProperty("rdf:about").toString());
-                newNode.setProperty("index", parentIndex);
+                long childrenCount = getChildrenCount(newNode.getProperty("rdf:about").toString());
                 newNode.setProperty("childrenCount", childrenCount);
                 if (newNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
                     newNode.setProperty("relBefore", false);
@@ -92,9 +88,10 @@ public class Startup {
                 parents.add(newNode);
                 testNode = newNode;
             }
-
             hierarchy.setParents(parents);
-            List<Node> children = new ArrayList<>();
+            
+            List<Node> previousSiblings = new ArrayList<>();
+            List<Node> previousSiblingChildren = new ArrayList<>();
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
@@ -103,26 +100,26 @@ public class Startup {
                     .evaluator(Evaluators.toDepth(length))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
-            long followingIndex = nodeIndex;
             for (Path path : traverse) {
-                followingIndex++;
                 Node endNode = path.endNode();
                 if (endNode.hasProperty("hasChildren")) {
-                    long childrenCount = getChilrenCount(endNode.getProperty("rdf:about").toString());
+                    long childrenCount = getChildrenCount(endNode.getProperty("rdf:about").toString());
                     endNode.setProperty("childrenCount", childrenCount);
+                    previousSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
                 }
-                endNode.setProperty("index", followingIndex);
                 
                 if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
                     endNode.setProperty("relBefore", false);
                 } else if (endNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
                     endNode.setProperty("relBefore", true);
                 }
-                children.add(path.endNode());
+                previousSiblings.add(path.endNode());
             }
-
-            hierarchy.setSiblings(children);
-            List<Node> childrenBefore = new ArrayList<>();
+            hierarchy.setPreviousSiblings(previousSiblings);
+            hierarchy.setPreviousSiblingChildren(previousSiblingChildren);
+            
+            List<Node> followingSiblings = new ArrayList<>();
+            List<Node> followingSiblingChildren = new ArrayList<>();
             TraversalDescription traversalBefore = db.traversalDescription();
             Traverser traverseBefore = traversalBefore
                     .depthFirst()
@@ -131,24 +128,23 @@ public class Startup {
                     .evaluator(Evaluators.toDepth(lengthBefore))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
-            long previousIndex = nodeIndex;
 
             for (Path path : traverseBefore) {
-                previousIndex--;
                 Node endNode = path.endNode();
                 if (endNode.hasProperty("hasChildren")) {
-                    long childrenCount = getChilrenCount(endNode.getProperty("rdf:about").toString());
+                    long childrenCount = getChildrenCount(endNode.getProperty("rdf:about").toString());
                     endNode.setProperty("childrenCount", childrenCount);
+                    followingSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
                 }
-                endNode.setProperty("index", previousIndex);
-                childrenBefore.add(endNode);
+                followingSiblings.add(endNode);
                 if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
                     endNode.setProperty("relBefore", false);
                 } else if (endNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
                     endNode.setProperty("relBefore", true);
                 }
             }
-            hierarchy.setPreviousSiblings(childrenBefore);
+            hierarchy.setFollowingSiblings(followingSiblings);
+            hierarchy.setFollowingSiblingChildren(followingSiblingChildren);
 
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
@@ -159,7 +155,7 @@ public class Startup {
         return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
                 "application/json").build();
     }
-
+    
     private synchronized long getIndex(long nodeId) {
         long maxLength = 0;
         try {
@@ -182,14 +178,28 @@ public class Startup {
         return maxLength;
     }
 
-    private long getChilrenCount(String id) {
+    private long getChildrenCount(String rdfAbout) {
         Transaction tx = db.beginTx();
         ExecutionResult result = engine.execute(
-                "start n = node:edmsearch2(rdf_about=\"" + id
-                + "\") match (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
+                "start n = node:edmsearch2(rdf_about=\"" + rdfAbout
+                + "\") MATCH (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
         Iterator<Long> columns = result.columnAs("children");
         tx.success();
         tx.finish();
         return columns.next();
+    }
+    
+    private Node getFirstChild(String rdfAbout) {
+        Transaction tx = db.beginTx();
+        ExecutionResult result = engine.execute(
+                "start parent = node:edmsearch2(rdf_about=\"" + rdfAbout 
+                + "\") MATCH (parent)-[:`dcterms:hasPart`]->(firstchild) "
+                + "WHERE NOT ()-[:isFakeOrder]->(firstchild) "
+                + "AND NOT ()-[:`edm:isNextInSequence`]->(firstchild) "
+                + "RETURN firstchild LIMIT 1;");
+        Iterator<Node> firstChild = result.columnAs("firstchild");
+        tx.success();
+        tx.finish();
+        return firstChild.next();
     }
 }

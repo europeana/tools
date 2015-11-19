@@ -12,14 +12,16 @@ import org.neo4j.graphdb.Node;
 
 /**
  *
- * @author gmamakis
+ * @author gmamakis, luthien
  */
 
 public class Hierarchy {
     
     List<Node> parents = new ArrayList<>();
-    List<Node> siblings = new ArrayList<>();
+    List<Node> followingSiblings = new ArrayList<>();
     List<Node> previousSiblings = new ArrayList<>();
+    List<Node> followingSiblingChildren = new ArrayList<>();
+    List<Node> previousSiblingChildren = new ArrayList<>();
 
     public List<Node> getParents() {
         return parents;
@@ -29,12 +31,12 @@ public class Hierarchy {
         this.parents = parents;
     }
 
-    public List<Node> getSiblings() {
-        return siblings;
+    public List<Node> getFollowingSiblings() {
+        return followingSiblings;
     }
 
-    public void setSiblings(List<Node> siblings) {
-        this.siblings = siblings;
+    public void setFollowingSiblings(List<Node> followingSiblings) {
+        this.followingSiblings = followingSiblings;
     }
 
     public List<Node> getPreviousSiblings() {
@@ -43,6 +45,22 @@ public class Hierarchy {
 
     public void setPreviousSiblings(List<Node> previousSiblings) {
         this.previousSiblings = previousSiblings;
+    }
+
+    public List<Node> getFollowingSiblingChildren() {
+        return followingSiblingChildren;
+    }
+
+    public void setFollowingSiblingChildren(List<Node> followingSiblingChildren) {
+        this.followingSiblingChildren = followingSiblingChildren;
+    }
+
+    public List<Node> getPreviousSiblingChildren() {
+        return previousSiblingChildren;
+    }
+
+    public void setPreviousSiblingChildren(List<Node> previousSiblingChildren) {
+        this.previousSiblingChildren = previousSiblingChildren;
     }
     
     

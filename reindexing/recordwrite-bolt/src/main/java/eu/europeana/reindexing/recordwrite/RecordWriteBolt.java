@@ -15,8 +15,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -189,7 +192,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         i++;
         Logger.getGlobal().log(Level.INFO, "Got " + i + " records to save.");
         if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 5000) {
-            Logger.getGlobal().log(Level.INFO, "Processing " + i + " records");
+            Logger.getGlobal().log(Level.INFO, "!!! Processing " + i + " records !!!");
             processTuples(tuples);
             
             Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
@@ -201,21 +204,39 @@ public class RecordWriteBolt extends BaseRichBolt {
             }
             ops.set("processed", i);
             ops.set("dateUpdated", new Date().getTime());
-
+            Logger.getGlobal().log(Level.INFO, "!!! Processed " + i + " records for a taskId = " + report.getTaskId() + " !!!");
+            
             //to reset the index "i"
             if (report.getStatus() == Status.STOPPED) {
             	i = 0;
             }
             
             //to finish a current task report and reset the index "i"
+            Logger.getGlobal().log(Level.WARNING, "--- Current i is " + i + ". ---");
+            Logger.getGlobal().log(Level.WARNING, "--- Total count is " + report.getTotal() + ". ---");
             if (i == report.getTotal()) {
-            	Logger.getGlobal().log(Level.WARNING, "*** Current i is " + i + ". ***");
             	ops.set("status", Status.FINISHED);
                 i = 0;
-                Logger.getGlobal().log(Level.WARNING, "*** Resetted i to " + i + ". ***");
+                Logger.getGlobal().log(Level.WARNING, "--- Reseted i to " + i + ". ---");
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
+            
+            //update the total number if needed
+            SolrQuery params = new SolrQuery(report.getQuery());
+            params.setRows(0);
+            params.setSort("europeana_id", SolrQuery.ORDER.asc);
+            params.setFields("europeana_id");
+			try {
+				QueryResponse resp = solrServerProd.query(params);
+				long numFound = resp.getResults().getNumFound();
+				if (report.getTotal() != numFound) {
+					ops.set("total", numFound);
+				}
+			} catch (SolrServerException e) {
+				Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, e);
+			}
+            
             datastore.update(query, ops);
             tuples.clear();
         }

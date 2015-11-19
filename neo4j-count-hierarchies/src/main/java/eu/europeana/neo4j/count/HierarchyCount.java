@@ -31,11 +31,13 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 /**
  *
  * @author Yorgos.Mamakis@ europeana.eu
+ * @author Maike.Dulk@ europeana.eu
  */
 @javax.ws.rs.Path("/hierarchycount")
 public class HierarchyCount {
 
     final DynamicRelationshipType ISNEXTINSEQUENCE = DynamicRelationshipType.withName("edm:isNextInSequence");
+    final DynamicRelationshipType ISFAKEORDER = DynamicRelationshipType.withName("isFakeOrder");
     private GraphDatabaseService db;
 
     public HierarchyCount(@Context GraphDatabaseService db) {
@@ -55,7 +57,8 @@ public class HierarchyCount {
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
                     .traverse(startNode);
 
             for (Path path : traverse) {
@@ -69,7 +72,8 @@ public class HierarchyCount {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
         }
         ObjectNode json = JsonNodeFactory.instance.objectNode();
-        json.put("length", String.valueOf(maxLength));
+        // add 1 to number of hops required to arrive at the start of the traverse
+        json.put("length", String.valueOf(maxLength + 1));
         json.put("time", String.valueOf((System.currentTimeMillis() - start)));
 
         String output = new ObjectMapper().writeValueAsString(json);
