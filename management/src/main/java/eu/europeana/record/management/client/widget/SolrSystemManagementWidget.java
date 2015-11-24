@@ -242,7 +242,8 @@ public class SolrSystemManagementWidget implements AbstractWidget {
 		DecoratorPanel vp = new DecoratorPanel();
 		FlexTable ft = new FlexTable();
 		
-		systemUrlsValue.setWidth("500px");
+		systemUrlsValue.setWidth("600px");
+		solrZookeeperURLValue.setWidth("600px");
 
 		
 		ft.setWidget(0, 0, systemUrlsLabel);

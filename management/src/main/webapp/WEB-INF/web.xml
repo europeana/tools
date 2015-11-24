@@ -6,6 +6,14 @@
 <web-app>
 
 	<!-- Servlets -->
+
+	<servlet>
+		<servlet-name>remoteLogging</servlet-name>
+		<servlet-class>com.google.gwt.logging.server.RemoteLoggingServiceImpl</servlet-class>
+	</servlet>
+
+
+
 	<servlet>
 		<servlet-name>login</servlet-name>
 		<servlet-class>eu.europeana.record.management.server.LoginServiceImpl</servlet-class>
@@ -40,6 +48,11 @@
 
 
 	<servlet-mapping>
+		<servlet-name>remoteLogging</servlet-name>
+		<url-pattern>/RecordManager/remote_logging</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
 		<servlet-name>upload</servlet-name>
 		<url-pattern>/RecordManager/upload</url-pattern>
 	</servlet-mapping>
@@ -55,11 +68,11 @@
 	</servlet-mapping>
 
 
-<servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>mongo-system</servlet-name>
 		<url-pattern>/RecordManager/mongo-system</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet-mapping>
 		<servlet-name>log</servlet-name>
 		<url-pattern>/RecordManager/log</url-pattern>

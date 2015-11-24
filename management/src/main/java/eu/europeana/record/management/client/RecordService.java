@@ -16,7 +16,10 @@
  */
 package eu.europeana.record.management.client;
 
+import java.io.IOException;
 import java.util.List;
+
+import org.apache.solr.client.solrj.SolrServerException;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
@@ -42,6 +45,8 @@ public interface RecordService extends RemoteService {
 	 *            The record to remove
 	 * @param userDTO
 	 *            The user that removed the selected record
+	 * @throws IOException 
+	 * @throws SolrServerException 
 	 */
 	void delete(Record record, UserDTO userDTO) throws UniqueRecordException,NoRecordException;
 
@@ -62,6 +67,10 @@ public interface RecordService extends RemoteService {
 	 *            The records to delte
 	 * @param userDTO
 	 *            The user that deletes the records
+	 * @throws IOException 
+	 * @throws SolrServerException 
+	 * @throws NoRecordException 
+	 * @throws UniqueRecordException 
 	 */
-	void delete(List<Record> records, UserDTO userDTO);
+	void delete(List<Record> records, UserDTO userDTO) throws UniqueRecordException, NoRecordException;
 }

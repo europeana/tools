@@ -50,6 +50,7 @@ import eu.europeana.record.management.shared.dto.UserDTO;
 
 /**
  * Entry point for the UI of the application
+ * 
  * @author Yorgos.Mamakis@ kb.nl
  */
 public class RecordManager implements EntryPoint {
@@ -58,8 +59,7 @@ public class RecordManager implements EntryPoint {
 	 * returns an error.
 	 */
 	private static final String SERVER_ERROR = "An error occurred while "
-			+ "attempting to contact the server. Please check your network "
-			+ "connection and try again.";
+			+ "attempting to contact the server. Please check your network " + "connection and try again.";
 
 	/**
 	 * Create a remote service proxy to talk to the server-side Greeting
@@ -69,13 +69,23 @@ public class RecordManager implements EntryPoint {
 
 	private RootPanel rootPanel;
 	private VerticalPanel sp;
+	
+	
+
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		initialize();
 
+		GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
+			public void onUncaughtException(Throwable e) {
+				GWT.log(e.getMessage(), e);
+			}
+		});
+		initialize();
 	}
+
+	// do module loading stuff
 
 	private void initialize() {
 		rootPanel = RootPanel.get();
@@ -87,14 +97,14 @@ public class RecordManager implements EntryPoint {
 		sp.add(createFooter());
 		rootPanel.setWidth("768px");
 		rootPanel.setHeight("1024px");
-		
+
 		rootPanel.add(sp);
-		
+
 	}
 
 	private Widget createFooter() {
 		VerticalPanel vertP = new VerticalPanel();
-		//vertP.add(new Image("vertical.png"));
+		// vertP.add(new Image("vertical.png"));
 		HRElement hr = Document.get().createHRElement();
 		hr.setAttribute("width", "1024px");
 		vertP.add(InlineHTML.wrap(hr));
@@ -108,8 +118,8 @@ public class RecordManager implements EntryPoint {
 	private Widget createHeader() {
 		VerticalPanel vertP = new VerticalPanel();
 		HorizontalPanel vp = new HorizontalPanel();
-		final HTML label = new HTML("<p><font size='4'><b>"+Messages.MANAGERECORDS+"</b></font></p>");
-		
+		final HTML label = new HTML("<p><font size='4'><b>" + Messages.MANAGERECORDS + "</b></font></p>");
+
 		vp.add(new Image("europeana-logo-en.png"));
 		vp.add(label);
 		vp.setVerticalAlignment(HasAlignment.ALIGN_MIDDLE);
@@ -117,7 +127,7 @@ public class RecordManager implements EntryPoint {
 		HRElement hr = Document.get().createHRElement();
 		hr.setAttribute("width", "1024px");
 		vertP.add(InlineHTML.wrap(hr));
-		//vertP.add(new Image("vertical.png"));
+		// vertP.add(new Image("vertical.png"));
 		vertP.setHorizontalAlignment(HasAlignment.ALIGN_CENTER);
 		return vertP;
 	}
@@ -125,7 +135,7 @@ public class RecordManager implements EntryPoint {
 	private Widget createLoginPage() {
 		final DecoratorPanel loginPanel = new DecoratorPanel();
 		final FlexTable loginTable = new FlexTable();
-		
+
 		Label username = new Label(Messages.USERNAME);
 		Label password = new Label(Messages.PASSWORD);
 		final TextBox unameVal = new TextBox();
@@ -134,26 +144,24 @@ public class RecordManager implements EntryPoint {
 		login.addClickHandler(new ClickHandler() {
 
 			public void onClick(ClickEvent arg0) {
-				loginService.userExists(unameVal.getValue(),
-						passwordVal.getValue(), new AsyncCallback<UserDTO>() {
+				loginService.userExists(unameVal.getValue(), passwordVal.getValue(), new AsyncCallback<UserDTO>() {
 
-							public void onSuccess(UserDTO arg0) {
-								if(arg0!=null){
-									sp.remove(loginPanel);
-									sp.remove(1);
-									sp.add(createRecordPanel(arg0));
-									sp.add(createFooter());
-								}
-								else {
-									Window.alert("User does not exist/Password is wrong");
-								}
-							}
+					public void onSuccess(UserDTO arg0) {
+						if (arg0 != null) {
+							sp.remove(loginPanel);
+							sp.remove(1);
+							sp.add(createRecordPanel(arg0));
+							sp.add(createFooter());
+						} else {
+							Window.alert("User does not exist/Password is wrong");
+						}
+					}
 
-							public void onFailure(Throwable arg0) {
-								Window.alert(arg0.getMessage());
+					public void onFailure(Throwable arg0) {
+						Window.alert(arg0.getMessage());
 
-							}
-						});
+					}
+				});
 
 			}
 
@@ -163,24 +171,24 @@ public class RecordManager implements EntryPoint {
 		loginTable.setWidget(1, 0, password);
 		loginTable.setWidget(1, 1, passwordVal);
 		loginTable.setWidget(2, 1, login);
-		
+
 		loginPanel.add(loginTable);
-		
+
 		return loginPanel;
-		
+
 	}
 
 	private Widget createRecordPanel(UserDTO user) {
 		DecoratedTabPanel panel = new DecoratedTabPanel();
 		panel.setWidth("768px");
 		panel.setHeight("1024px");
-                panel.add(new MyInfoWidget().createWidget(user),Messages.MYINFORMATION);
-		panel.add(new LogEntryWidget().createWidget(user),Messages.LOGS);
-		panel.add(new RecordManagementWidget().createWidget(user),Messages.RECORDMANAGEMENT);
-		panel.add(new SolrSystemManagementWidget(user).createWidget(),Messages.SOLRSYSTEMMANAGEMENT);
-		panel.add(new MongoSystemManagementWidget(user).createWidget(),Messages.MONGOSYSTEMMANAGEMENT);
+		panel.add(new MyInfoWidget().createWidget(user), Messages.MYINFORMATION);
+		panel.add(new LogEntryWidget().createWidget(user), Messages.LOGS);
+		panel.add(new RecordManagementWidget().createWidget(user), Messages.RECORDMANAGEMENT);
+		panel.add(new SolrSystemManagementWidget(user).createWidget(), Messages.SOLRSYSTEMMANAGEMENT);
+		panel.add(new MongoSystemManagementWidget(user).createWidget(), Messages.MONGOSYSTEMMANAGEMENT);
 
-		panel.add(new UserManagementWidget(user).createWidget(),Messages.USERMANAGEMENT);
+		panel.add(new UserManagementWidget(user).createWidget(), Messages.USERMANAGEMENT);
 		panel.setHeight("100%");
 		panel.selectTab(0);
 

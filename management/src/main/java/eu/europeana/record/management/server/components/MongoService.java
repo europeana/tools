@@ -145,7 +145,7 @@ public class MongoService implements ServerService<MongoSystemObj> {
         }
 		
 		Mongo tgtProductionMongo = new Mongo(addressesProduction);
-		DB europeanaDB = tgtProductionMongo.getDB("europeana");
+		DB europeanaDB = tgtProductionMongo.getDB(systemObj.getMongoDBName());
 		if (StringUtils.isNotBlank(systemObj.getUserName())) {
 			europeanaDB.authenticate(systemObj.getUserName(), systemObj.getPassword().toCharArray());
 		}

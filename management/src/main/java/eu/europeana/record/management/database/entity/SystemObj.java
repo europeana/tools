@@ -104,7 +104,7 @@ public class SystemObj implements DBEntity {
 	}
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "PROFILE_TYPE", insertable = true, updatable = false)
+	@Column(name = "PROFILE_TYPE", insertable = true, updatable = true)
 	public ProfileType getProfileType() {
 		return profileType;
 	}

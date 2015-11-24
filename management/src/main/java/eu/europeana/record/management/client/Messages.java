@@ -49,8 +49,8 @@ public class Messages {
 	public final static String PROFILETYPE_ACCEPTANCE_PORTAL = "Acceptance Portal";
 	public final static String PROFILETYPE_LIVE_PORTAL = "Live Portal";
 	
-	public final static String SOLRCORE = "Solr Core";
-	public final static String SOLRZOOKEEPER = "Solr Zookeeper URL";
+	public final static String SOLRCORE = "Solr Collection";
+	public final static String SOLRZOOKEEPER = "Solr Zookeeper URL(s)";
 	
 	public final static String MONGODBNAME = "Mongo DB Name";
 	

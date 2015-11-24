@@ -16,6 +16,8 @@
  */
 package eu.europeana.record.management.client.widget;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +64,7 @@ import eu.europeana.record.management.client.SolrSystemServiceAsync;
 import eu.europeana.record.management.shared.dto.Record;
 import eu.europeana.record.management.shared.dto.SolrSystemDTO;
 import eu.europeana.record.management.shared.dto.UserDTO;
+import eu.europeana.record.management.shared.exceptions.NoRecordException;
 import eu.europeana.record.management.shared.exceptions.UniqueRecordException;
 
 /**
@@ -174,8 +177,22 @@ public class RecordManagementWidget implements AbstractWidget {
 									// TODO Auto-generated method stub
 									if (arg0 instanceof UniqueRecordException) {
 										Window.alert("Record was not unique");
-									} else {
+									} if (arg0 instanceof NoRecordException) {
 										Window.alert("No record was found");
+										recordsToRemove.clear();
+										recordDataProvider.updateRowCount(
+												recordsToRemove.size(), true);
+										recordDataProvider.updateRowData(0,
+												recordsToRemove);
+										createRecordPreview();
+									} else {
+										GWT.log(arg0.getMessage(), arg0);
+										Window.alert("An error occured" + arg0.getMessage());
+										
+//										StringWriter sw = new StringWriter();
+//										arg0.printStackTrace(new PrintWriter(sw));
+//										String exceptionAsString = sw.toString();
+//										Window.alert("Exception: " + exceptionAsString);
 										recordsToRemove.clear();
 										recordDataProvider.updateRowCount(
 												recordsToRemove.size(), true);

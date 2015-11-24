@@ -16,6 +16,7 @@
  */
 package eu.europeana.record.management.server;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +34,7 @@ import eu.europeana.record.management.database.entity.SolrSystemObj;
 import eu.europeana.record.management.database.entity.SystemObj;
 import eu.europeana.record.management.database.entity.UserObj;
 import eu.europeana.record.management.database.enums.LogEntryType;
+import eu.europeana.record.management.database.enums.ProfileType;
 import eu.europeana.record.management.server.components.MongoService;
 import eu.europeana.record.management.server.components.SolrService;
 import eu.europeana.record.management.server.util.LogUtils;
@@ -59,7 +61,7 @@ public class RecordServiceImpl extends RemoteServiceServlet implements RecordSer
 	boolean enableLogging = true;
 
 	public Dao<SystemObj> getSystemDao() {
-		if (this.systemDao == null || !this.userDao.isOpen() ) {
+		if (this.systemDao == null || !this.systemDao.isOpen() ) {
 			this.systemDao = createSystemDao();
 		}
 
@@ -121,7 +123,7 @@ public class RecordServiceImpl extends RemoteServiceServlet implements RecordSer
 
 
 	public void delete(Record record, UserDTO userDTO) throws UniqueRecordException, NoRecordException {
-		try {
+		
 			record = find(record, userDTO);
 			if (record != null) {
 
@@ -130,7 +132,17 @@ public class RecordServiceImpl extends RemoteServiceServlet implements RecordSer
 				for (SystemObj system : systems) {
 
 					if (system instanceof SolrSystemObj) {
-						getSolrService().deleteRecord((SolrSystemObj) system, record);
+						try {
+							getSolrService().deleteRecord((SolrSystemObj) system, record);
+						} catch (SolrServerException e) {
+							LogUtils.createLogEntry(LogEntryType.EXCEPTION, user, "removed record " + record.getValue() + " failed: " + e.getMessage(),  
+									new Date() );
+							throw new RuntimeException(e);
+						} catch (IOException e) {
+							LogUtils.createLogEntry(LogEntryType.EXCEPTION, user, "removed record " + record.getValue() + " failed: " + e.getMessage(),
+									new Date());
+							throw new RuntimeException(e);
+						}
 					} else {
 						getMongoService().deleteRecord((MongoSystemObj) system, record);
 					}
@@ -145,41 +157,42 @@ public class RecordServiceImpl extends RemoteServiceServlet implements RecordSer
 			} else {
 				throw new NoRecordException("Record(s) could not be found");
 			}
-		} catch (Exception e) {
-			if (e instanceof UniqueRecordException) {
-				throw (UniqueRecordException) e;
-			} else if (e instanceof NoRecordException) {
-				throw (NoRecordException) e;
-			} else {
-				e.printStackTrace();
-			}
-		}
+		
 
 	}
 
 	private Record find(Record record, UserDTO userDTO) throws UniqueRecordException {
 
 		List<SystemObj> systems = getSystemDao().findAll(SystemObj.class);
+		getSystemDao().close();
 		UserObj user = getUserDao().findByPK(userDTO.getId());
 		if (enableLogging) {
 			LogUtils.createLogEntry(LogEntryType.RETRIEVE, user, "found systems", new Date());
 		}
+		getUserDao().close();
+		Record found_record = null;
 		try {
 			for (SystemObj system : systems) {
-				if (system instanceof SolrSystemObj) {
-					return getSolrService().identifyRecord((SolrSystemObj) system, record);
+				if (system instanceof SolrSystemObj && ProfileType.LIVE_PORTAL.equals(system.getProfileType())) {		
+					LogUtils.createLogEntry(LogEntryType.RETRIEVE, user, "found solr live..", new Date());
+					found_record =  getSolrService().identifyRecord((SolrSystemObj) system, record);
+					LogUtils.createLogEntry(LogEntryType.RETRIEVE, user, "..but didn't find record", new Date());
+					break;
 				}
 			}
 		} catch (UniqueRecordException e) {
 			throw e;
 		} catch (MalformedURLException e) {
+			LogUtils.createLogEntry(LogEntryType.EXCEPTION, user, e.getMessage(), new Date());
 			throw new RuntimeException(e);
 		} catch (SolrServerException e) {
+			LogUtils.createLogEntry(LogEntryType.EXCEPTION, user, e.getMessage(), new Date());
 			throw new RuntimeException(e);
-		}
-		getUserDao().close();
-		getSystemDao().close();
-		return null;
+		} catch (Exception e) {
+			LogUtils.createLogEntry(LogEntryType.EXCEPTION, user,  e.getMessage(), new Date());
+			throw new RuntimeException(e);
+		} 
+		return found_record;
 	}
 
 	public void deleteCollection(String collectionName, UserDTO userDTO) {
@@ -208,7 +221,7 @@ public class RecordServiceImpl extends RemoteServiceServlet implements RecordSer
 		}
 	}
 
-	public void delete(List<Record> records, UserDTO userDTO) {
+	public void delete(List<Record> records, UserDTO userDTO) throws UniqueRecordException, NoRecordException {
 		for (Record record : records) {
 			delete(record, userDTO);
 		}
