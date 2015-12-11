@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -19,7 +20,7 @@ public class SolrService implements ServerService<SolrSystemObj> {
 	@Override
 	public void deleteRecord(SolrSystemObj systemObj, Record record) throws SolrServerException, IOException {
 		CloudSolrServer cloudSolrServer = createSolrServerInstance(systemObj);
-		cloudSolrServer.deleteByQuery("europeana_id:" + ClientUtils.escapeQueryChars(record.getValue()), 10000);
+		UpdateResponse updateResponse = cloudSolrServer.deleteByQuery("europeana_id:" + ClientUtils.escapeQueryChars(record.getValue()), 10000);
 		cloudSolrServer.commit();
 	}
 
@@ -29,6 +30,19 @@ public class SolrService implements ServerService<SolrSystemObj> {
 		CloudSolrServer cloudSolrServer = createSolrServerInstance(systemObj);
 		cloudSolrServer.deleteByQuery("europeana_collectionName:" + collectionName + "_*", 10000);
 		cloudSolrServer.commit();
+	}
+	
+
+	public void deleteRecord(CloudSolrServer server, Record record) throws SolrServerException, IOException {
+		server.deleteByQuery("europeana_id:" + ClientUtils.escapeQueryChars(record.getValue()), 10000);
+		
+	}
+
+
+	public void deleteCollection(CloudSolrServer server,  String collectionName)
+			throws SolrServerException, IOException {
+		server.deleteByQuery("europeana_collectionName:" + collectionName + "_*", 10000);
+		server.commit();
 	}
 
 	@Override
@@ -60,7 +74,7 @@ public class SolrService implements ServerService<SolrSystemObj> {
 		return true;
 	}
 
-	private CloudSolrServer createSolrServerInstance(SolrSystemObj systemObj) throws MalformedURLException {
+	public CloudSolrServer createSolrServerInstance(SolrSystemObj systemObj) throws MalformedURLException {
 		LBHttpSolrServer lbTarget = new LBHttpSolrServer(systemObj.getUrls().split(","));
 		CloudSolrServer solrServer = new CloudSolrServer(systemObj.getZookeeperURL(), lbTarget);
 		solrServer.setDefaultCollection(systemObj.getSolrCore());
