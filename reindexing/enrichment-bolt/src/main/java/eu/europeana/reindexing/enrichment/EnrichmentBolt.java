@@ -5,31 +5,14 @@
  */
 package eu.europeana.reindexing.enrichment;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.codec.binary.Base64;
-import org.codehaus.jackson.map.ObjectMapper;
-
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
+import com.mongodb.Mongo;
 import com.mongodb.ServerAddress;
-
 import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
@@ -40,6 +23,19 @@ import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import eu.europeana.reindexing.common.ReindexingFields;
 import eu.europeana.reindexing.common.ReindexingTuple;
+import org.apache.commons.codec.binary.Base64;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 /**
  *
@@ -70,7 +66,7 @@ public class EnrichmentBolt extends BaseRichBolt {
     
     @Override
     public void declareOutputFields(OutputFieldsDeclarer ofd) {
-        ofd.declare(new Fields(ReindexingFields.TASKID, ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY, ReindexingFields.ENTITYWRAPPER));
+        ofd.declare(new Fields(ReindexingFields.TASKID, ReindexingFields.BATCHID,ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY, ReindexingFields.ENTITYWRAPPER));
     }
 
     @Override
@@ -93,10 +89,11 @@ public class EnrichmentBolt extends BaseRichBolt {
                     
                 }
             }
-            List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
-            MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPassword.toCharArray());
-            credentialsList.add(credential);
-            MongoClient mongo = new MongoClient(addresses, credentialsList);
+          //  List<MongoCredential> credentialsList = new ArrayList<MongoCredential>();
+          //  MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPassword.toCharArray());
+           // credentialsList.add(credential);
+          //  MongoClient mongo = new MongoClient(addresses, credentialsList);
+            Mongo mongo = new Mongo(addresses);
             mongoServer = new EdmMongoServerImpl(mongo, dbName, null, null);
         } catch (MongoDBException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
@@ -130,7 +127,7 @@ public class EnrichmentBolt extends BaseRichBolt {
 
 			Logger.getGlobal().log( Level.INFO, "*** Converting to String for enriched " + fBean.getAbout()
 							+ " took " + (new Date().getTime() - startConvert) + " ms ***");
-			collector.emit(new ReindexingTuple(task.getTaskId(), task .getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
+			collector.emit(new ReindexingTuple(task.getTaskId(), task.getBatchId(), task .getIdentifier(), task.getNumFound(), task.getQuery(), enrichments).toTuple());
         } catch (IOException ex) {
             Logger.getLogger(EnrichmentBolt.class.getName()).log(Level.SEVERE, null, ex);
         }

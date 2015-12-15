@@ -182,7 +182,7 @@ public class EnrichmentTopologyTest {
 			long numFound = results.getNumFound();
 			//task id is mocked
 			for (SolrDocument solrDoc : results) {
-				tuples.add(new ReindexingTuple(System.currentTimeMillis(), solrDoc.getFieldValue("europeana_id").toString(), numFound, query, null));								
+				tuples.add(new ReindexingTuple(System.currentTimeMillis(), 0,solrDoc.getFieldValue("europeana_id").toString(), numFound, query, null));
 			}
         } catch (SolrServerException | MalformedURLException | UnknownHostException ex) {
             Logger.getLogger(EnrichmentTopologyTest.class.getName()).log(Level.SEVERE, null, ex);

@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
+import eu.europeana.reindexing.common.mongo.PerTaskBatchesDao;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -63,12 +64,13 @@ public class TuplePersistence implements Runnable {
 	private final CloudSolrServer solrServerProd;
 	private final EdmMongoServer mongoServerProd;
     private final FullBeanHandler mongoHandlerProd;
+    private final PerTaskBatchesDao dao;
 
     private final ObjectMapper om = new ObjectMapper();
     
     public TuplePersistence(FullBeanHandler mongoHandlerIngst, EdmMongoServer mongoServerIngst, CloudSolrServer solrServerIngst, SolrDocumentHandler solrHandlerIngst,
     						FullBeanHandler mongoHandlerProd, EdmMongoServer mongoServerProd, CloudSolrServer solrServerProd, SolrDocumentHandler solrHandlerProd,
-    						List<Tuple> tuples, CountDownLatch latch) {
+    						List<Tuple> tuples, CountDownLatch latch, PerTaskBatchesDao dao) {
         
         this.mongoHandlerIngst = mongoHandlerIngst;
         this.mongoServerIngst = mongoServerIngst;
@@ -79,7 +81,7 @@ public class TuplePersistence implements Runnable {
         this.mongoServerProd = mongoServerProd;
         this.solrServerProd = solrServerProd;
         this.solrHandlerProd = solrHandlerProd;
-       
+        this.dao=dao;
         this.tuples = tuples;
         this.latch= latch;
     }
@@ -91,7 +93,7 @@ public class TuplePersistence implements Runnable {
         try {
             save(solrHandlerIngst, solrServerIngst, mongoServerIngst,
                     mongoHandlerIngst, solrHandlerProd, solrServerProd,
-                    mongoServerProd, mongoHandlerProd);
+                    mongoServerProd, mongoHandlerProd, dao);
         } catch(Exception e){
             Logger.getGlobal().severe(e.getMessage());
             e.printStackTrace();
@@ -112,7 +114,7 @@ public class TuplePersistence implements Runnable {
 			SolrDocumentHandler solrHandlerProd,
 			CloudSolrServer solrServerProd,
 			EdmMongoServer mongoServerProd,
-			FullBeanHandler mongoHandlerProd) {
+			FullBeanHandler mongoHandlerProd, PerTaskBatchesDao dao) {
 		for (Tuple tuple : tuples) {
             ReindexingTuple task = ReindexingTuple.fromTuple(tuple);
             FullBeanImpl fBean = mongoServerProd.searchByAbout(FullBeanImpl.class, task.getIdentifier());
@@ -143,6 +145,7 @@ public class TuplePersistence implements Runnable {
 					solrServerIngst.add(solrDocumentIngst);                	
 					Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.INFO, "*** Record " + fBean.getAbout() + "is saved in Ingestion. ***");
                 }
+                dao.removeRecordIdFromBatch(task.getTaskId(),task.getBatchId(),task.getIdentifier());
             } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
                 Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SolrServerException ex) {

@@ -1,6 +1,8 @@
 package eu.europeana.reindexing.common;
 
+import com.google.code.morphia.annotations.Id;
 import com.google.code.morphia.annotations.Indexed;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -9,22 +11,38 @@ import java.util.List;
  */
 public class PerTaskBatch {
 
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    @Id
+
+    private ObjectId id;
+
     @Indexed
-    private String taskId;
+    private Long taskId;
     @Indexed
     private Long batchId;
     private List<String> recordIds;
 
-    public PerTaskBatch(String taskId, Long batchId, List<String> recordsIds){
+    public PerTaskBatch(Long taskId, Long batchId, List<String> recordsIds){
         this.taskId = taskId;
         this.batchId = batchId;
         this.recordIds = recordsIds;
     }
-    public String getTaskId() {
+
+    public PerTaskBatch(){
+
+    }
+    public Long getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(String taskId) {
+    public void setTaskId(Long taskId) {
         this.taskId = taskId;
     }
 

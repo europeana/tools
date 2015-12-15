@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import eu.europeana.reindexing.common.mongo.PerTaskBatchesDao;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
@@ -52,6 +53,7 @@ import eu.europeana.reindexing.common.TaskReport;
  */
 public class RecordWriteBolt extends BaseRichBolt {
     private OutputCollector collector;
+    private PerTaskBatchesDao dao;
 
     private FullBeanHandler mongoHandlerIngst;
     private EdmMongoServer mongoServerIngst;
@@ -133,11 +135,12 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesIngst.add(address);
             }
             
-            List<MongoCredential> ingstCredentialsList = new ArrayList<MongoCredential>();
-            MongoCredential ingstCredential = MongoCredential.createCredential(ingstDbUser, ingstDbName, ingstDbPassword.toCharArray());
-            ingstCredentialsList.add(ingstCredential);
-            
-            MongoClient mongoIngst = new MongoClient(addressesIngst, ingstCredentialsList);
+//            List<MongoCredential> ingstCredentialsList = new ArrayList<MongoCredential>();
+//            MongoCredential ingstCredential = MongoCredential.createCredential(ingstDbUser, ingstDbName, ingstDbPassword.toCharArray());
+//            ingstCredentialsList.add(ingstCredential);
+//
+//            MongoClient mongoIngst = new MongoClient(addressesIngst, ingstCredentialsList);
+            Mongo mongoIngst = new Mongo(addressesIngst);
             mongoServerIngst = new EdmMongoServerImpl(mongoIngst, ingstDbName, null, null);
             mongoHandlerIngst = new FullBeanHandler(mongoServerIngst);
             solrHandlerIngst = new SolrDocumentHandler(solrServerIngst);
@@ -153,11 +156,12 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesProd.add(address);
             }
             
-            List<MongoCredential> prodCredentialsList = new ArrayList<MongoCredential>();
-            MongoCredential prodCredential = MongoCredential.createCredential(prodDbUser, prodDbName, prodDbPassword.toCharArray());
-            prodCredentialsList.add(prodCredential);
-            
-            MongoClient mongoProd = new MongoClient(addressesProd, prodCredentialsList);
+//            List<MongoCredential> prodCredentialsList = new ArrayList<MongoCredential>();
+//            MongoCredential prodCredential = MongoCredential.createCredential(prodDbUser, prodDbName, prodDbPassword.toCharArray());
+//            prodCredentialsList.add(prodCredential);
+//
+//            MongoClient mongoProd = new MongoClient(addressesProd, prodCredentialsList);
+            Mongo mongoProd = new Mongo(addressesProd);
             mongoServerProd = new EdmMongoServerImpl(mongoProd, prodDbName, null, null);
             mongoHandlerProd = new FullBeanHandler(mongoServerProd);
             solrHandlerProd = new SolrDocumentHandler(solrServerProd);
@@ -172,10 +176,11 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesTaskReport.add(addr);
             }
             Mongo mongoTaskReports = new Mongo(addressesTaskReport);
-            MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,"taskreports", null, null);
+            MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,"task_report_test", null, null);
             
-            datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), "taskreports");
+            datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), "task_report_test");
             datastore.ensureIndexes();
+            dao = new PerTaskBatchesDao(addressesTaskReport,"pertaskbatch");
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);
@@ -218,6 +223,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             	ops.set("status", Status.FINISHED);
                 i = 0;
                 Logger.getGlobal().log(Level.WARNING, "--- Reseted i to " + i + ". ---");
+                dao.deleteByTaskId(tuple.getLongByField(ReindexingFields.TASKID));
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
@@ -250,7 +256,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             for (List<Tuple> batch : batches) {
             	//500 tuples per each batch
                 Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
-                										   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, batch, latch));
+                										   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, tuples,  latch, dao));
                 t.start();
             }
             try {
@@ -262,7 +268,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         } else {
             CountDownLatch latch = new CountDownLatch(1);
             Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
-					   								   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, tuples, latch));
+					   								   mongoHandlerProd, mongoServerProd, solrServerProd, solrHandlerProd, tuples, latch, dao));
             t.start();
             try {
                 latch.await();

@@ -23,7 +23,7 @@ public class PerTaskBatchesDao {
         Mongo client = new Mongo(addresses);
         Morphia morphia = new Morphia();
         morphia.map(PerTaskBatch.class);
-        if (credentials != null) {
+        if (credentials.length>0) {
             datastore = morphia.createDatastore(client, dbname, credentials[0], credentials[1].toCharArray());
         } else {
             datastore = morphia.createDatastore(client, dbname);
@@ -36,12 +36,12 @@ public class PerTaskBatchesDao {
      * @param batchId
      * @return
      */
-    public PerTaskBatch findByTaskIdAndBatchId(String taskId, Long batchId) {
+    public PerTaskBatch findByTaskIdAndBatchId(Long taskId, Long batchId) {
         return getBatch(taskId, batchId).get();
     }
 
 
-    private Query<PerTaskBatch> getBatch(String taskId, Long batchId) {
+    private Query<PerTaskBatch> getBatch(Long taskId, Long batchId) {
         return datastore.find(PerTaskBatch.class).filter("taskId", taskId).filter("batchId", batchId);
     }
 
@@ -51,7 +51,7 @@ public class PerTaskBatchesDao {
      * @param taskId
      * @return
      */
-    public List<PerTaskBatch> findByTaskId(String taskId) {
+    public List<PerTaskBatch> findByTaskId(Long taskId) {
         return datastore.find(PerTaskBatch.class).filter("taskId", taskId).asList();
     }
 
@@ -61,11 +61,11 @@ public class PerTaskBatchesDao {
      * @param batchId
      * @param recordIds
      */
-    public void createPerTaskBatch(String taskId, Long batchId, List<String> recordIds) {
+    public void createPerTaskBatch(Long taskId, Long batchId, List<String> recordIds) {
         datastore.save(new PerTaskBatch(taskId, batchId, recordIds));
     }
 
-    private void updateOrDeletePerTaskBatch(String taskId, Long batchId, List<String> recordIds) {
+    private void updateOrDeletePerTaskBatch(Long taskId, Long batchId, List<String> recordIds) {
         if (recordIds == null || recordIds.size() == 0) {
             datastore.delete(datastore.find(PerTaskBatch.class).filter("taskId", taskId).filter("batchId", batchId));
             return;
@@ -84,7 +84,7 @@ public class PerTaskBatchesDao {
      * @param batchId
      * @param recordId
      */
-    public void removeRecordIdFromBatch(String taskId, Long batchId, String recordId){
+    public void removeRecordIdFromBatch(Long taskId, Long batchId, String recordId){
         PerTaskBatch batch = getBatch(taskId,batchId).get();
         if(batch!=null){
             List<String> recordIds = batch.getRecordIds();
@@ -99,7 +99,7 @@ public class PerTaskBatchesDao {
      * Delete by taskId
      * @param taskId
      */
-    public void deleteByTaskId(String taskId){
+    public void deleteByTaskId(Long taskId){
         datastore.delete(datastore.createQuery(PerTaskBatch.class).filter("taskId",taskId));
     }
 }
