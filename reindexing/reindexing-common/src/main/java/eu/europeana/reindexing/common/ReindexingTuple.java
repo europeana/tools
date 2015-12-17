@@ -26,13 +26,15 @@ public class ReindexingTuple implements Serializable {
     private String query;
     
     private String entityWrapper;
+    private long batchId;
 
-    public ReindexingTuple(long taskId, String identifier, long numFound, String query, String entityWrapper) {
+    public ReindexingTuple(long taskId, long batchId,String identifier, long numFound, String query, String entityWrapper) {
         this.identifier = identifier;
         this.numFound = numFound;
         this.query = query;
         this.taskId = taskId;
         this.entityWrapper = entityWrapper;
+        this.batchId = batchId;
     }
 
     public long getNumFound() {
@@ -55,14 +57,16 @@ public class ReindexingTuple implements Serializable {
         return entityWrapper;
     }
 
+    public long getBatchId(){return batchId;}
+
     public static ReindexingTuple fromTuple(Tuple tuple) {
-        return new ReindexingTuple(tuple.getLongByField(ReindexingFields.TASKID), 
+        return new ReindexingTuple(tuple.getLongByField(ReindexingFields.TASKID), tuple.getLongByField(ReindexingFields.BATCHID),
                 tuple.getStringByField(ReindexingFields.IDENTIFIER), 
                 tuple.getLongByField(ReindexingFields.NUMFOUND), 
                 tuple.getStringByField(ReindexingFields.QUERY), tuple.getStringByField(ReindexingFields.ENTITYWRAPPER));
     }
 
     public Values toTuple() {
-        return new Values(taskId, identifier, numFound, query, entityWrapper);
+        return new Values(taskId, batchId,identifier, numFound, query, entityWrapper);
     }
 }

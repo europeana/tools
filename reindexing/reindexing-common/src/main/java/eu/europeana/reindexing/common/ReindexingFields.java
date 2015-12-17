@@ -12,6 +12,7 @@ package eu.europeana.reindexing.common;
 public final class ReindexingFields {
     
     public static final String TASKID = "taskId";
+    public static final String BATCHID="batchId";
     public static final String IDENTIFIER="record_identifier";
     public static final String NUMFOUND="numFound";
     public static final String QUERY="query";
