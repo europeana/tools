@@ -48,6 +48,7 @@ public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
 
 	public void setId(String id) {
 		this.id = id;
+		this._id = id;
 	}
 
 	public String getCodeUri() {

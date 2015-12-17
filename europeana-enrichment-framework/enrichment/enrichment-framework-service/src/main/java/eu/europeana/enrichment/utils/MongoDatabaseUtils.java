@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jibx.runtime.JiBXException;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
@@ -84,23 +85,23 @@ public class MongoDatabaseUtils<T> {
                             db.getCollection("TermList"),
                             ConceptTermList.class, String.class);
 
-                    cColl.ensureIndex("codeUri");
+                    cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
 
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
-                    aColl.ensureIndex("codeUri");
+                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
-                    tColl.ensureIndex("codeUri");
+                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
-                    pColl.ensureIndex("codeUri");
+                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
 
                     return true;
                 } else {
@@ -108,23 +109,23 @@ public class MongoDatabaseUtils<T> {
                             db.getCollection("TermList"),
                             ConceptTermList.class, String.class);
 
-                    cColl.ensureIndex("codeUri");
+                    cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
 
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
-                    aColl.ensureIndex("codeUri");
+                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
-                    tColl.ensureIndex("codeUri");
+                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
-                    pColl.ensureIndex("codeUri");
+                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
                     return false;
                 }
             }
@@ -176,16 +177,24 @@ public class MongoDatabaseUtils<T> {
 
             JacksonDBCollection<MongoTerm, String> termP = JacksonDBCollection
                     .wrap(db.getCollection("place"), MongoTerm.class, String.class);
-            termP.ensureIndex("codeUri");
+            termP.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+    				new BasicDBObject("unique", true));
+            termP.createIndex(new BasicDBObject("codeUri", 1));
             JacksonDBCollection<MongoTerm, String> termC = JacksonDBCollection
                     .wrap(db.getCollection("concept"), MongoTerm.class, String.class);
-            termC.ensureIndex("codeUri");
+            termC.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+    				new BasicDBObject("unique", true));
+            termC.createIndex(new BasicDBObject("codeUri", 1));
             JacksonDBCollection<MongoTerm, String> termA = JacksonDBCollection
                     .wrap(db.getCollection("people"), MongoTerm.class, String.class);
-            termA.ensureIndex("codeUri");
+            termA.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+    				new BasicDBObject("unique", true));
+            termA.createIndex(new BasicDBObject("codeUri", 1));
             JacksonDBCollection<MongoTerm, String> termT = JacksonDBCollection
                     .wrap(db.getCollection("period"), MongoTerm.class, String.class);
-            termT.ensureIndex("codeUri");
+            termT.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+    				new BasicDBObject("unique", true));
+            termT.createIndex(new BasicDBObject("codeUri", 1));
 
             termP.remove(termP.find().is("codeUri", uri).getQuery());
             termA.remove(termA.find().is("codeUri", uri).getQuery());
@@ -285,7 +294,8 @@ public class MongoDatabaseUtils<T> {
 
         JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                 .wrap(db.getCollection(dbtable), MongoTerm.class, String.class);
-        pColl.ensureIndex("label");
+        pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+				new BasicDBObject("unique", true));
 
         DBCursor<MongoTerm> curs = pColl.find()
                 .is("label", label.toLowerCase());
@@ -342,8 +352,9 @@ public class MongoDatabaseUtils<T> {
                 JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                         .wrap(db.getCollection("concept"), MongoTerm.class,
                                 String.class);
-                pColl.ensureIndex("codeUri");
-                pColl.ensureIndex("label");
+                pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+        				new BasicDBObject("unique", true));
+                pColl.createIndex(new BasicDBObject("codeUri", 1));
                 WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
                 DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
                         res.getSavedObject().getId(), "concept");
@@ -399,8 +410,10 @@ public class MongoDatabaseUtils<T> {
                 JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                         .wrap(db.getCollection("people"), MongoTerm.class,
                                 String.class);
-                pColl.ensureIndex("codeUri");
-                pColl.ensureIndex("label");
+                
+                pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+        				new BasicDBObject("unique", true));
+                pColl.createIndex(new BasicDBObject("codeUri", 1));
                 WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
                 DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
                         res.getSavedObject().getId(), "people");
@@ -518,8 +531,10 @@ public class MongoDatabaseUtils<T> {
                 JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                         .wrap(db.getCollection("people"), MongoTerm.class,
                                 String.class);
-                pColl.ensureIndex("codeUri");
-                pColl.ensureIndex("label");
+
+                pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+        				new BasicDBObject("unique", true));
+                pColl.createIndex(new BasicDBObject("codeUri", 1));
                 WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
                 DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
                         res.getSavedObject().getId(), "people");
@@ -599,8 +614,10 @@ public class MongoDatabaseUtils<T> {
                 JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                         .wrap(db.getCollection("period"), MongoTerm.class,
                                 String.class);
-                pColl.ensureIndex("codeUri");
-                pColl.ensureIndex("label");
+
+                pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+        				new BasicDBObject("unique", true));
+                pColl.createIndex(new BasicDBObject("codeUri", 1));
                 WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
                 DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
                         res.getSavedObject().getId(), "period");
@@ -670,8 +687,9 @@ public class MongoDatabaseUtils<T> {
                 JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection
                         .wrap(db.getCollection("place"), MongoTerm.class,
                                 String.class);
-                pColl.ensureIndex("codeUri");
-                pColl.ensureIndex("label");
+                pColl.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
+        				new BasicDBObject("unique", true));
+                pColl.createIndex(new BasicDBObject("codeUri", 1));
                 WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
                 DBRef<MongoTerm, String> pTermRef = new DBRef<MongoTerm, String>(
                         res.getSavedObject().getId(), "place");
