@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils.timezone import utc
 
 from apps.sipmanager import sip_task
 
@@ -42,8 +43,8 @@ class Watchdog(sip_task.SipTask):
         
     def run_it(self):
         global WATCHDOG_LAST_RUN
-        self.log('Watchdog checking for stale procs', 8)
-        cut_of_time = datetime.now() - timedelta(hours=1)
+        self.log('Watchdog checking for stale procs', 2)
+        cut_of_time = (datetime.now() - timedelta(hours=1)).replace(tzinfo=utc)
         stale_procs = models.ProcessMonitoring.objects.filter(last_change__lt = cut_of_time)
         proc_count = len(stale_procs)
         if not proc_count:
@@ -53,7 +54,7 @@ class Watchdog(sip_task.SipTask):
         proc_names = []
         for proc_info in stale_procs:
             proc_names.append(proc_info.pid)
-        msg = 'Watchdog detected (%i) stale processes: %s ' % (proc_count, ', '.join(proc_names))
+        msg = 'Watchdog detected (%i) stale thumblr2 processes: %s ' % (proc_count, ', '.join(proc_names))
         self.log(msg , 1)
         
         for eadr in settings.ADMIN_EMAILS:

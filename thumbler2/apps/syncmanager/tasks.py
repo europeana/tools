@@ -53,6 +53,9 @@ class SyncLeftovers(sip_task.SipTask):
         SHORT_DESCRIPTION = 'Moves partial adding files to sync-wait on start up'
         INIT_PLUGIN = True
         PLUGIN_TAXES_DISK_IO = True
+        
+        
+        
 
         def run_it(self):
             fts = files_to_sync.FilesToSync()
@@ -71,6 +74,7 @@ class SyncManager(sip_task.SipTask):
     PLUGIN_TAXES_NET_IO = True
     THREAD_MODE = sip_task.SIPT_SINGLE
     PRIORITY = sip_task.SIP_PRIO_HIGH
+    INSTANCES = 7
     
     def __init__(self, debug_lvl=-9, run_once=False, touch_file=None):
         sip_task.SipTask.__init__(self, debug_lvl, run_once)
@@ -211,15 +215,12 @@ class SyncManager(sip_task.SipTask):
                         el.save()
                     raise sip_task.SipTaskException(msg)
             except:
-                if sip_task.PLUGINS_MAY_NOT_RUN or sip_task.IS_TERMINATING:
-                    # shutting down, ok be killed just die quietly
-                    b_stopping = True
-                else:
+                if not (sip_task.PLUGINS_MAY_NOT_RUN or sip_task.IS_TERMINATING):
                     self.log('SyncManager failed to send content of %s\n%s' % (file_list, stderr), 1)
                     self.log('== rsync problem, shutting down', 1)
                     sip_task.PLUGINS_MAY_NOT_RUN = True
                     sip_task.IS_TERMINATING = True
-                    return True
+                b_stopping = True
             if b_stopping:
                 break
         return b_stopping

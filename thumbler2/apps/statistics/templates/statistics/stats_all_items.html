@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Stats by request{% endblock %}
+
+{% block content %}
+
+<h2>{{ label }} grouped by request</h2>
+
+Statistics generated: {{ stats_update_time }}
+<table border="1">
+      <th>Name</th>
+      <th>Links found</th>
+      <th>Waiting</th>
+      <th>Bad {{ label }}</th>
+      <th>Verified</th>
+      <th>Ratio</th>
+    {% for item in items %}
+      <tr>
+        <td><a href="{% url 'stats_by_ds' item.ds_id %}">{{ item.set_name }}</a></td>
+        <td>{{ item.count_1 }}</td>
+        <td>{{ item.waiting_1 }}</td>
+        <td>{{ item.bad_1 }}</td>
+        <td>{{ item.ok_1 }}</td>
+        <td>{{ item.ratio_1 }}</td>
+    </tr>
+    {% endfor %}
+    
+    <tfoot>
+      <tr/>
+      <tr/>
+      <tr>
+        <td>Summary</td>
+        <td>{{ summary.count_1 }}</td>
+        <td>{{ summary.waiting_1 }}</td>
+        <td>{{ summary.bad_1 }}</td>
+        <td>{{ summary.ok_1 }}</td>
+        <td>{{ summary.ratio_1 }}</td>        
+      </tr>
+      <tr>
+        <td>Name</td>
+        <td>Links found</td>
+        <td>Waiting</td>
+        <td>Bad</td>
+        <td>Verified</td>
+        <td>Ratio</td>
+      </tr>
+    </tfoot>
+    
+  </table>
+{% endblock %}
+
+{% comment %}
+      <th>Records</th>
+        <td>{{ item.record_count }}</td>
+        <td>{{ summary.record_count }}</td>
+        <td>Records</td>
+
+{% endcomment %}

@@ -35,7 +35,23 @@ except:
     raise exceptions.ImproperlyConfigured('Missing setting MEDIA_ROOT - see sample_local_settings.py')
 
 if not os.path.exists(MEDIA_ROOT):
-    raise exceptions.ImproperlyConfigured('MEDIA_ROOT must point to an existing dir - see sample_local_settings.py')
+    try:
+        os.mkdir(MEDIA_ROOT)
+    except:
+        raise exceptions.ImproperlyConfigured('MEDIA_ROOT must point to an existing dir - see sample_local_settings.py')
+
+
+try:
+    TEMP_DIR
+except: 
+    raise exceptions.ImproperlyConfigured('Missing setting TEMP_DIR - see sample_local_settings.py')
+if not os.path.exists(TEMP_DIR):
+    try:
+        os.mkdir(TEMP_DIR)
+    except:
+        raise exceptions.ImproperlyConfigured('TEMP_DIR must point to an existing dir - see sample_local_settings.py')
+
+
 
 # ====== generic settings, not site dependant
 
@@ -147,12 +163,12 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
 
-    'apps.sipmanager',
     'apps.dataset',
     'apps.log',
-    'apps.syncmanager',
     'apps.plug_uris',
+    'apps.sipmanager',
     'apps.statistics',
+    'apps.syncmanager',
 )
 
 # A sample logging configuration. The only tangible logging

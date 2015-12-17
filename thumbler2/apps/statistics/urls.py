@@ -33,30 +33,15 @@ import views
 
 
 urlpatterns = patterns('',
-    url(r'^$', views.stats_req_summary, name='stats_req_summary'),
-    url(r'^by_dataset/ds_(?P<sds_pk>\d+)/$', views.stats_by_ds, name='stats_by_ds'),
+    url(r'^$', views.stats_summary, name='stats_summary'),
 
-    #url(r'^$', views.index, name='clm_index'),
-    #url(r'^log/$', views.logfile, name='stat_logfile'),
-    #url(r'^stats_reqs/itmtype_(?P<item_type>\d+)/$', views.stats_req_lst, name='stats_req'),
+    url(r'^by_dataset/(?P<ds_pk>\d+)/$', views.stats_by_ds, name='stats_by_ds'),
+    url(r'^errors_by_err_code/(?P<ds_pk>\d+)/(?P<err_code>\d+)/$', views.uri_bad_by_err_code, name='errors_by_err_code'),
+    url(r'^errors_by_mime_type/(?P<ds_pk>\d+)/(?P<mime_type>\d+)/$', views.uri_bad_by_mime_type, name='errors_by_mime_type'),
+    url(r'^errors_by_webserver/(?P<ds_pk>\d+)/(?P<uri_source>\d+)/$', views.uri_bad_by_webserver, name='errors_by_webserver'),
+    url(r'^bad_items_paging/(\d+)/$',  views.uri_bad_items_pager, name='bad_items_paging'),
+    url(r'^rescedule/$', views.rescedule, name='uri_bad_rescedule'),
 
-
-
-    ###url(r'^stats_by_reqs/req_(?P<sreq_pk>\d+)/itmtype_(?P<sitem_type>\d+)/$', views.stats_by_req, name='stats_by_req'),
-    
-
-    #url(r'^stats_uri/(?P<order_by>\S+)/$', views.stats_by_uri, name='uri_stats'),
-    #url(r'^stats_uri/$', views.stats_by_uri, name='uri_stats'),
-    
-    #url(r'^bad_by_req_e/req_(?P<req_pk>\d+)/itmtype_(?P<item_type>\d+)/err_(?P<err_code>\d+)/$', views.uri_bad_by_req_err, name='uri_bad_by_req_err'),
-    #url(r'^bad_by_req_s/req_(?P<req_pk>\d+)/itmtype_(?P<item_type>\d+)/webserv_(?P<webserver_id>\d+)/$', views.uri_bad_by_server, name='uri_bad_by_server'),
-    #url(r'^bad_by_req_m/req_(?P<req_pk>\S+)/itmtype_(?P<item_type>\d+)/mime_(?P<mime_type>\S+)/$', views.uri_bad_by_req_mime, name='uri_bad_by_req_mime'),
-
-
-    #url(r'^rescedule/req_(?P<req_pk>\d+)/itmtype_(?P<item_type>\d+)/label_(?P<filter_label>\S+)/errkey_(?P<err_key>\S+)/errval_(?P<err_value>\S+)/$', views.rescedule, name='uri_bad_rescedule'),
-    # req_pk, item_type, filter_label, err_code, err_value
-
-    # ej kollade
-    #url(r'^bad_by_req/(?P<offset>\d+)/$', views.uri_bad_by_request, name='uri_bad_by_request'),
-
+    url(r'^webservers_waiting/$', views.webservers_waiting, name='webservers_waiting'),
+    url(r'^one_webserv_status/(\d+)/$', views.one_webserver_stats, name='one_webserv_status'),
   )

@@ -24,9 +24,11 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     
     url(r'^$', top_index, name='top_index'),
+    url(r'^logfile/$', 'apps.sipmanager.views.logfile', name='logfile'),
     
     (r'^uris/', include('apps.plug_uris.urls')),
     (r'^sipm/', include('apps.sipmanager.urls')),
     (r'^stats/', include('apps.statistics.urls')),
     #(r'^optout/', include('apps.optout.urls')),    
+    
 )

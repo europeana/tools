@@ -35,6 +35,10 @@ from django.db import models, connection
 from utils.gen_utils import dict_2_django_choice
 
 
+#import apps.plug_uris.models as m2
+#from apps.dataset.models import DataSet
+
+
 
 TBL_URIS = 'plug_uris_uri'
 TBL_REQURI = 'plug_uris_requri'
@@ -65,7 +69,7 @@ URIS_VERIFIED = 2 #  the uri responds and returns an OK
 URIS_ORG_SAVED = 3
 URIS_FULL_GENERATED = 10
 URIS_BRIEF_GENERATED = 11
-URIS_TINY_GENERATED = 12
+#URIS_TINY_GENERATED = 12
 URIS_COMPLETED = 100
 URIS_FAILED = 999
 
@@ -76,7 +80,7 @@ URI_STATES = {
     URIS_ORG_SAVED : 'original saved',
     URIS_FULL_GENERATED : 'full_doc generated',
     URIS_BRIEF_GENERATED : 'brief_doc generated',
-    URIS_TINY_GENERATED: 'tiny img generated',
+    #URIS_TINY_GENERATED: 'tiny img generated',
     URIS_COMPLETED : 'completed',
     URIS_FAILED : 'failed',
     }
@@ -199,6 +203,7 @@ class OLDUriManager(models.Manager):
 """
 
 class UriManager(models.Manager):
+    
     def __init__(self, *args, **kwargs):
         super(UriManager, self).__init__(*args, **kwargs)
         
@@ -213,6 +218,14 @@ class UriManager(models.Manager):
                              url=url_safe)
             return obj, True
 
+    def by_dataset(self, ids):
+        from apps.dataset.models import DataSetUrls
+        a = Uri.objects.filter(dataseturls__ds_id__exact=ids)
+        #DataSetUrls.objects.filter(blog__name__exact='Beatles Blog')
+        uri_all = DataSetUrls.objects.filter(ds=ids)
+        b = DataSetUrls.objects.filter(ds=ds_id).order_by('set_name')
+        return uri_all
+    
 class Uri(models.Model):
     """
     Please note that Uri.status does not have an broken/aborted state

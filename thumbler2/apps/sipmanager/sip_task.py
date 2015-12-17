@@ -72,6 +72,7 @@ class SipTaskException(Exception):
     from django.core.mail import send_mail
     """
     def __init__(self, msg='', *args, **kwargs):
+        print '*** SipTaskException: %s' % msg
         self.msg = msg
         for eadr in settings.ADMIN_EMAILS:
             if eadr:
@@ -473,7 +474,7 @@ class SipTask(LogIt, ExecuteCommand): #SipProcess(object):
         self._task_show_time = 0
 
 
-    def task_time_to_show(self, progress='', terminate_on_high_load=False):
+    def task_time_to_show(self, progress='', terminate_on_high_load=False, force=False):
         """Either use as a bool check, or give a param directly.
 
         A number param is sent to task_progess()
@@ -493,6 +494,9 @@ class SipTask(LogIt, ExecuteCommand): #SipProcess(object):
             self.log('+++ %s %s' % (self.__class__.__name__, msg))
             raise SipSystemOverLoaded(msg)
 
+        if force:
+            self.task_force_progress_timeout()
+            
         if self._task_show_time + self.TASK_PROGRESS_TIME < time.time():
             if progress:
                 if isinstance(progress, int):

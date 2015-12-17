@@ -50,7 +50,7 @@ def calculate_hash(item):
     When calculating the content hash for the record, the following is asumed:
       the lines are stripped for initial and trailing whitespaces,
       sorted alphabetically
-      each line is separated by one \n character
+      each line is separated by one \n character'
       and finaly the <record> and </record> should be kept!
     """
     if isinstance(item, unicode):

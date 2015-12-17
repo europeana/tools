@@ -1,0 +1,8 @@
+
+<a href="{% url 'bad_items_paging' 0 %}">first</a>
+<a href="{% url 'bad_items_paging' nav.prev %}">prev</a>
+<a href="{% url 'bad_items_paging' nav.next %}">next</a>
+<a href="{% url 'bad_items_paging' nav.last %}">last</a>
+
+&nbsp;&nbsp;&nbsp; number of pages: {{ ses.page_count }}
+

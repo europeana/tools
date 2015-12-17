@@ -37,6 +37,4 @@ urlpatterns = patterns('',
     url(r'^dg1/$', views.dg1, name='uri_dg1'),
     
     url(r'^problems/(?P<source_id>\S+)/$', views.problems, name='uri_problems'),
-    #url(r'^problems/$', views.problems, name='uri_problems'),
-
 )

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Waiting specific webserver{% endblock %}
+
+{% block content %}
+
+<h2>Webserver {{ webserver }}</h2>
+<h3>Grouped by Datasets</h3>
+<table border="1">
+  <th>dataset</th>
+  <th>records</th>
+  <th>waiting</th>
+  <th>good</th>
+  <th>bad</th>
+  <th>ratio</th>
+  {% for dataset in datasets %}
+    <tr>
+      <td><a href="{% url 'stats_by_ds' dataset.ds_id %}">{{ dataset.name }}</a></td>
+      <td>{{ dataset.item_count }}</td>
+      <td>{{ dataset.waiting }}</td>
+      <td>{{ dataset.good }}</td>
+      <td>{{ dataset.bad }}</td>
+      <td>{{ dataset.ratio }}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+
+
+{% endblock %}
+
+
+{% comment %}
+          <a href="{% url 'errors_by_webserver' ds_id webserver.uri_source %}">{{ webserver.bad }}</a>
+
+
+      
+          <a href="{% url 'one_webserv_status' webserver.uri_source %}">{{ webserver.name_or_ip }}</a>
+      </td>
+      <td>{{ webserver.total }}</td>
+
+
+{% endcomment %}

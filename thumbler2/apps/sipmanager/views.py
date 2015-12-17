@@ -2,11 +2,23 @@ import os
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.conf import settings
+from django.http import HttpResponse
 
 from django.contrib.auth.decorators import login_required
 
 import models
 import sip_task
+
+
+
+def logfile(request):
+    line_limit = 1000
+    fp = open(settings.SIP_LOG_FILE)
+    lst = fp.readlines()
+    fp.close()
+    lst = lst[-line_limit:] # trim logfile
+    s = ''.join(lst).replace('\n','<br>').replace('\t','&nbsp;&nbsp;&nbsp;')
+    return HttpResponse("<h3>Last %i lines of logfile</h3><br>%s" % (line_limit,s) )
 
 
 

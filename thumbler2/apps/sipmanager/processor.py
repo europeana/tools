@@ -25,6 +25,7 @@
 """
 
 import os
+import subprocess
 import sys
 import time
 import threading
@@ -203,8 +204,10 @@ class MainProcessor(sip_task.SipTask):
         self.log('Task kill limits    = (%0.1f, %0.1f, %0.1f)' % settings.MAX_LOAD_RUNNING_TASKS)
         idle_count = 0
         t_reset_time = time.time()
+        touch_file = '/tmp/thumbler2.touch'
         while sip_task.IS_TERMINATING == False:
             self.log('>>>>> mainloop starting <<<<<', 9)
+            self.touch(touch_file)
             new_task_started = False
             busy = False
             if not sip_task.PLUGINS_MAY_NOT_RUN:
@@ -271,11 +274,21 @@ class MainProcessor(sip_task.SipTask):
         return True
 
 
+    def touch(self, fname):
+        if os.path.exists(fname):
+            os.utime(fname, None)
+        else:
+            open(fname, 'a').close()
+        return
+
 
     def register_app(self):
         pidfile = self.check_for_pidfile()
         pid = os.getpid()
-        open(pidfile,'w').write('%i\n' % pid)
+        file_content = '%i\n' % pid
+        if 'WINGDB_ACTIVE' in os.environ.keys():
+            file_content += 'WINGDB\n'
+        open(pidfile,'w').write(file_content)
 
     def de_register_app(self):
         pidfile = self.register_pidfile()
@@ -284,10 +297,26 @@ class MainProcessor(sip_task.SipTask):
     def check_for_pidfile(self):
         pidfile = self.register_pidfile()
         if os.path.exists(pidfile):
+            if 'WINGDB_ACTIVE' in os.environ.keys():
+                s = ' '.join(open(pidfile,'r').readlines())
+                if s.find('WINGDB') > -1:
+                    pid = s.split()[0]
+                    if self.process_is_running(pid):
+                        print '*** attempt to start WINGIDE with a still running process on the system (%s).' % pid
+                        sys.exit(1)
+                    print '*** sipmanager was alredy started by WINGIDE. lockfile is now overriden, program allowed to continue'
+                    return pidfile
             print '*** sipmanager already running, pidfile:', pidfile
             sys.exit(1)
         return pidfile
 
+    def process_is_running(self, pid):
+        s = subprocess.Popen(["ps", "axw"],stdout=subprocess.PIPE)
+        for x in s.stdout:
+            if x and x.split()[0]==pid:
+                return True
+        return False        
+        
     def register_pidfile(self):
         pidfile = os.path.join(os.path.split(settings.SIP_LOG_FILE)[0],'sipmanager.pid')
         return pidfile

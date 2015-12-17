@@ -30,29 +30,95 @@
 from django.conf import settings
 from decimal import Decimal, getcontext
 
-from django.db.models import Sum, Avg
+from django.db.models import Sum, Avg, Q, Count
+from django.db.models.query import QuerySet
+from django.db import connection
+
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404
 
 from utils.timestamp_file import TimeStampLinkStats
 
+import apps.plug_uris.models as uri_models
+
 import models
 
 
-def logfile(request):
-    fp = open(settings.SIP_LOG_FILE)
-    lst = fp.readlines()
-    fp.close()
-    lst = lst[-250:] # trim logfile
-    s = ''.join(lst).replace('\n','<br>').replace('\t','&nbsp;&nbsp;&nbsp;')
-    return HttpResponse("Content of logfile<br>%s" % s)
+BAD_BY_REQ_PG_SIZE = 150
+
+
+PRSP_WEBSERVER = 2
+PRSP_ERRCODE = 3
+PRSP_MIME = 4
+
+
+
+class NumericMime(object):
+    def __init__(self):
+        self.data_by_mime = {}
+        self.data_by_idx = {}
+        self.idx = 0
+        
+    def mime_to_int(self, s):
+        if not self.data_by_mime.has_key(s):
+            self.idx+=1
+            self.data_by_mime[s] = self.idx
+            self.data_by_idx[self.idx] = s
+        return self.data_by_mime[s]
+
+    def int_to_mime(self, i):
+        if self.data_by_idx.has_key(i):
+            s = self.data_by_idx[i]
+        else:
+            s = ''
+        return s
+    
+mimenum = NumericMime()
 
 
 
 
-def stats_req_summary(request):
-    stat_time = TimeStampLinkStats().get()
+
+def webservers_waiting(request):
+    webservers = models.WebserverStats.objects.all().order_by('eta')
+    return render_to_response("statistics/stats_all_webservers.html",
+                              {
+                                  'stats_update_time': TimeStampLinkStats().get(),
+                                  'webservers': webservers,
+                                  },)
+
+
+def one_webserver_stats(request, uri_source):
+    iuri_source = int(uri_source)
+    cursor = connection.cursor()
+    sql = ['select d.id, ffile, count(ffile) as items from plug_uris_uri u, dataset_dataseturls du, dataset_dataset d']
+    sql.append('where uri_source=%i' % iuri_source)
+    sql.append('and du.uri_id = u.id and d.id = du.ds_id')
+    sql.append('group by d.id, ffile order by items desc')
+    cursor.execute(" ".join(sql))
+    datasets = []
+    for ds_id, ds_name, count in cursor.fetchall():
+        q = Q(dataseturls__ds_id__exact=ds_id,uri_source=iuri_source)
+        web_servers, summary = stats_by_webserver(q)
+        
+        try:
+            ratio = 100 * summary['good'] / float(count - summary['waiting']) 
+        except:
+            ratio = 0.0
+        
+        datasets.append({'ds_id':ds_id, 'name':ds_name,'item_count':count,'bad':summary['bad'],'good':summary['good'],
+                         'waiting':summary['waiting'],'ratio':ratio})
+        
+    webserver = uri_models.UriSource.objects.get(pk=iuri_source).name_or_ip
+    return render_to_response("statistics/stats_one_webservers.html", {'datasets': datasets,
+                                                                       'webserver': webserver,
+                                                                       'uri_source': iuri_source},)
+    
+  
+
+
+def stats_summary(request, item_type=1):
     items = models.Statistics.objects.all().order_by('set_name')
-    getcontext().prec = 4
     summary = {}
     for field in ('bad_1',
                   'count_1',
@@ -65,86 +131,100 @@ def stats_req_summary(request):
             summary[field] = Decimal(items.aggregate(Avg(field))['%s__avg' % field]) + 0
         else:
             summary[field] = items.aggregate(Sum(field))['%s__sum' % field]
-
-    return render_to_response("statistics/stats_req_summary.html",
+    
+    
+    return render_to_response("statistics/stats_all_items.html",
                               {
-                                  'stats_update_time': stat_time,
+                                  'stats_update_time': TimeStampLinkStats().get(),
                                   'items': items,
                                   'summary': summary,
                                   },)
+
+
+
+def stats_by_ds(request,ds_pk):
     
+    ids = int(ds_pk)
+    q_ds = Q(dataseturls__ds_id__exact=ids,)
+    mime_types = stats_by_mime_type(q_ds)
+    err_by_reasons = stats_by_error(q_ds)
+    webservers, webs_summary = stats_by_webserver(q_ds)
 
-
-def stats_req_lst(request, item_type):
-    return render_to_response("plug_uris/stats_all_requests.html",
+    return render_to_response("statistics/stats_by_request.html",
                               {
-                                  'stats_update_time': TimeStampLinkStats().get(),
-                                  'items': filtered_reqstats(int(item_type)),
-                                  'label': models.URI_TYPES[int(item_type)],
-                                  'item_type': item_type,
-                                  },)
-
-def stats_by_uri(request, order_by=''):
-    p_order_by = 'name_or_ip'
-    request.session['sortkey'] = p_order_by
-
-    uri_sources = numeric_req_stats(0,webservers=True)
-    return render_to_response("plug_uris/stats_uri_source.html",
-                              {
-                                  "uri_sources":uri_sources,
-                                  "summary": uri_summary(models.URIT_OBJECT),},
+                                  'ds_id': ids,
+                                  'mime_types': mime_types,
+                                  'err_by_reasons': err_by_reasons,
+                                  'webservers': webservers,
+                                  'webservers_summary': webs_summary,
+                                  },
                               )
 
 
-def stats_by_ds(request, sds_pk):
-    ds_pk = int(sds_pk)
-    q_all = Q(ds=ds_pk,)
-    qs_all = models.Uri.objects.filter(q_all)
 
-    #
-    # Grouped by mimetype
-    #
-    mime_results = numeric_req_stats(item_type, req_id=req_pk,mime_check=True)
-    for mt in mime_results:
-        mt['mime_url'] = urllib.quote_plus(mt['name'])
-    #
-    # Grouped by error
-    #
-    err_by_reasons = []
-    for err_code in models.URI_ERR_CODES.keys():
-        if err_code == models.URIE_NO_ERROR:
-            continue
-        count = qs_all.filter(err_code=err_code).count()
-        if not count:
-            continue
-        err_by_reasons.append({'err_code' : err_code,
-                               'err_msg': models.URI_ERR_CODES[err_code],
-                               'count': count})
-    #
-    # Grouped by webserver
-    #
-    webservers = numeric_req_stats(item_type, req_pk)
-    tot_items = tot_good = tot_bad = tot_waiting = 0
-    for ws in webservers:
-        tot_items += ws['count']
-        tot_good += ws['ok']
-        tot_bad += ws['bad']
-        tot_waiting += ws['waiting']
-
-    request = models.Request.objects.filter(pk=req_pk)[0]
+def uri_bad_by_mime_type(request, ds_pk, mime_type):
+    ids = int(ds_pk)
+    imime= int(mime_type)
+    request.session['bad_item_pager'] = {'ds_pk':ids,
+                                         'perspective':PRSP_MIME,
+                                         'persp_param': imime,
+                                         'title':'Bad by MIME type',
+                                         'subtitle': mimenum.int_to_mime(imime)}
+    return uri_bad_items_pager(request, 0)
     
-    return render_to_response("plug_uris/stats_by_request.html",
+def uri_bad_by_err_code(request, ds_pk, err_code):
+    ids = int(ds_pk)
+    ierr= int(err_code)
+    request.session['bad_item_pager'] = {'ds_pk':ids,
+                                         'perspective':PRSP_ERRCODE,
+                                         'persp_param': ierr,
+                                         'title':'Bad by error',
+                                         'subtitle': uri_models.URI_ERR_CODES[ierr] }
+    return uri_bad_items_pager(request, 0)
+
+def uri_bad_by_webserver(request, ds_pk, uri_source):
+    ids = int(ds_pk)
+    iuri_source= int(uri_source)
+    request.session['bad_item_pager'] = {'ds_pk':ids,
+                                         'perspective':PRSP_WEBSERVER,
+                                         'persp_param': iuri_source,
+                                         'title':'Bad by webserver',
+                                         'subtitle': 'websever: %s' % uri_models.UriSource.objects.get(pk=iuri_source).name_or_ip
+                                         }
+    return uri_bad_items_pager(request, 0)
+
+def uri_bad_items_pager(request, offset):
+    offset=int(offset)
+    ses = request.session['bad_item_pager']
+    q = get_q_by_perspective(ses)
+    items = q.values('pk','status','url','err_msg')[offset:offset+BAD_BY_REQ_PG_SIZE]
+    if not ses.has_key('item_count'):
+        ses['item_count'] = q.count()
+        ses['page_count'] = int(ses['item_count'] / BAD_BY_REQ_PG_SIZE) + 1
+    nav = {'prev': max(offset - BAD_BY_REQ_PG_SIZE, 0),
+           'next': max(min(offset + BAD_BY_REQ_PG_SIZE, ses['item_count'] - BAD_BY_REQ_PG_SIZE), 0), 
+           'last': max(ses['item_count'] - BAD_BY_REQ_PG_SIZE, 0),}
+    return render_to_response("statistics/bad_by_request.html",
+                              {'ses': ses, 'items': items, 'nav': nav,},)
+
+
+@login_required
+def rescedule(request):
+    ses = request.session['bad_item_pager']
+    q = get_q_by_perspective(ses)
+    
+    affected_rows = q.update(
+        status=uri_models.URIS_CREATED,
+        mime_type='',
+        file_type='',
+        org_w=0, org_h=0,
+        pid=0,
+        url_hash='', content_hash='',
+        err_code=uri_models.URIE_NO_ERROR, err_msg='',)
+    return render_to_response("statistics/bad_resceduled.html",
                               {
-                                  'request': request,
-                                  'mime_results': mime_results,
-                                  'err_by_reasons': err_by_reasons,
-                                  'item_type': item_type,
-                                  'webservers': webservers,
-                                  'webservers_summary': {
-                                      'count': tot_items,
-                                      'waiting': tot_waiting,
-                                      'good': tot_good,
-                                      'bad': tot_bad,},
+                                  'ses': ses,
+                                  'affected_rows': affected_rows,
                                   },
                               )
 
@@ -153,96 +233,78 @@ def stats_by_ds(request, sds_pk):
 
 
 
-#
-# Util funcs
-#
-def filtered_reqstats(item_type):
-    lst = []
-    for rs in models.ReqStats.objects.all().order_by('file_name'):
-        itm = {'req_id': rs.req_id,
-               'name': rs.file_name,
-               'record_count': rs.record_count}
-        if item_type == 1:
-            itm['count'] = rs.count_1
-            itm['ok'] = rs.ok_1
-            itm['bad'] = rs.bad_1
-            itm['waiting'] = rs.waiting_1
-            itm['ratio'] = rs.ratio_1
-        elif item_type == 2:
-            itm['count'] = rs.count_2
-            itm['ok'] = rs.ok_2
-            itm['bad'] = rs.bad_2
-            itm['waiting'] = rs.waiting_2
-            itm['ratio'] = rs.ratio_2
-        else:
-            itm['count'] = rs.count_3
-            itm['ok'] = rs.ok_3
-            itm['bad'] = rs.bad_3
-            itm['waiting'] = rs.waiting_3
-            itm['ratio'] = rs.ratio_3
-        lst.append(itm)
-    return lst
+#======================= internals =======
+def get_q_by_perspective(ses):
+    q_ds = uri_models.Uri.objects.filter(dataseturls__ds_id__exact=ses['ds_pk'],)
+    perspective = ses['perspective']
+    if ses['perspective'] == PRSP_MIME:
+        q2 = q_ds.filter(mime_type=mimenum.int_to_mime(ses['persp_param']))
+    elif ses['perspective'] == PRSP_ERRCODE:
+        q2 = q_ds.filter(err_code=ses['persp_param'])
+    elif ses['perspective'] == PRSP_WEBSERVER:
+        q2 = q_ds.filter(uri_source=ses['persp_param']).exclude(err_code=uri_models.URIE_NO_ERROR)
+    return q2
 
 
-def numeric_req_stats(item_type=-1,req_id=0,mime_check=False,webservers=False):
-    cursor = connection.cursor()
-    items = {}
-    prim_key_label = 'req_id'
-    if mime_check:
-        # all mimes one request
-        sql1 = "SELECT 100, mime_type, COUNT(id), count(id) FROM plug_uris_uri WHERE req=%i AND item_type=1 AND mime_type <>'' GROUP BY mime_type" % req_id
-        sql2 = "SELECT mime_type, COUNT(id) FROM plug_uris_uri WHERE req=%i AND item_type=1 AND status=100 AND err_code=0 AND mime_type <>'' GROUP BY mime_type" % req_id
-        sql3 = "SELECT mime_type, COUNT(id) FROM plug_uris_uri WHERE req=%i AND item_type=1 AND err_code>0 AND mime_type <>'' GROUP BY mime_type" % req_id
-    elif webservers:
-        # all webservers all requests
-        prim_key_label = 'id'
-        sql1 = "SELECT s.id,s.name_or_ip, COUNT (u.id), COUNT (u.id) FROM plug_uris_uri u, plug_uris_urisource s WHERE s.name_or_ip<>'' AND s.id=u.uri_source GROUP BY s.id, s.name_or_ip, s.id"
-        sql2 = "SELECT s.name_or_ip, COUNT (u.id) FROM plug_uris_uri u, plug_uris_urisource s WHERE s.name_or_ip<>'' AND s.id=u.uri_source AND u.status=100 AND err_code=0 GROUP BY s.name_or_ip"
-        sql3 = "SELECT s.name_or_ip, COUNT (u.id) FROM plug_uris_uri u, plug_uris_urisource s WHERE s.name_or_ip<>'' AND s.id=u.uri_source AND err_code>0 GROUP BY s.name_or_ip"
-    elif req_id:
-        # all webservers one request
-        sql = "COUNT (u.id) FROM plug_uris_uri u, dummy_ingester_request r, plug_uris_urisource s WHERE r.id=%i AND u.req=r.id AND s.id=u.uri_source AND item_type=%i" % (req_id, item_type)
-        sql1 = "SELECT s.id,s.name_or_ip, r.record_count, %s GROUP BY s.name_or_ip, s.id, r.record_count" % sql
-        sql2 = "SELECT s.name_or_ip, %s AND u.status=100 AND err_code=0 GROUP BY s.name_or_ip" % sql
-        sql3 = "SELECT s.name_or_ip, %s AND err_code>0 GROUP BY s.name_or_ip" % sql
-    else: # not fixed to new db format
-        sql = "COUNT(ru.id) FROM plug_uris_requri ru, dummy_ingester_request r WHERE ru.req=r.id AND item_type=%i" % item_type
-        sql1 = "SELECT r.id,r.file_name,r.record_count,%s GROUP BY r.id,r.file_name,r.record_count" % sql
-        sql2 = "SELECT r.file_name,%s AND ru.status=100 AND err_code=0 GROUP BY r.file_name" % sql
-        sql3 = "SELECT r.file_name,%s AND err_code>0 GROUP BY r.file_name" % sql
+def stats_by_webserver(q):
+    web_servers = uri_models.Uri.objects.filter(q).values('uri_source').distinct().annotate(total=Count('uri_source'))
+    summary = {
+        'total': 0,
+        'good': 0,
+        'waiting': 0,
+        'bad': 0, }
         
-    cursor.execute(sql1)
-    for req_id, name, record_count, itm_count in cursor.fetchall():
-        items[name] = {prim_key_label:req_id,'record_count':record_count,'count':itm_count,'ok':0,'bad':0}
-        
-    cursor.execute(sql2)
-    for name, itm_ok in cursor.fetchall():
-        items[name].update({'ok':itm_ok})
-    cursor.execute(sql3)
-    for name, itm_bad in cursor.fetchall():
-        items[name].update({'bad':itm_bad})
+    for itm in web_servers:
+        try:
+            s = uri_models.UriSource.objects.get(pk=itm['uri_source']).name_or_ip
+        except:
+            s = 'webserver missing'
+        itm['name_or_ip'] = s
+        summary['total'] += itm['total']
+        itm['good'] = uri_models.Uri.objects.filter(q, uri_source=itm['uri_source'],status=uri_models.URIS_COMPLETED).count()
+        summary['good'] += itm['good']
+        itm['waiting'] = uri_models.Uri.objects.filter(q, uri_source=itm['uri_source'],err_code=uri_models.URIE_NO_ERROR).exclude(
+            status=uri_models.URIS_COMPLETED).count()
+        summary['waiting'] += itm['waiting']
+        itm['bad'] = itm['total'] - itm['good'] - itm['waiting']
+        summary['bad'] += itm['bad']
+        try:
+            r = 100 * float(itm['good']) / (itm['total'] - itm['waiting'])
+        except:
+            r = 0.0
+        itm['ratio'] = r
+
+    return web_servers, summary
     
-    lst = []
-    sorted_keys = items.keys()
-    sorted_keys.sort()
-    for req_name in sorted_keys:
-        d = items[req_name]
-        d['name'] = req_name
-        d['waiting'] = d['count'] - d['ok'] - d['bad']
-        d['ratio'] = s_calc_ratio_bad(d['ok'], d['bad'])
-        lst.append(d)
-    return lst
 
-
+def stats_by_error(q):
+    #
+    # Grouped by error
+    #
+    errors = uri_models.Uri.objects.filter(q).exclude(err_code=uri_models.URIE_NO_ERROR).values('err_code').distinct().annotate(count=Count('err_code'))
+    for itm in errors:
+        itm['label'] = uri_models.URI_ERR_CODES[itm['err_code']]
+    return errors
     
-def uri_summary(item_type):
-    itms_all =  models.Uri.objects.filter(item_type=item_type).count()
-    itms_done = models.Uri.objects.filter(item_type=item_type,status=models.URIS_COMPLETED, err_code=models.URIE_NO_ERROR).count()
-    itms_bad =  models.Uri.objects.filter(item_type=item_type,err_code__gt=models.URIE_NO_ERROR).count()
-    return {'count': itms_all,
-            'ok': itms_done,
-            'bad': itms_bad,
-            'waiting': itms_all - itms_done - itms_bad,
-            }
 
+def stats_by_mime_type(q):
+    #
+    # Grouped by mimetype
+    #
+    #.values_list('style_id', flat=True).distinct()
+    mime_types = uri_models.Uri.objects.filter(q).exclude(mime_type='').values('mime_type').distinct().annotate(total=Count('mime_type'))
+    for itm in mime_types:
+        mime_type = itm['mime_type']
+        itm['mime_code'] = mimenum.mime_to_int(mime_type)
+        #a = Uri.objects.filter(q_all,mime_type=mime_type,).values('status').annotate(dcount=Count('status'))
+        good = uri_models.Uri.objects.filter(q, mime_type=mime_type,status=uri_models.URIS_COMPLETED).count()
+        bad = itm['total'] - good
+        try:
+            ratio = 100 * float(good) / itm['total']
+        except:
+            ratio = 0.0
+        itm['good'] = good
+        itm['bad'] = bad
+        itm['ratio']= ratio
+    return mime_types
 

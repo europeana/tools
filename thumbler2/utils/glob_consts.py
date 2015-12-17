@@ -36,7 +36,6 @@ else:
 
 FULLDOC_SIZE = (200, 380)  # w h
 BRIEFDOC_SIZE = (160, 110) # w h 
-TINY_SIZE = (40, 27) # w h
 
 
 # Generic states

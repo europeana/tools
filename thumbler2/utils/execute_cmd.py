@@ -30,8 +30,7 @@ try:
     USING_SMART_UNICODE=True
 except:
     USING_SMART_UNICODE=False
-    
-from logit import LogIt
+
 
 CMD_TIMEOUT = 30
 CMD_RETRY_MAX = 25
@@ -43,11 +42,11 @@ CMD_RETRY_LIMIT = 'retry_limit'
 
 
 class ExecuteCommand(object):
-    
-    def cmd_execute1(self, cmd):
+
+    def cmd_execute1(self, cmd, timeout=CMD_TIMEOUT):
         "Returns 0 on success, or error message on failure."
         result = 0
-        retcode, stdout, stderr = self.cmd_execute_output(cmd)
+        retcode, stdout, stderr = self.cmd_execute_output(cmd, timeout)
         if retcode or stdout or stderr:
             result = u'retcode: %s' % retcode
             if stdout:
@@ -57,14 +56,14 @@ class ExecuteCommand(object):
         return result
 
 
-    def cmd_execute_output(self, cmd, timeout=CMD_TIMEOUT, retry_cond = ()):        
+    def cmd_execute_output(self, cmd, timeout=CMD_TIMEOUT, retry_cond = ()):
         """Returns retcode,stdout,stderr.
         retry_condition = {CMD_RETRY_RETCODE:int,
                            : 'string in stderr',
                            CMD_RETRY_STDOUT: 'string in stdout',
                            CMD_RETRY_LIMIT: CMD_RETRY_MAX}
             not all need to be given, retry_limit defaults to CMD_RETRY_LIMIT
-            
+
             CMD_RETRY_RETCODE
             CMD_RETRU_STDERR
             CMD_RETRU_STDOUT
@@ -79,7 +78,7 @@ class ExecuteCommand(object):
             retcode, stdout, stderr = self._do_execute_output(cmd, timeout)
             if (retcode == 0) and (not stderr):
                 break # Success!
-            
+
             if retry_cond.has_key(CMD_RETRY_RETCODE) and (retry_cond[CMD_RETRY_RETCODE] != retcode):
                 break
             if retry_cond.has_key(CMD_RETRY_STDERR) and (stderr.find(retry_cond[CMD_RETRY_STDERR]) < 0):
@@ -95,7 +94,7 @@ class ExecuteCommand(object):
             self.log('=== cmd failed, will try again...', 9)
         return retcode, stdout, stderr
 
-    
+
     def _do_execute_output(self, cmd, timeout):
         if isinstance(cmd, (list, tuple)):
             cmd = ' '.join(cmd)
@@ -115,7 +114,7 @@ class ExecuteCommand(object):
             self.log(u'stdout: %s' % self._cmd_std_out, 1)
             self.log(u'stderr: %s' % self._cmd_std_err, 1)
             return 1,u'',stderr
-            
+
         self._cmd_purge_io_buffers(p) # do last one to ensure we got everything
         retcode = p.returncode
         if USING_SMART_UNICODE:
@@ -124,14 +123,14 @@ class ExecuteCommand(object):
         else:
             stdout = self._cmd_std_out
             stderr = self._cmd_std_err
-                
+
         #except:
         #    retcode = 1
         #    stdout = u''
         #    stderr = u'cmd_execute() exception - shouldnt normally happen'
         return retcode, stdout, stderr
-    
-    
+
+
     def _cmd_purge_io_buffers(self, p):
         try:
             s_out, s_err = p.communicate()
@@ -141,16 +140,19 @@ class ExecuteCommand(object):
             self._cmd_std_out += s_out.decode('utf-8','ignore').encode('ascii','ignore')
         if s_err:
             self._cmd_std_err += s_err.decode('utf-8','ignore').encode('ascii','ignore')
-            
-            
-class ExecuteCommandWithLog(ExecuteCommand, LogIt):
-    """
-    Dont forget this if you override __init__
-      LogIt.__init__(self, self.debug_lvl, SIP_LOG_FILE, settings.PRINT_LOG)
 
-    """
+
+try:
+    from logit import LogIt
+
+    class ExecuteCommandWithLog(ExecuteCommand, LogIt):
+        """
+        Dont forget this if you override __init__
+        LogIt.__init__(self, self.debug_lvl, SIP_LOG_FILE, settings.PRINT_LOG)
+
+        """
+        pass
+except:
     pass
 
 
-
-    

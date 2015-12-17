@@ -21,7 +21,7 @@ Statistics generated: {{ stats_update_time }}
     {% for item in items %}
       <tr>
         <td>{{ item.set_name }}</td>        
-        <td>{{ item.record_count }}</td>
+        <td>{{ item.count_1 }}</td>
         
         <td>&nbsp;</td>
         <td>{{ item.ok_1 }}</td>
@@ -32,7 +32,7 @@ Statistics generated: {{ stats_update_time }}
     {% endfor %}
     <tr>
       <td><b>Summary</b></td>
-      <td>{{ summary.record_count }}</td>
+      <td>{{ summary.count_1 }}</td>
       <td>&nbsp;</td>
       <td>{{ summary.ok_1 }}</td>
       <td>{{ summary.waiting_1 }}</td>

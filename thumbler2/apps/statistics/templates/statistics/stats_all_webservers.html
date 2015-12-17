@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Waiting by webserver{% endblock %}
+
+{% block content %}
+
+<h3>Grouped by webserver</h3>
+Statistics generated: {{ stats_update_time }}
+<table border="1">
+  <th>name or ip</th>
+  <th>remaining records</th>
+  <th>eta</th>
+  {% for webserver in webservers %}
+    <tr>
+      <td>
+          <a href="{% url 'one_webserv_status' webserver.uri_source %}">{{ webserver.name_or_ip }}</a>
+      </td>
+      <td>{{ webserver.remaining }}</td>
+      <td>{{ webserver.eta }}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+
+
+{% endblock %}
+
+
+{% comment %}
+          <a href="{% url 'errors_by_webserver' ds_id webserver.uri_source %}">{{ webserver.bad }}</a>
+
+
+
+
+{% endcomment %}
