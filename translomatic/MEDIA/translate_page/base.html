@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<!--[if IE]>
+        <html  class="ie" lang="{{ lang_short }}" >
+<![endif]-->
+
+
+
+<!--[if !IE]>-->
+<html  lang="{{ lang_short }}">
+<!--<![endif]-->
+
+<head>
+<meta charset="utf-8"/>
+
+<meta name="description" content="Europeana - Searching Europeana"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="shortcut icon" href="http://www.europeana.eu/portal/favicon.ico" />
+<link rel="canonical" href="http://www.europeana.eu/portal/usingeuropeana_search.html" />
+<link rel="search" type="application/opensearchdescription+xml" href="http://api.europeana.eu/api/opensearch.xml" title="Europeana Search" />
+<link rel="publisher" href="https://plus.google.com/u/0/115619270851872228337">
+
+<link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/common.min.css" />
+
+<link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/staticpages.min.css" />
+        <!--[if IE 8]><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/ie8.min.css" /><![endif]-->
+<!--[if IE 9]><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/ie9.min.css" /><![endif]-->
+
+<!-- responsive image breakpoints -->
+<style>
+        @media all and (min-width: 20em){
+                .euresponsive {
+                        width: 0px;
+                }
+        }
+        @media all and (min-width:30em){
+                .euresponsive {
+                        width: 1px;
+                }
+        }
+        @media all and (min-width:47em){
+                .euresponsive {
+                        width: 2px;
+                }
+        }
+        @media all and (min-width:49em){
+                .euresponsive {
+                        width: 3px;
+                }
+        }
+</style>
+
+<!--[if IE]><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/ie.min.css" /><![endif]-->
+<!--[if lte IE 7]><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/ie7.min.css" /><![endif]-->
+<!--[if lte IE 8]><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/ie8.min.css" /><![endif]-->
+<noscript><link rel="stylesheet" href="http://www.europeana.eu/portal/themes/default/css-min/noscript.min.css" /></noscript>
+<title>{% block title %}{% comment %}==========================================
+
+    title
+    -----
+      Here goes page title
+
+------------------------------------------{% endcomment %}{% endblock %}</title>
+</head>
+<body class="locale-en">
+
+<div class="container">
+        <div id="header-strip" class="row">
+        <div>
+                <span class="hide-on-phones">
+                        <a	href="http://www.europeana.eu/portal/"
+                                                target="_self"
+                                                title="Home"
+                                                class="white left">Home</a>
+                                        <a	href="http://www.europeana.eu/portal/myeuropeana"
+                                                target="_self"
+                                                title="My Europeana"
+                                                class="white left">My Europeana</a>
+                                </span>
+
+                <form action="http://www.europeana.eu/portal/usingeuropeana_search.html" method="POST" id="language-selector" style="display:table-cell; vertical-align:middle;">
+        <div class="eu-menu no-highlight white" id="lang-menu">
+                <span class="menu-label hide-on-phones"></span>
+                <span class="icon-arrow-3 open-menu hide-on-phones"></span>
+                <span class="icon-mobilemenu show-on-phones" id="mobile-menu"></span>
+
+                <ul title="Choose a language">
+                        <li class="item icon-home show-on-phones">
+                                <a class="treat-as-link" target="_self" href="http://www.europeana.eu/portal/">Home</a>
+                        </li>
+
+                        <li class="item icon-logo show-on-phones">
+                                <a class="treat-as-link" target="_self" href="http://www.europeana.eu/portal/myeuropeana">My Europeana</a>
+                        </li>
+
+                        <li class="item icon-info show-on-phones">
+                                <a class="treat-as-link" href="http://www.europeana.eu/portal//usingeuropeana.html">Help</a>
+                        </li>
+
+                        <li class="item">
+                                <a class="choose">Choose a language</a>
+                        </li>
+
+                        <li class="item lang"><a class="en">English</a></li>
+                        <li class="item lang"><a class="eu">Basque</a></li>
+                        <li class="item lang"><a class="bg">&#x0411;&#x044a;&#x043b;&#x0433;&#x0430;&#x0440;&#x0441;&#x043a;&#x0438;</a></li>
+                        <li class="item lang"><a class="ca">Catal&#224;</a></li>
+                        <li class="item lang"><a class="cs">&#268;e&#353;tina</a></li>
+                        <li class="item lang"><a class="da">Dansk</a></li>
+                        <li class="item lang"><a class="de">Deutsch</a></li>
+                        <li class="item lang"><a class="el">&#917;&#955;&#955;&#951;&#957;&#953;&#954;&#940;</a></li>
+                        <li class="item lang"><a class="es">Espa&#241;ol</a></li>
+                        <li class="item lang"><a class="et">Eesti</a></li>
+                        <li class="item lang"><a class="fr">Fran&#231;ais</a></li>
+                        <li class="item lang"><a class="ga">Gaeilge</a></li>
+                        <li class="item lang"><a class="hr">Hrvatski</a></li>
+                        <li class="item lang"><a class="is">&#205;slenska</a></li>
+                        <li class="item lang"><a class="it">Italiano</a></li>
+                        <li class="item lang"><a class="lt">Lietuvi&#371;</a></li>
+                        <li class="item lang"><a class="lv">Latvie&#353;u</a></li>
+                        <li class="item lang"><a class="hu">Magyar</a></li>
+                        <li class="item lang"><a class="mt">Malti</a></li>
+                        <li class="item lang"><a class="nl">Nederlands</a></li>
+                        <li class="item lang"><a class="no">Norsk</a></li>
+                        <li class="item lang"><a class="pl">Polski</a></li>
+                        <li class="item lang"><a class="pt">Portugu&#234;s</a></li>
+                        <li class="item lang"><a class="ro">Rom&#226;n&#259;</a></li>
+                        <li class="item lang"><a class="ru">&#1056;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</a></li>
+                        <li class="item lang"><a class="sl">Sloven&#353;&#269;ina</a></li>
+                        <li class="item lang"><a class="sk">Slovensk&#253;</a></li>
+                        <li class="item lang"><a class="fi">Suomi</a></li>
+                        <li class="item lang"><a class="sv">Svenska</a></li>
+                        <li class="item lang"><a class="uk">&#1059;&#1082;&#1088;&#1072;&#1111;&#1085;&#1089;&#1100;&#1082;&#1072;</a></li>
+                        </ul>
+                <input type="hidden" name="lang" value="" style="margin:0;padding:0;"/>
+        </div>
+</form>
+</div>
+</div>
+<div id="header" role="banner" class="row">
+        <div class="phone-test"></div>
+
+        <div id="logo-and-search">
+                <div id="logo">
+                                <h1 title="Europeana think culture">
+                                        <a	href="http://www.europeana.eu/portal/"
+                                                title="Europeana think culture">
+
+                                                <span class="logo">&nbsp;</span>
+                                                 </a>
+                                </h1>
+
+                                <script type="text/javascript">
+                                        var completionTranslations = {};
+                                        completionTranslations['Title']			= "Titles";
+                                        completionTranslations['Place']			= "Places";
+                                        completionTranslations['Time/Period']	= "Dates/Periods";
+                                        completionTranslations['Subject']		= "Subjects";
+                                        completionTranslations['Creator']		= "Creators";
+
+                                        var completionClasses = {};
+                                        completionClasses['Title']			= "title:";
+                                        completionClasses['Place']			= "where:";
+                                        completionClasses['Time/Period']	= "when:";
+                                        completionClasses['Subject']		= "what:";
+                                        completionClasses['Creator']		= "who:";
+                                </script>
+                        </div>
+                <div id="query-full">
+
+        <form id="query-search" action="http://www.europeana.eu/portal/search.html" method="get">
+                <table class="query-table" cellspacing="0" cellpadding="0">
+                        <tr>
+                                <td class="menu-cell">
+                                        <div id="search-menu" class="eu-menu" aria-hidden="true">
+
+                                                <span class="hide-ilb-on-phones menu-label">Search</span>
+                                                <span class="icon-arrow-3 open-menu"></span>
+                                                <ul>
+                                                        <li class="item">
+                                                                <a	href="">All fields</a>
+                                                        </li>
+                                                        <li class="item">
+                                                                <a	href=""
+                                                                        class="title:">Titles</a>
+                                                        </li>
+                                                        <li class="item">
+                                                                <a	href=""
+                                                                        class="who:">Creators</a>
+                                                        </li>
+                                                        <li class="item">
+                                                                <a	href=""
+                                                                        class="what:">Subjects</a>
+                                                        </li>
+                                                        <li class="item">
+                                                                <a	href=""
+                                                                        class="when:">Dates/Periods</a>
+                                                        </li>
+                                                        <li class="item">
+                                                                <a	href=""
+                                                                        class="where:">Places</a>
+                                                        </li>
+                                                </ul>
+                                        </div>
+                                </td>
+                                <td class="query-cell">
+                                        <input	type="text"
+                                                        name="query"
+                                                        role="search"
+                                                        id="query-input"
+                                                        maxlength="175"
+                                                        title="Search term(s)"
+                                                        value=""
+                                                        valueForBackButton="" />
+                                </td>
+                                <td class="submit-cell hide-cell-on-phones">
+                                        <button	class="icon-mag deans-button-1"
+                                                        type="submit">Search</button>
+                                </td>
+                        </tr>
+                        <tr>
+                                <td colspan="3" class="submit-cell show-cell-on-phones">
+                                        <button	class="icon-mag deans-button-1"
+                                                        type="submit">Search</button>
+                                </td>
+                        </tr>
+                </table>
+
+
+                <input type="hidden" name="rows" id="rows" value="24" />
+        </form></div>
+
+<div id="query-info" class="hide-cell-on-phones">
+
+                <a id="help-link" class="hide-ilb-on-phones search-help europeana" href="http://www.europeana.eu/portal/usingeuropeana.html">Help</a>
+        </div>
+</div>
+
+</div>
+<div class="row">
+  <div class="eight columns push-four">
+                                <div style="padding-left:1em;">
+
+<div id="content-main" class="with-sidebar vcard">
+{% block content %}{% comment %}==========================================
+
+    content
+    -------
+      Here goes main content for page
+
+------------------------------------------{% endcomment %}{% endblock %}
+</div>
+
+
+</div>
+                        </div>
+                <div class="four columns pull-eight">
+
+
+{% block left_side %}{% comment %}==========================================
+
+    left_side
+    ---------
+      Here goes left side menu for page
+
+------------------------------------------{% endcomment %}{% endblock %}
+
+</div>
+<div class="row footer" role="contentinfo">
+
+        <div class="twelve columns">
+                <div class="footer-wrapper">
+                        <div class="row">
+
+                                <div class="six columns">
+                                        <h3>Follow us!</h3>
+
+
+                                        <div id="social-links">
+
+                                                <span class="social-link-wrap">
+                                                        <a class="social-link icon-facebook" title="Click here to visit the Europeana Facebook page" href="http://www.facebook.com/Europeana" target="blank" rel="me">
+                                                                <span class="text">Facebook</span>
+                                                        </a>
+                                                </span>
+
+                                                <span class="social-link-wrap">
+                                                        <a class="social-link icon-twitter" title="Click here to visit the Europeana Twitter page" href="http://www.twitter.com/EuropeanaEU" target="blank" rel="me">
+                                                                <span class="text">Twitter</span>
+                                                        </a>
+                                                </span>
+
+                                                <span class="social-link-wrap">
+                                                        <a class="social-link icon-pinterest-2" title="Click here to visit the Europeana Pinterest page" href="http://pinterest.com/europeana/" target="blank" rel="me">
+                                                                <span class="text">Pinterest</span>
+                                                        </a>
+                                                </span>
+
+                                                <span class="social-link-wrap">
+                                                        <a class="social-link icon-google" title="Click here to visit the Europeana Google+ page" href="https://plus.google.com/u/0/115619270851872228337" target="blank">
+                                                                <span class="text">Google +</span>
+                                                        </a>
+                                                </span>
+
+                                                <span class="stretch"></span>
+                                        </div>
+
+
+                                </div>
+
+                                <div id="newsletter-wrapper" class="six columns">
+                                        <script type="text/javascript">
+                                                window.newsletter = {
+                                                        "iframeUrl"		:  "http://www.europeana.eu/portal/newsletter.html"
+                                                };
+                                        </script>
+
+                                        <h3>Newsletter sign-up</h3>
+                                        <span class="small">Sign-up to receive our monthly newsletter, and occasional announcements.</span>
+
+                                        <button id="newsletter-trigger"  class="deans-button-1 europeana-button-1"  title="Sign-up to receive our monthly newsletter, and occasional announcements."    >
+                                                Sign-up here</button>
+                                </div>
+                        </div>
+
+
+                        <div class="row" id="footer-links-all">
+                                <div class="four columns">
+                                        <h3>
+                                                Other Europeana Sites</h3>
+
+                                        <ul class="footer-links with-icons">
+                                                <li><span class="icon-logo" id="link-logo-1"></span><a class="europeana" href="http://exhibitions.europeana.eu" target="_self" title="Europeana Exhibitions">Exhibitions</a></li>
+                                                <li><span class="icon-logo" id="link-logo-2"></span><a class="europeana" href="http://blog.europeana.eu" target="_self" title="Europeana Blog">Blog</a></li>
+                                                <li><span class="icon-logo" id="link-logo-3"></span><a class="europeana" href="http://www.europeana1914-1918.eu" target="_self" title="Europeana 1914-1918">1914-1918</a></li>
+                                                <li><span class="icon-logo" id="link-logo-4"></span><a class="europeana" href="http://remix.europeana.eu/" target="_self" title="Europeana Remix">Remix</a></li>
+                                                <li><span class="icon-logo" id="link-logo-5"></span><a class="europeana" href="http://pro.europeana.eu/" target="_self" title="Europeana Professional">Professional</a></li>
+                                        </ul>
+
+                                </div>
+
+                                <div class="four columns">
+                                        <h3>
+                                                <a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana.html" target="_self" title="Help">Help</a>
+                                        </h3>
+                                        <ul class="footer-links">
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana_search.html" target="_self" title="Searching Europeana">Searching Europeana</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana_explore.html" target="_self" title="Exploring Europeana">Exploring Europeana</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana_results.html" target="_self" title="Results in Europeana">Results in Europeana</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana_myeuropeana.html" target="_self" title="Using My Europeana">Using My Europeana</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/usingeuropeana_searchwidget.html" target="_self" title="Configure your search widget">Configure your search widget</a></li>
+                                        </ul>
+                                </div>
+
+                                <div class="four columns">
+
+                                        <h3>
+                                                <a class="europeana" href="http://www.europeana.eu/portal/aboutus.html" target="_self" title="About us">About us</a>
+                                        </h3>
+                                        <ul class="footer-links">
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/newcontent.html" target="_self" title="New content">New content</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/europeana-providers.html" target="_self" title="All providers">All providers</a></li>
+                                                <li><a class="europeana" href="http://www.europeana.eu/portal/aboutus_enews.html" target="_self" title="Previous newsletters">Previous newsletters</a></li>
+                                                <li><a class="europeana" href="http://pro.europeana.eu/web/guest/news" target="_self" title="Press Centre">Press Centre</a></li>
+                                                <li><a class="europeana" href="http://www.pro.europeana.eu/jobs" target="_self" title="Jobs">Jobs</a></li>
+                                        </ul>
+                                </div>
+                        </div>
+                </div>
+        </div>
+</div>
+
+<div class="row footer-bottom-links">
+        <div class="twelve columns">
+                <a class="europeana footer-bottom-link" href="http://www.europeana.eu/portal/api-introduction.html" target="_self" title="Europeana APIs">Europeana APIs</a>
+                <a class="europeana footer-bottom-link" href="http://www.europeana.eu/portal/rights/terms-and-policies.html" target="_self" title="Terms of use &amp; Policies">Terms of use &amp; Policies</a>
+                <a class="europeana footer-bottom-link" href="http://www.europeana.eu/portal/contact.html" target="_self" title="Contact us">Contact us</a>
+                <a class="europeana footer-bottom-link" href="http://www.europeana.eu/portal/sitemap.html" target="_self" title="Sitemap">Sitemap</a>
+                <span class="footer-funded-by">co-funded by the European Union<span class="icon-euflag"></span></span>
+        </div>
+</div>
+</div>
+
+<noscript>
+  <div id="noscript-msg">
+    To make optimal use of this website you need to have JavaScript activated. <a href="http://www.google.com/adsense/support/bin/answer.py?hl=en&amp;answer=12654" target="_blank">Find out more ...</a>
+  </div>
+</noscript>
+<script type="text/javascript">
+
+window.eu = { europeana : { vars : { msg : { cite:{} }, item : {}, suppresResize: false } } };
+window.js = {
+        min_suffix      : '',
+        min_directory   : '',
+        cache_helper	: '',
+        empty_console	: {
+                log		: function() {},
+                error	: function() {},
+                info	: function() {}
+        }
+};
+
+if ( !window.console ) { window.console = js.empty_console; }
+js.console = js.empty_console;
+
+
+
+        js.debug = false;
+        js.min_suffix = '.min';
+        js.min_directory = 'min/';
+
+
+eu.europeana.vars.page_name = 'staticpage.html';
+eu.europeana.vars.branding  = 'http://www.europeana.eu/portal/themes/default';
+eu.europeana.vars.homeUrl   = 'http://www.europeana.eu/portal/';
+eu.europeana.vars.homeUrlNS = 'http://www.europeana.eu/portal';
+/*
+if(eu.europeana.vars.page_name == 'widget/editor.html'){
+        eu.europeana.vars.branding = '../http://www.europeana.eu/portal/themes/default';
+}
+else{
+}
+*/
+
+eu.europeana.vars.browser_locale = '';
+eu.europeana.vars.gaId = 'UA-12776629-1';
+eu.europeana.vars.locale = 'en';
+eu.europeana.vars.msg.search_error = 'Please try another search';
+eu.europeana.vars.addthis_pubid = 'xa-4b4f08de468caf36';
+eu.europeana.vars.query = '';
+
+
+
+eu.europeana.vars.rows      = '24';
+
+// for share-this
+var switchTo5x = true;
+if ( window.stLight ) { stLight.options({publisher : ''}); }
+</script>
+<script src="http://www.europeana.eu/portal/themes/default/js/eu/europeana/bootstrap/min/bootstrap.min.js"></script>
+                <div class="overlaid-content">
+        <div class="iframe-wrap"></div>
+</div>
+</body>
+</html>
