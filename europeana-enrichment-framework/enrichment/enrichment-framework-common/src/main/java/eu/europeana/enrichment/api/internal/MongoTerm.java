@@ -61,4 +61,11 @@ public class MongoTerm {
 		this.lang = lang;
 	}
 
+	@Override
+	public String toString() {
+		return "MongoTerm [codeUri=" + codeUri + ", lang=" + lang + "]";
+	}
+	
+	
+
 }
