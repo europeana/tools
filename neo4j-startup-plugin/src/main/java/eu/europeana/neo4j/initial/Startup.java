@@ -56,8 +56,9 @@ public class Startup {
     @javax.ws.rs.Path("/nodeId/{nodeId}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Response hierarchy(@PathParam("nodeId") String nodeId, @QueryParam("length") @DefaultValue("32") int length,
-            @QueryParam("lengthBefore") @DefaultValue("8") int lengthBefore) {
+    public Response hierarchy(@PathParam("nodeId") String nodeId,
+                              @QueryParam("length") @DefaultValue("32") int length,
+                              @QueryParam("lengthBefore") @DefaultValue("8") int lengthBefore) {
         Hierarchy hierarchy = new Hierarchy();
         List<Node> parents = new ArrayList<>();
         Transaction tx = db.beginTx();

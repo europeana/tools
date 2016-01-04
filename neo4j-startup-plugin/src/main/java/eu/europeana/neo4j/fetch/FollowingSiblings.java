@@ -6,26 +6,21 @@
 package eu.europeana.neo4j.fetch;
 
 import eu.europeana.neo4j.mapper.ObjectMapper;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.traversal.Evaluators;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.Uniqueness;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.impl.util.StringLogger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -34,14 +29,14 @@ import org.neo4j.kernel.impl.util.StringLogger;
 @javax.ws.rs.Path("/following")
 public class FollowingSiblings {
 
-    
+
+    private static final RelationshipType IS_FAKE = DynamicRelationshipType.withName("isFakeOrder");
+    private static final RelationshipType IS_NEXT = DynamicRelationshipType.withName("edm:isNextInSequence");
 
     private GraphDatabaseService db;
-    private ExecutionEngine engine;
 
     public FollowingSiblings(@Context GraphDatabaseService db) {
         this.db = db;
-        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
     }
 
     @GET
@@ -50,26 +45,37 @@ public class FollowingSiblings {
 
     public Response getfollowing(@PathParam("nodeId") String nodeId,
             @QueryParam("limit") @DefaultValue("10") int limit) {
-        List<Node> followingSiblings = new ArrayList<>();
-        Transaction tx = db.beginTx();
-        
-        try {
-            ExecutionResult result = engine.execute(
-                    "start self = node:edmsearch2(rdf_about=\"" + nodeId + "\") "
-                    + " MATCH (self)-[:isFakeOrder|`edm:isNextInSequence`*]->(following) "
-                    + "RETURN following LIMIT " + limit);
-            Iterator<Node> followingIterator = result.columnAs("following");
-            int i = 0;
-            while (followingIterator.hasNext()) {
-                followingSiblings.add(followingIterator.next());
-            }
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
-        } finally {
 
+        List<Node> followingSiblings = new ArrayList<>();
+        boolean first = false;
+        try ( Transaction tx = db.beginTx() ) {
+            IndexManager    index      = db.index();
+            Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            Node            sibling    = hits.getSingle();
+            if (sibling==null) {
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
+            }
+
+            // Gather all ye following brothers and sisters but take heed! No more than in 'limit' number shall ye come!
+            TraversalDescription td = db.traversalDescription()
+                    .breadthFirst()
+                    .relationships(IS_FAKE, Direction.INCOMING)
+                    .relationships(IS_NEXT, Direction.INCOMING)
+                    .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
+                    .evaluator(Evaluators.toDepth(limit ));
+
+            // Add to the results
+            for (org.neo4j.graphdb.Path path : td.traverse(sibling)) {
+                Node child = path.endNode();
+                if (first) {
+                    followingSiblings.add(child);
+                } else {
+                    first = true;
+                }
+            }
             String obj = new ObjectMapper().siblingsToJson(followingSiblings, "siblings");
             tx.success();
-            tx.finish();
             return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
                     "application/json").build();
         }

@@ -6,26 +6,21 @@
 package eu.europeana.neo4j.fetch;
 
 import eu.europeana.neo4j.mapper.ObjectMapper;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.traversal.Evaluators;
+import org.neo4j.graphdb.traversal.TraversalDescription;
+import org.neo4j.graphdb.traversal.Uniqueness;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.impl.util.StringLogger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -34,42 +29,52 @@ import org.neo4j.kernel.impl.util.StringLogger;
 @javax.ws.rs.Path("/preceding")
 public class PrecedingSiblings {
 
-    
+
+    private static final RelationshipType IS_FAKE  = DynamicRelationshipType.withName("isFakeOrder");
+    private static final RelationshipType IS_NEXT  = DynamicRelationshipType.withName("edm:isNextInSequence");
 
     private GraphDatabaseService db;
-    private ExecutionEngine engine;
 
     public PrecedingSiblings(@Context GraphDatabaseService db) {
         this.db = db;
-        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
     }
 
     @GET
     @javax.ws.rs.Path("/nodeId/{nodeId}")
     @Produces(MediaType.APPLICATION_JSON)
-
-     public Response getpreceding(@PathParam("nodeId") String nodeId,
-            @QueryParam("limit") @DefaultValue("10") int limit) {
+    public Response getpreceding(@PathParam("nodeId") String nodeId,
+                                 @QueryParam("limit") @DefaultValue("10") int limit) {
         List<Node> precedingSiblings = new ArrayList<>();
-        Transaction tx = db.beginTx();
-        
-        try {
-            ExecutionResult result = engine.execute(
-                    "start self = node:edmsearch2(rdf_about=\"" + nodeId + "\") "
-                    + " MATCH (preceding)-[:isFakeOrder|`edm:isNextInSequence`*]->(self) "
-                    + "RETURN preceding LIMIT " + limit);
-            Iterator<Node> precedingIterator = result.columnAs("preceding");
-            int i = 0;
-            while (precedingIterator.hasNext()) {
-                precedingSiblings.add(precedingIterator.next());
+        boolean first = false;
+        try ( Transaction tx = db.beginTx() ) {
+            IndexManager    index      = db.index();
+            Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            Node            sibling    = hits.getSingle();
+            if (sibling==null) {
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
             }
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
-        } finally {
+
+            // Gather all ye preceding brothers and sisters but take heed! No more than in 'limit' number shall ye come!
+            TraversalDescription td = db.traversalDescription()
+                    .breadthFirst()
+                    .relationships(IS_FAKE, Direction.OUTGOING)
+                    .relationships(IS_NEXT, Direction.OUTGOING)
+                    .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
+                    .evaluator(Evaluators.toDepth(limit));
+
+            // Add to the results
+            for (org.neo4j.graphdb.Path path : td.traverse(sibling)) {
+                Node child = path.endNode();
+                if (first) {
+                    precedingSiblings.add(child);
+                } else {
+                    first = true;
+                }
+            }
 
             String obj = new ObjectMapper().siblingsToJson(precedingSiblings, "siblings");
             tx.success();
-            tx.finish();
             return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
                     "application/json").build();
         }
