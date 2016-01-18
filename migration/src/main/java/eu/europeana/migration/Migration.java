@@ -59,7 +59,7 @@ public class Migration {
         try {
             properties.load(Migration.class.getResourceAsStream("/migration.properties"));
             String[] srcMongoUrl = properties.getProperty("source.mongo").split(",");
-            String[] srcSolrUrl = properties.getProperty("source.solr").split(",");
+            //String[] srcSolrUrl = properties.getProperty("source.solr").split(",");
             String srcSolrZookeeperUrl = properties.getProperty("source.zookeeper");
             List<ServerAddress> addresses = new ArrayList<>();
         		for (String mongoStr : srcMongoUrl) {
@@ -74,10 +74,9 @@ public class Migration {
                 this.targetSolr.setDefaultCollection(targetCollection);
                 this.targetSolr.connect();
              */
-            LBHttpSolrServer lbTarget = new LBHttpSolrServer(srcSolrUrl);
+            LBHttpSolrServer lbTarget = new LBHttpSolrServer("http://localhost:9191/solr");
             sourceSolr = new CloudSolrServer(srcSolrZookeeperUrl,lbTarget);
             sourceSolr.setDefaultCollection("search_1");
-            sourceSolr.connect();
             //sourceSolr = new HttpSolrServer(srcSolrUrl);
             sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
             
@@ -92,6 +91,7 @@ public class Migration {
             params.setRows(10000);
             //Enable Cursor (needs order)
             params.setSort(fl, SolrQuery.ORDER.asc);
+            params.setDistrib(false);
             //Retrieve only the europeana_id filed (the record is retrieved from Mongo)
             params.setFields(fl);
             //Start from the begining
