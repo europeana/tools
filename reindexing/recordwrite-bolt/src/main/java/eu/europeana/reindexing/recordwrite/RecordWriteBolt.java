@@ -76,25 +76,27 @@ public class RecordWriteBolt extends BaseRichBolt {
     private String[] ingstSolrAddresses;
     private String ingstSolrCollection;
     
-    String ingstDbName;
-    String ingstDbUser;
-    String ingstDbPassword;
+    private String ingstDbName;
+    private String ingstDbUser;
+    private String ingstDbPassword;
     
     private String[] prodMongoAddresses;
     private String[] prodSolrAddresses;
     private String prodSolrCollection;
-    
-    String prodDbName;
-    String prodDbUser;
-    String prodDbPassword;
-    
-    String[] taskreportMongoAddresses;
+
+    private String prodDbName;
+    private String prodDbUser;
+    private String prodDbPassword;
+
+    private String[] taskreportMongoAddresses;
+    private String dbName;
+    private String batchDbName;
 
 	public RecordWriteBolt(String ingstZkHost, String[] ingstMongoAddresses, String[] ingstSolrAddresses, String ingstSolrCollection,
 						   String ingstDbName, String ingstDbUser, String ingstDbPassword,
 						   String prodZkHost, String[] prodMongoAddresses, String[] prodSolrAddresses, String prodSolrCollection,
 						   String prodDbName, String prodDbUser, String prodDbPassword,
-						   String[] taskReportMongoAddresses) {		
+						   String[] taskReportMongoAddresses, String dbName, String batchDbName) {
 		this.ingstMongoAddresses = ingstMongoAddresses;
         this.ingstSolrAddresses = ingstSolrAddresses;
         this.ingstSolrCollection = ingstSolrCollection;
@@ -110,7 +112,8 @@ public class RecordWriteBolt extends BaseRichBolt {
         this.prodDbName = prodDbName;
         this.prodDbUser = prodDbUser;
         this.prodDbPassword = prodDbPassword;
-        
+        this.dbName = dbName;
+        this.batchDbName = batchDbName;
         this.taskreportMongoAddresses = taskReportMongoAddresses;
     }
 
@@ -176,11 +179,11 @@ public class RecordWriteBolt extends BaseRichBolt {
                 addressesTaskReport.add(addr);
             }
             Mongo mongoTaskReports = new Mongo(addressesTaskReport);
-            MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,"task_report_test", null, null);
+            MongoServer mongoServerTaskReports = new EdmMongoServerImpl(mongoTaskReports,dbName, null, null);
             
-            datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), "task_report_test");
+            datastore = morphia.createDatastore(mongoServerTaskReports.getDatastore().getMongo(), dbName);
             datastore.ensureIndexes();
-            dao = new PerTaskBatchesDao(addressesTaskReport,"pertaskbatch");
+            dao = new PerTaskBatchesDao(addressesTaskReport,batchDbName);
             
         } catch (MalformedURLException ex) {
             Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, ex);

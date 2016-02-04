@@ -112,7 +112,7 @@ public class EnrichmentTopologyTest {
             public void run(ILocalCluster cluster) throws IOException {            	
 				//build topology
                 TopologyBuilder builder = new TopologyBuilder();
-                builder.setSpout("readSpout", new ReadSpout(srcZookeeper, srcMongoAddresses, srcSolrAddresses, srcCollection));
+                builder.setSpout("readSpout", new ReadSpout(srcZookeeper, srcMongoAddresses, srcSolrAddresses, srcCollection,"",""));
                 builder.setBolt("enrichment", new EnrichmentBolt(srcPath, srcMongoAddresses, srcDbName, srcDbUser, srcDbPassword)).shuffleGrouping("readSpout");
                 StormTopology topology = builder.createTopology();
                 

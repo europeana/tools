@@ -60,14 +60,18 @@ public class ReadSpout extends BaseRichSpout {
     private String[] mongoAddresses;
     private String[] solrAddresses;
     private String solrCollection;
+    private String dbName;
+    private String batchDbName;
     private long processed = 0;
     private PerTaskBatchesDao dao;
 
-    public ReadSpout(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection) {
+    public ReadSpout(String zkHost, String[] mongoAddresses, String[] solrAddresses, String solrCollection, String dbName, String batchDbName) {
         this.zkHost = zkHost;
         this.mongoAddresses = mongoAddresses;
         this.solrAddresses = solrAddresses;
         this.solrCollection = solrCollection;
+        this.dbName = dbName;
+        this.batchDbName = batchDbName;
     }
 
     /**
@@ -301,9 +305,9 @@ public class ReadSpout extends BaseRichSpout {
             Morphia morphia = new Morphia();
             morphia.map(TaskReport.class);
 
-            datastore = morphia.createDatastore(mongo, "task_report_test");
+            datastore = morphia.createDatastore(mongo,dbName);
             datastore.ensureIndexes();
-            dao = new PerTaskBatchesDao(addresses, "pertaskbatch");
+            dao = new PerTaskBatchesDao(addresses, batchDbName);
 
         } catch (MalformedURLException | UnknownHostException ex) {
             Logger.getLogger(ReadSpout.class.getName()).log(Level.SEVERE, null, ex);

@@ -53,7 +53,7 @@ public class EnrichmentTopology {
         	
         	topology = buildTopology();
         	
-            StormSubmitter.submitTopology("enrichment", config, topology);
+            StormSubmitter.submitTopology(properties.getProperty("topology.name"), config, topology);
         } catch (AlreadyAliveException | InvalidTopologyException ex) {
             Logger.getLogger(EnrichmentTopology.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MalformedURLException ex) {
@@ -68,7 +68,9 @@ public class EnrichmentTopology {
 	
     public static StormTopology buildTopology() {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("readSpout", new ReadSpout(taskreport.getZookeeperHost(), taskreport.getMongoAddresses(), taskreport.getSolrAddresses(), taskreport.getSolrCollection()), 1);
+        builder.setSpout("readSpout", new ReadSpout(taskreport.getZookeeperHost(), taskreport.getMongoAddresses(),
+				taskreport.getSolrAddresses(), taskreport.getSolrCollection(),
+				properties.getProperty("taskreport.mongo.database"),properties.getProperty("taskreport.mongo.batches.database")), 1);
         
         builder.setBolt("enrichment", new EnrichmentBolt(production.getPath(), production.getMongoAddresses(), production.getDatabaseName(), 
         							production.getDatabaseUser(), production.getDatabasePassword()), 10).setNumTasks(10).shuffleGrouping("readSpout");
@@ -77,7 +79,7 @@ public class EnrichmentTopology {
 									ingestion.getDatabaseName(), ingestion.getDatabaseUser(), ingestion.getDatabasePassword(),
 									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection(),
 									production.getDatabaseName(), production.getDatabaseUser(), production.getDatabasePassword(),
-									taskreport.getMongoAddresses()), 1).shuffleGrouping("enrichment");
+									taskreport.getMongoAddresses(),properties.getProperty("taskreport.mongo.database"),properties.getProperty("taskreport.mongo.batches.database")), 1).shuffleGrouping("enrichment");
 		return builder.createTopology();
     }
     
