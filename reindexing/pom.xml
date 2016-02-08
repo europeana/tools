@@ -12,6 +12,7 @@
         <module>enrichment-bolt</module>
         <module>enrichment-topology</module>
         <module>reindexing-common-external</module>
+        <module>reindexing-entity-cleanup</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

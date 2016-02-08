@@ -17,4 +17,5 @@ public final class ReindexingFields {
     public static final String NUMFOUND="numFound";
     public static final String QUERY="query";
     public static final String ENTITYWRAPPER="entityWrapper";
+    public static final String EDMXML="edmxml";
 }

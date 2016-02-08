@@ -154,7 +154,7 @@ public class ReadSpout extends BaseRichSpout {
                 for (PerTaskBatch batch : batches) {
                     int i = 0;
                     for (String recordId : batch.getRecordIds()) {
-                        collector.emit(new ReindexingTuple(batch.getTaskId(), batch.getBatchId(), recordId, numFound, query, null).toTuple(), recordId);
+                        collector.emit(new ReindexingTuple(batch.getTaskId(), batch.getBatchId(), recordId, numFound, query, null,null).toTuple(), recordId);
                         i++;
                         try {
                             Thread.sleep(10);
@@ -182,12 +182,14 @@ public class ReadSpout extends BaseRichSpout {
         }
 
     private void createBatches(QueryResponse resp, long taskId, long batchId) {
-        List<String> recordIds = new ArrayList<>();
-        for (SolrDocument doc : resp.getResults()) {
-            recordIds.add(doc.getFirstValue("europeana_id").toString());
+        if(resp.getResults().size()>0) {
+            List<String> recordIds = new ArrayList<>();
+            for (SolrDocument doc : resp.getResults()) {
+                recordIds.add(doc.getFirstValue("europeana_id").toString());
 
+            }
+            dao.createPerTaskBatch(taskId, batchId, recordIds);
         }
-        dao.createPerTaskBatch(taskId, batchId, recordIds);
     }
 
 //    @Override
@@ -316,7 +318,7 @@ public class ReadSpout extends BaseRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields(ReindexingFields.TASKID, ReindexingFields.BATCHID, ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY, ReindexingFields.ENTITYWRAPPER));
+        declarer.declare(new Fields(ReindexingFields.TASKID, ReindexingFields.BATCHID, ReindexingFields.IDENTIFIER, ReindexingFields.NUMFOUND, ReindexingFields.QUERY, ReindexingFields.ENTITYWRAPPER,ReindexingFields.EDMXML));
     }
 
     /**

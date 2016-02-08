@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,6 +91,8 @@ public class RecordWriteBolt extends BaseRichBolt {
     private String[] taskreportMongoAddresses;
     private String dbName;
     private String batchDbName;
+
+
 
 	public RecordWriteBolt(String ingstZkHost, String[] ingstMongoAddresses, String[] ingstSolrAddresses, String ingstSolrCollection,
 						   String ingstDbName, String ingstDbUser, String ingstDbPassword,
@@ -194,6 +196,8 @@ public class RecordWriteBolt extends BaseRichBolt {
         }
     }
 
+
+
     @Override
     public void execute(Tuple tuple) {
         tuples.add(tuple);
@@ -202,7 +206,7 @@ public class RecordWriteBolt extends BaseRichBolt {
         if (tuple.getLongByField(ReindexingFields.NUMFOUND) == i || tuples.size() == 5000) {
             Logger.getGlobal().log(Level.INFO, "!!! Processing " + i + " records !!!");
             processTuples(tuples);
-            
+            dao.removeBatch(tuple.getLongByField(ReindexingFields.TASKID),tuple.getLongByField(ReindexingFields.BATCHID));
             Query<TaskReport> query = datastore.find(TaskReport.class).filter("taskId", tuple.getLongByField(ReindexingFields.TASKID));
             UpdateOperations<TaskReport> ops = datastore.createUpdateOperations(TaskReport.class);
             TaskReport report = query.get();
@@ -230,7 +234,7 @@ public class RecordWriteBolt extends BaseRichBolt {
             } else {
             	ops.set("status", Status.PROCESSING);            	
             }
-            
+          /*
             //update the total number if needed
             SolrQuery params = new SolrQuery(report.getQuery());
             params.setRows(0);
@@ -245,17 +249,18 @@ public class RecordWriteBolt extends BaseRichBolt {
 			} catch (SolrServerException e) {
 				Logger.getLogger(RecordWriteBolt.class.getName()).log(Level.SEVERE, null, e);
 			}
-            
+            */
             datastore.update(query, ops);
             tuples.clear();
         }
     }
 
+
     private void processTuples(List<Tuple> tuples) {
         if (tuples.size() == 5000) {
             List<List<Tuple>> batches = splitTuplesIntoBatches(tuples);
             //10 batches per each method call
-            CountDownLatch latch = new CountDownLatch(10);
+            CountDownLatch latch = new CountDownLatch(20);
             for (List<Tuple> batch : batches) {
             	//500 tuples per each batch
                 Thread t = new Thread(new TuplePersistence(mongoHandlerIngst, mongoServerIngst, solrServerIngst, solrHandlerIngst, 
@@ -286,12 +291,13 @@ public class RecordWriteBolt extends BaseRichBolt {
     private List<List<Tuple>> splitTuplesIntoBatches(List<Tuple> tuples) {
         List<List<Tuple>> batches = new ArrayList<>();
         int i = 0;
-        int k = 500;
+        int k = 250;
         while (i < tuples.size()) {
             batches.add(tuples.subList(i, i+k));
             i = i + k;
         }
         return batches;
     }
+
 
 }

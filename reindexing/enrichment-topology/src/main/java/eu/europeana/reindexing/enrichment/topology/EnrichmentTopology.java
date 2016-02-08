@@ -18,6 +18,7 @@ import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.topology.TopologyBuilder;
+import eu.europeana.reindexing.cleanup.EntityManagementBolt;
 import eu.europeana.reindexing.enrichment.EnrichmentBolt;
 import eu.europeana.reindexing.recordread.ReadSpout;
 import eu.europeana.reindexing.recordwrite.RecordWriteBolt;
@@ -74,12 +75,13 @@ public class EnrichmentTopology {
         
         builder.setBolt("enrichment", new EnrichmentBolt(production.getPath(), production.getMongoAddresses(), production.getDatabaseName(), 
         							production.getDatabaseUser(), production.getDatabasePassword()), 10).setNumTasks(10).shuffleGrouping("readSpout");
-		
+		builder.setBolt("clean", new EntityManagementBolt(production.getMongoAddresses(), production.getDatabaseName(),
+				production.getDatabaseUser(), production.getDatabasePassword()),10).setNumTasks(10).shuffleGrouping("enrichment");
         builder.setBolt("saverecords", new RecordWriteBolt(ingestion.getZookeeperHost(), ingestion.getMongoAddresses(), ingestion.getSolrAddresses(), ingestion.getSolrCollection(), 
 									ingestion.getDatabaseName(), ingestion.getDatabaseUser(), ingestion.getDatabasePassword(),
 									production.getZookeeperHost(), production.getMongoAddresses(), production.getSolrAddresses(), production.getSolrCollection(),
 									production.getDatabaseName(), production.getDatabaseUser(), production.getDatabasePassword(),
-									taskreport.getMongoAddresses(),properties.getProperty("taskreport.mongo.database"),properties.getProperty("taskreport.mongo.batches.database")), 1).shuffleGrouping("enrichment");
+									taskreport.getMongoAddresses(),properties.getProperty("taskreport.mongo.database"),properties.getProperty("taskreport.mongo.batches.database")), 1).shuffleGrouping("clean");
 		return builder.createTopology();
     }
     

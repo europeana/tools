@@ -76,6 +76,9 @@ public class PerTaskBatchesDao {
         datastore.update(query,ops);
     }
 
+    public void removeBatch(Long taskId, Long batchId){
+        datastore.delete(datastore.find(PerTaskBatch.class).filter("taskId", taskId).filter("batchId", batchId));
+    }
     /**
      * Remove a record from the PerTaskBatch. If the resulting PerTaskBatch record ids is empty we remove
      * the PerTaskBatch or else we update

@@ -23,7 +23,7 @@ public class PerTaskBatch {
 
     private ObjectId id;
 
-    @Indexed
+    @Indexed(unique = true)
     private Long taskId;
     @Indexed
     private Long batchId;
