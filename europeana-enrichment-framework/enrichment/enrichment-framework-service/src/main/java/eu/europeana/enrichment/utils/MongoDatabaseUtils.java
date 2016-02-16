@@ -17,14 +17,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+import com.mongodb.*;
 import org.apache.commons.lang.StringUtils;
 import org.jibx.runtime.JiBXException;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.Mongo;
-import com.mongodb.MongoException;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.corelib.solr.entity.ConceptImpl;
@@ -86,22 +81,25 @@ public class MongoDatabaseUtils<T> {
                             ConceptTermList.class, String.class);
 
                     cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
-
+                    cColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
                     aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    aColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
                     tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    tColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
                     pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    pColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
 
                     return true;
                 } else {
@@ -110,22 +108,25 @@ public class MongoDatabaseUtils<T> {
                             ConceptTermList.class, String.class);
 
                     cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
-
+                    cColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
                     aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    aColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
                     tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    tColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
                     pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    pColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     return false;
                 }
             }
@@ -200,6 +201,25 @@ public class MongoDatabaseUtils<T> {
             termA.remove(termA.find().is("codeUri", uri).getQuery());
             termT.remove(termT.find().is("codeUri", uri).getQuery());
             termC.remove(termC.find().is("codeUri", uri).getQuery());
+
+            DBObject objA = aColl.find().is("owlSameAs",uri).getQuery();
+            String origA = objA.get("codeUri").toString();
+            aColl.remove(objA);
+            DBObject objC = cColl.find().is("owlSameAs",uri).getQuery();
+            String origC = objC.get("codeUri").toString();
+            cColl.remove(objC);
+            DBObject objT = tColl.find().is("owlSameAs",uri).getQuery();
+            String origT = objT.get("codeUri").toString();
+            tColl.remove(objT);
+            DBObject objP = pColl.find().is("owlSameAs",uri).getQuery();
+            String origP = objP.get("codeUri").toString();
+            pColl.remove(objP);
+            termP.remove(termP.find().is("codeUri", origP).getQuery());
+            termA.remove(termA.find().is("codeUri",origA).getQuery());
+            termT.remove(termT.find().is("codeUri", origT).getQuery());
+            termC.remove(termC.find().is("codeUri", origC).getQuery());
+
+
 
         }
     }

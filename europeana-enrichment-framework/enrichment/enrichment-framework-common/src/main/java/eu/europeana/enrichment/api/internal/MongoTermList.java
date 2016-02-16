@@ -29,6 +29,8 @@ public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
 
 	private String parent;
 	private String codeUri;
+	private String[] owlSameAs;
+
 	@JsonIgnore
 	@XmlTransient
 	private List<DBRef<? extends MongoTerm, String>> terms;
@@ -85,6 +87,14 @@ public abstract class MongoTermList<T extends AbstractEdmEntityImpl> {
 
 	public void setEntityType(String entityType) {
 		this.entityType = entityType;
+	}
+
+	public void setOwlSameAs(String[] owlSameAs){
+		this.owlSameAs = owlSameAs;
+	}
+
+	public String[] getOwlSameAs(){
+		return owlSameAs;
 	}
 
 }
