@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 import com.mongodb.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.update.UpdateLog;
 import org.jibx.runtime.JiBXException;
 
 import eu.europeana.corelib.solr.entity.AgentImpl;
@@ -38,9 +39,9 @@ import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
 import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
+import org.mongojack.*;
 import org.mongojack.DBCursor;
 import org.mongojack.DBRef;
-import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
 
 
@@ -169,13 +170,15 @@ public class MongoDatabaseUtils<T> {
         memCache.clear();
     }
 
-    public static void delete(List<String> uris) {
+    public static List<String> delete(List<String> uris) {
+
+        List<String> retUris = new ArrayList<>();
         for (String uri : uris) {
             aColl.remove(aColl.find().is("codeUri", uri).getQuery());
             cColl.remove(cColl.find().is("codeUri", uri).getQuery());
             tColl.remove(tColl.find().is("codeUri", uri).getQuery());
             pColl.remove(pColl.find().is("codeUri", uri).getQuery());
-
+            retUris.add(uri);
             JacksonDBCollection<MongoTerm, String> termP = JacksonDBCollection
                     .wrap(db.getCollection("place"), MongoTerm.class, String.class);
             termP.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
@@ -197,32 +200,49 @@ public class MongoDatabaseUtils<T> {
     				new BasicDBObject("unique", true));
             termT.createIndex(new BasicDBObject("codeUri", 1));
 
+
             termP.remove(termP.find().is("codeUri", uri).getQuery());
             termA.remove(termA.find().is("codeUri", uri).getQuery());
             termT.remove(termT.find().is("codeUri", uri).getQuery());
             termC.remove(termC.find().is("codeUri", uri).getQuery());
 
-            DBObject objA = aColl.find().is("owlSameAs",uri).getQuery();
-            String origA = objA.get("codeUri").toString();
-            aColl.remove(objA);
-            DBObject objC = cColl.find().is("owlSameAs",uri).getQuery();
-            String origC = objC.get("codeUri").toString();
-            cColl.remove(objC);
-            DBObject objT = tColl.find().is("owlSameAs",uri).getQuery();
-            String origT = objT.get("codeUri").toString();
-            tColl.remove(objT);
-            DBObject objP = pColl.find().is("owlSameAs",uri).getQuery();
-            String origP = objP.get("codeUri").toString();
-            pColl.remove(objP);
-            termP.remove(termP.find().is("codeUri", origP).getQuery());
-            termA.remove(termA.find().is("codeUri",origA).getQuery());
-            termT.remove(termT.find().is("codeUri", origT).getQuery());
-            termC.remove(termC.find().is("codeUri", origC).getQuery());
+            DBCursor<AgentTermList> objA = aColl.find(new BasicDBObject("owlSameAs",uri).append("entityType","AgentImpl"));
+            if(objA.hasNext()) {
+                String origA = objA.next().getCodeUri();
+                retUris.add(origA);
+                aColl.remove(new BasicDBObject("codeUri",origA));
+                termA.remove(new BasicDBObject("codeUri",origA));
+            }
+            DBCursor<ConceptTermList> objC = cColl.find(new BasicDBObject("owlSameAs",uri).append("entityType","ConceptImpl"));
+            if(objC.hasNext()) {
+                String origC = objC.next().getCodeUri();
+                retUris.add(origC);
+                cColl.remove(new BasicDBObject("codeUri",origC));
+                termC.remove(new BasicDBObject("codeUri",origC));
+            }
+            DBCursor<TimespanTermList> objT = tColl.find(new BasicDBObject("owlSameAs",uri).append("entityType","TimespanImpl"));
+            if(objT.hasNext()) {
+                String origT = objT.next().getCodeUri();
+                retUris.add(origT);
+                tColl.remove(new BasicDBObject("codeUri",origT));
+                termT.remove(new BasicDBObject("codeUri",origT));
+            }
+            DBCursor<PlaceTermList> objP = pColl.find(new BasicDBObject("owlSameAs",uri).append("entityType","PlaceImpl"));
+            if(objP.hasNext()) {
+                String origP = objP.next().getCodeUri();
+                retUris.add(origP);
+                pColl.remove(new BasicDBObject("codeUri",origP));
+                termP.remove(new BasicDBObject("codeUri",origP));
+            }
+
 
 
 
         }
+        return retUris;
     }
+
+  
 
     /**
      * Find TermList by codeURI

@@ -67,6 +67,10 @@ public class Enricher {
 		return entities;
 	}
 
+	public EntityWrapper getByUri(String uri){
+		return enricher.getByUri(uri);
+	}
+
 	public void clearCache() {
 		MongoDatabaseUtils.emptyCache();
 	}

@@ -26,87 +26,97 @@ import java.util.Map;
 /**
  * REST API wrapper class abstracting the REST calls and providing a clean POJO
  * implementation
- * 
+ *
  * @author Yorgos.Mamakis@ europeana.eu
- * 
  */
 public class EnrichmentDriver {
 
-	private JerseyClient client = JerseyClientBuilder.createClient();
-	private String path;
-	public EnrichmentDriver(String path) {
-		this.path = path;
-	}
-	/**
-	 * Enrich REST call invocation
-	 * 
-	 * @param path
-	 *            The path the REST service is deployed
-	 * @param values
-	 *            The values to be enriched
-	 * @param toEdm
-	 *            Whether the enrichments should be retrieved in JSON (parsable
-	 *            to POJO through Jackson) or XML (for copy pasting)
-	 * @return The enrichments generated for the input values
-	 * @throws JsonGenerationException
-	 * @throws JsonMappingException
-	 * @throws IOException
-	 */
-	public List<EntityWrapper> enrich(List<InputValue> values,
-			boolean toEdm) throws JsonGenerationException,
-			JsonMappingException, IOException, UnknownException {
-		InputValueList inList = new InputValueList();
-		inList.setInputValueList(values);
-		Form form = new Form();
-		form.param("input", new ObjectMapper().writeValueAsString(inList));
-		form.param("toXml", Boolean.toString(toEdm));
-		Response res = client
-				.target(path)
-				.request()
-				.post(Entity
-						.entity(form, MediaType.APPLICATION_FORM_URLENCODED),
-						Response.class);
+    private JerseyClient client = JerseyClientBuilder.createClient();
+    private String path;
 
-		if (res.getStatus() == Status.OK.getStatusCode()) {
-			return new ObjectMapper().readValue(res.readEntity(String.class),
-					EntityWrapperList.class).getWrapperList();
-		} else {
-			EnrichmentError error = res.readEntity(EnrichmentError.class);
-			Class<? extends Exception> e = ExceptionGenerator.exceptions
-					.get(error.getCause());
+    public EnrichmentDriver(String path) {
+        this.path = path;
+    }
 
-			try {
-				Constructor<? extends Exception> c = e
-						.getConstructor(String.class);
-				throw c.newInstance(error.getDetails());
-			} catch (SecurityException e1) {
-				throw new UnknownException(e1.getMessage());
-			} catch (NoSuchMethodException e1) {
-				throw new UnknownException(e1.getMessage());
-			} catch (IllegalArgumentException e1) {
-				throw new UnknownException(e1.getMessage());
-			} catch (Exception e1) {
-				throw new UnknownException(e1.getMessage());
-			}
+    /**
+     * Enrich REST call invocation
+     *
+     * @param path   The path the REST service is deployed
+     * @param values The values to be enriched
+     * @param toEdm  Whether the enrichments should be retrieved in JSON (parsable
+     *               to POJO through Jackson) or XML (for copy pasting)
+     * @return The enrichments generated for the input values
+     * @throws JsonGenerationException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
+    public List<EntityWrapper> enrich(List<InputValue> values,
+                                      boolean toEdm) throws JsonGenerationException,
+            JsonMappingException, IOException, UnknownException {
+        InputValueList inList = new InputValueList();
+        inList.setInputValueList(values);
+        Form form = new Form();
+        form.param("input", new ObjectMapper().writeValueAsString(inList));
+        form.param("toXml", Boolean.toString(toEdm));
+        Response res = client
+                .target(path)
+                .request()
+                .post(Entity
+                                .entity(form, MediaType.APPLICATION_FORM_URLENCODED),
+                        Response.class);
 
-		}
-	}
+        if (res.getStatus() == Status.OK.getStatusCode()) {
+            return new ObjectMapper().readValue(res.readEntity(String.class),
+                    EntityWrapperList.class).getWrapperList();
+        } else {
+            EnrichmentError error = res.readEntity(EnrichmentError.class);
+            Class<? extends Exception> e = ExceptionGenerator.exceptions
+                    .get(error.getCause());
 
-	private static class ExceptionGenerator {
-		static Map<String, Class<? extends Exception>> exceptions = new HashMap<String, Class<? extends Exception>>() {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 329292412348055056L;
+            try {
+                Constructor<? extends Exception> c = e
+                        .getConstructor(String.class);
+                throw c.newInstance(error.getDetails());
+            } catch (SecurityException e1) {
+                throw new UnknownException(e1.getMessage());
+            } catch (NoSuchMethodException e1) {
+                throw new UnknownException(e1.getMessage());
+            } catch (IllegalArgumentException e1) {
+                throw new UnknownException(e1.getMessage());
+            } catch (Exception e1) {
+                throw new UnknownException(e1.getMessage());
+            }
 
-			{
-				put(JsonMappingException.class.getName(),
-						JsonMappingException.class);
-				put(JsonGenerationException.class.getName(),
-						JsonGenerationException.class);
-				put(UnknownException.class.getName(), UnknownException.class);
-				put(IOException.class.getName(), IOException.class);
-			}
-		};
-	}
+        }
+    }
+
+    public EntityWrapper getByUri(String uri) throws IOException {
+        Response res = client
+                .target(path).queryParam("uri", uri).queryParam("toXml", true)
+                .request().get(Response.class);
+        if (res.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+            return null;
+        } else {
+            return new ObjectMapper().readValue(res.readEntity(String.class),
+                    EntityWrapper.class);
+        }
+    }
+
+    private static class ExceptionGenerator {
+        static Map<String, Class<? extends Exception>> exceptions = new HashMap<String, Class<? extends Exception>>() {
+            /**
+             *
+             */
+            private static final long serialVersionUID = 329292412348055056L;
+
+            {
+                put(JsonMappingException.class.getName(),
+                        JsonMappingException.class);
+                put(JsonGenerationException.class.getName(),
+                        JsonGenerationException.class);
+                put(UnknownException.class.getName(), UnknownException.class);
+                put(IOException.class.getName(), IOException.class);
+            }
+        };
+    }
 }

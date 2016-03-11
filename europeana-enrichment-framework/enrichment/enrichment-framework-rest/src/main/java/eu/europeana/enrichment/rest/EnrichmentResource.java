@@ -7,11 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -33,6 +29,7 @@ import eu.europeana.corelib.solr.entity.ConceptImpl;
 import eu.europeana.corelib.solr.entity.PlaceImpl;
 import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.service.Enricher;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Path("/")
 @Component
@@ -62,6 +59,40 @@ public class EnrichmentResource {
         return Response.ok().build();
     }
 
+	@GET
+	@Path("getByUri")
+	@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+	public Response getByUri(@RequestParam("uri") String uri, @RequestParam("toXml")boolean toEdm){
+
+		EntityWrapper wrapper = enricher.getByUri(uri);
+		if(wrapper!=null) {
+			ObjectMapper objIdMapper = new ObjectMapper();
+			try {
+			if (toEdm) {
+
+
+					EntityWrapper newWrapper = new EntityWrapper(wrapper.getClassName(),
+                            wrapper.getOriginalField(),wrapper.getUrl(),wrapper.getOriginalValue(), convertEntity(wrapper));
+
+				return Response.ok().entity(objIdMapper.writeValueAsString(newWrapper)).build();
+
+			} else {
+				SimpleModule sm = new SimpleModule("objId",
+						Version.unknownVersion());
+				sm.addSerializer(new ObjectIdSerializer());
+				objIdMapper.registerModule(sm);
+				return Response.ok().entity(objIdMapper.writeValueAsString(wrapper)).build();
+			}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return Response.noContent().build();
+
+
+	}
+
     @POST
     @Path("enrich")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -73,8 +104,7 @@ public class EnrichmentResource {
 			ObjectMapper mapper = new ObjectMapper();
 			InputValueList values = mapper.readValue(input,
 					InputValueList.class);
-			EntityWrapperList response = new EntityWrapperList();
-			List<EntityWrapper> wrapperList = enricher.tagExternal(values
+			EntityWrapperList response = new EntityWrapperList();List<EntityWrapper> wrapperList = enricher.tagExternal(values
 					.getInputValueList());
 
 			ObjectMapper objIdMapper = new ObjectMapper();
@@ -94,18 +124,22 @@ public class EnrichmentResource {
 					.entity(objIdMapper.writeValueAsString(response)).build();
 
 		} catch (JsonParseException e) {
+			e.printStackTrace();
 			log.severe(e.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (JsonMappingException e) {
+			e.printStackTrace();
 			log.severe(e.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (IOException e) {
+			e.printStackTrace();
 			log.severe(e.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();
 		} catch (Exception e) {
+			e.printStackTrace();
 			log.severe(e.getMessage());
 			return Response.status(Status.INTERNAL_SERVER_ERROR)
 					.entity(e.getMessage()).build();

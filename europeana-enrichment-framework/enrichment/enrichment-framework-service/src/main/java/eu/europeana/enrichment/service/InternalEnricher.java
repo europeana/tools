@@ -64,6 +64,9 @@ public class InternalEnricher {
     private static Map<String, EntityWrapper> conceptUriCache;
     private static Map<String, EntityWrapper> placeUriCache;
     private static Map<String, EntityWrapper> timespanUriCache;
+
+
+
     private static Map<String, List<String>> agentParents;
     private static Map<String, List<String>> conceptParents;
     private static Map<String, List<String>> placeParents;
@@ -88,8 +91,8 @@ public class InternalEnricher {
         populate();
     }
 
-    public void remove(List<String> uris){
-        for (String str: uris){
+    public void remove(List<String> uris) {
+        for (String str : uris) {
             agentUriCache.remove(str);
             agentParents.remove(str);
             conceptUriCache.remove(str);
@@ -98,23 +101,23 @@ public class InternalEnricher {
             conceptParents.remove(str);
             placeParents.remove(str);
             timespanParents.remove(str);
-            for(Map.Entry<String,String> agentEntry:agentCache.entrySet()){
-             if(StringUtils.equals(agentEntry.getValue(),str)){
-                 agentCache.remove(agentEntry.getKey());
-             }
+            for (Map.Entry<String, String> agentEntry : agentCache.entrySet()) {
+                if (StringUtils.equals(agentEntry.getValue(), str)) {
+                    agentCache.remove(agentEntry.getKey());
+                }
             }
-            for(Map.Entry<String,String> agentEntry:placeCache.entrySet()){
-                if(StringUtils.equals(agentEntry.getValue(),str)){
+            for (Map.Entry<String, String> agentEntry : placeCache.entrySet()) {
+                if (StringUtils.equals(agentEntry.getValue(), str)) {
                     placeCache.remove(agentEntry.getKey());
                 }
             }
-            for(Map.Entry<String,String> agentEntry:conceptCache.entrySet()){
-                if(StringUtils.equals(agentEntry.getValue(),str)){
+            for (Map.Entry<String, String> agentEntry : conceptCache.entrySet()) {
+                if (StringUtils.equals(agentEntry.getValue(), str)) {
                     conceptCache.remove(agentEntry.getKey());
                 }
             }
-            for(Map.Entry<String,String> agentEntry:timespanCache.entrySet()){
-                if(StringUtils.equals(agentEntry.getValue(),str)){
+            for (Map.Entry<String, String> agentEntry : timespanCache.entrySet()) {
+                if (StringUtils.equals(agentEntry.getValue(), str)) {
                     timespanCache.remove(agentEntry.getKey());
                 }
             }
@@ -126,27 +129,28 @@ public class InternalEnricher {
         MongoDatabaseUtils.dbExists("localhost", 27017);
         List<MongoTerm> agentsMongo = MongoDatabaseUtils.getAllAgents();
         Logger.getLogger(InternalEnricher.class.getName()).severe("Found agents: " + agentsMongo.size());
-       for(MongoTerm agent:agentsMongo){
-           try {
-               AgentTermList atl = (AgentTermList) MongoDatabaseUtils.findByCode(agent.getCodeUri(), "people");
-               if (atl != null) {
-                   try {
-                       EntityWrapper ag = new EntityWrapper();
-                       ag.setOriginalField("");
-                       ag.setClassName(AgentImpl.class.getName());
-                       ag.setContextualEntity(this.getObjectMapper().writeValueAsString(atl.getRepresentation()));
-                       ag.setUrl(agent.getCodeUri());
-                       ag.setOriginalValue(agent.getOriginalLabel());
-                       agentCache.put(agent.getLabel(), agent.getCodeUri());
-                       agentUriCache.put(agent.getCodeUri(), ag);
-                       agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
-                   } catch (IOException var14) {
-                       Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var14);
-                   }
-               }
-               }catch(MalformedURLException e){
-                   e.printStackTrace();
-               }
+        for (MongoTerm agent : agentsMongo) {
+            try {
+                AgentTermList atl = (AgentTermList) MongoDatabaseUtils.findByCode(agent.getCodeUri(), "people");
+                if (atl != null) {
+                    try {
+                        EntityWrapper ag = new EntityWrapper();
+                        ag.setOriginalField("");
+                        ag.setClassName(AgentImpl.class.getName());
+                        ag.setContextualEntity(this.getObjectMapper().writeValueAsString(atl.getRepresentation()));
+                        ag.setUrl(agent.getCodeUri());
+                        ag.setOriginalValue(agent.getOriginalLabel());
+
+                        agentCache.put(agent.getLang() + ":" + agent.getLabel(), agent.getCodeUri());
+                        agentUriCache.put(agent.getCodeUri(), ag);
+                        agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
+                    } catch (IOException var14) {
+                        Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var14);
+                    }
+                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -158,7 +162,7 @@ public class InternalEnricher {
 
         List<MongoTerm> conceptsMongo1 = MongoDatabaseUtils.getAllConcepts();
         Logger.getLogger(InternalEnricher.class.getName()).severe("Found concepts: " + conceptsMongo1.size());
-        for(MongoTerm concept:conceptsMongo1){
+        for (MongoTerm concept : conceptsMongo1) {
             try {
                 ConceptTermList ctl = (ConceptTermList) MongoDatabaseUtils.findByCode(concept.getCodeUri(), "concept");
                 if (ctl != null) {
@@ -170,16 +174,17 @@ public class InternalEnricher {
                         i$.setContextualEntity(this.getObjectMapper().writeValueAsString(ctl.getRepresentation()));
                         i$.setUrl(concept.getCodeUri());
                         i$.setOriginalValue(concept.getOriginalLabel());
-                        conceptCache.put(concept.getLabel(), concept.getCodeUri());
+
+                        conceptCache.put(concept.getLang() + ":" + concept.getLabel(), concept.getCodeUri());
                         conceptUriCache.put(concept.getCodeUri(), i$);
                         conceptParents.put(concept.getCodeUri(), this.findConceptParents(ctl.getParent()));
                     } catch (IOException var12) {
                         Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var12);
                     }
                 }
-                }catch(MalformedURLException e){
-                    e.printStackTrace();
-                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -192,25 +197,26 @@ public class InternalEnricher {
         List<MongoTerm> placesMongo2 = MongoDatabaseUtils.getAllPlaces();
         Logger.getLogger(InternalEnricher.class.getName()).severe("Found places: " + placesMongo2.size());
 
-        for(MongoTerm place:placesMongo2) {
+        for (MongoTerm place : placesMongo2) {
             try {
-                PlaceTermList ptl = (PlaceTermList)MongoDatabaseUtils.findByCode(place.getCodeUri(),"place");
+                PlaceTermList ptl = (PlaceTermList) MongoDatabaseUtils.findByCode(place.getCodeUri(), "place");
 
-            if (ptl!=null) {
-                try {
-                    EntityWrapper entry = new EntityWrapper();
-                    entry.setOriginalField("");
-                    entry.setClassName(PlaceImpl.class.getName());
-                    entry.setContextualEntity(this.getObjectMapper().writeValueAsString(ptl.getRepresentation()));
-                    entry.setUrl(place.getCodeUri());
-                    entry.setOriginalValue(place.getOriginalLabel());
-                    placeCache.put(place.getLabel(), place.getCodeUri());
-                    placeUriCache.put(place.getCodeUri(), entry);
-                    placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
-                } catch (IOException var10) {
-                    Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var10);
+                if (ptl != null) {
+                    try {
+                        EntityWrapper entry = new EntityWrapper();
+                        entry.setOriginalField("");
+                        entry.setClassName(PlaceImpl.class.getName());
+                        entry.setContextualEntity(this.getObjectMapper().writeValueAsString(ptl.getRepresentation()));
+                        entry.setUrl(place.getCodeUri());
+                        entry.setOriginalValue(place.getOriginalLabel());
+
+                        placeCache.put(place.getLang() + ":" + place.getLabel(), place.getCodeUri());
+                        placeUriCache.put(place.getCodeUri(), entry);
+                        placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
+                    } catch (IOException var10) {
+                        Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var10);
+                    }
                 }
-            }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
@@ -226,25 +232,26 @@ public class InternalEnricher {
         Logger.getLogger(InternalEnricher.class.getName()).severe("Found timespans: " + timespanMongo3.size());
 
 
-        for(MongoTerm timespan:timespanMongo3) {
+        for (MongoTerm timespan : timespanMongo3) {
             try {
-                TimespanTermList tsl = (TimespanTermList)MongoDatabaseUtils.findByCode(timespan.getCodeUri(), "period");
+                TimespanTermList tsl = (TimespanTermList) MongoDatabaseUtils.findByCode(timespan.getCodeUri(), "period");
 
-        if(tsl!=null) {
-            try {
-                EntityWrapper ex = new EntityWrapper();
-                ex.setOriginalField("");
-                ex.setClassName(TimespanImpl.class.getName());
-                ex.setContextualEntity(this.getObjectMapper().writeValueAsString(tsl.getRepresentation()));
-                ex.setOriginalValue(timespan.getOriginalLabel());
-                ex.setUrl(timespan.getCodeUri());
-                timespanCache.put(timespan.getLabel(), timespan.getCodeUri());
-                timespanUriCache.put(timespan.getCodeUri(), ex);
-                timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
-            } catch (IOException var8) {
-                Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var8);
-            }
-        }
+                if (tsl != null) {
+                    try {
+                        EntityWrapper ex = new EntityWrapper();
+                        ex.setOriginalField("");
+                        ex.setClassName(TimespanImpl.class.getName());
+                        ex.setContextualEntity(this.getObjectMapper().writeValueAsString(tsl.getRepresentation()));
+                        ex.setOriginalValue(timespan.getOriginalLabel());
+                        ex.setUrl(timespan.getCodeUri());
+
+                        timespanCache.put(timespan.getLabel(), timespan.getCodeUri());
+                        timespanUriCache.put(timespan.getCodeUri(), ex);
+                        timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
+                    } catch (IOException var8) {
+                        Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var8);
+                    }
+                }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
@@ -270,28 +277,28 @@ public class InternalEnricher {
         for (InputValue inputValue : values) {
             for (EntityClass voc : inputValue.getVocabularies()) {
                 entities.addAll(findEntities(inputValue.getValue()
-                        .toLowerCase(), inputValue.getOriginalField(), voc));
+                        .toLowerCase(), inputValue.getOriginalField(), voc, inputValue.getLanguage()));
             }
         }
         return entities;
     }
 
     private List<? extends EntityWrapper> findEntities(String lowerCase,
-                                                       String field, EntityClass className)
+                                                       String field, EntityClass className, String lang)
             throws JsonGenerationException, JsonMappingException, IOException {
         List<EntityWrapper> entities = new ArrayList<EntityWrapper>();
         switch (className) {
             case AGENT:
-                entities.addAll(findAgentEntities(lowerCase, field));
+                entities.addAll(findAgentEntities(lowerCase, field, lang));
                 break;
             case CONCEPT:
-                entities.addAll(findConceptEntities(lowerCase, field));
+                entities.addAll(findConceptEntities(lowerCase, field, lang));
                 break;
             case PLACE:
-                entities.addAll(findPlaceEntities(lowerCase, field));
+                entities.addAll(findPlaceEntities(lowerCase, field, lang));
                 break;
             case TIMESPAN:
-                entities.addAll(findTimespanEntities(lowerCase, field));
+                entities.addAll(findTimespanEntities(lowerCase, field, lang));
             default:
                 break;
         }
@@ -299,19 +306,26 @@ public class InternalEnricher {
     }
 
     private List<EntityWrapper> findConceptEntities(String value,
-                                                    String originalField) throws JsonGenerationException,
+                                                    String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
         ArrayList concepts = new ArrayList();
-        if (conceptCache.get(value) != null) {
-            boolean i = false;
-            EntityWrapper entity = (EntityWrapper) conceptUriCache.get(conceptCache.get(value));
+
+        if (StringUtils.isEmpty(lang)) {
+            lang = "def";
+        }
+        if (conceptCache.get(lang + ":" + value) != null) {
+
+
+            EntityWrapper entity = (EntityWrapper) conceptUriCache.get(conceptCache.get(lang + ":" + value));
             entity.setOriginalField(originalField);
             concepts.add(entity);
             Iterator i$ = ((List) conceptParents.get(entity.getUrl())).iterator();
 
             while (i$.hasNext()) {
                 String uris = (String) i$.next();
-                concepts.add(conceptUriCache.get(uris));
+                if (uris != null) {
+                    concepts.add(conceptUriCache.get(uris));
+                }
             }
         }
 
@@ -332,21 +346,28 @@ public class InternalEnricher {
     }
 
     private List<? extends EntityWrapper> findAgentEntities(String value,
-                                                            String originalField) throws JsonGenerationException,
+                                                            String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
         ArrayList agents = new ArrayList();
-        if (agentCache.get(value) != null) {
-            boolean i = false;
-            EntityWrapper entity = (EntityWrapper) agentUriCache.get(agentCache.get(value));
+        if (StringUtils.isEmpty(lang)) {
+            lang = "def";
+        }
+        if (agentCache.get(lang + ":" + value) != null) {
+
+
+            EntityWrapper entity = (EntityWrapper) agentUriCache.get(agentCache.get(lang + ":" + value));
             entity.setOriginalField(originalField);
             agents.add(entity);
             Iterator i$ = ((List) agentParents.get(entity.getUrl())).iterator();
 
             while (i$.hasNext()) {
                 String uris = (String) i$.next();
-                agents.add(agentUriCache.get(uris));
+                if (uris != null) {
+                    agents.add(agentUriCache.get(uris));
+                }
             }
         }
+
 
         return agents;
     }
@@ -365,21 +386,27 @@ public class InternalEnricher {
     }
 
     private List<? extends EntityWrapper> findPlaceEntities(String value,
-                                                            String originalField) throws JsonGenerationException,
+                                                            String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
         ArrayList places = new ArrayList();
-        if (placeCache.get(value) != null) {
-            boolean i = false;
-            EntityWrapper entity = (EntityWrapper) placeUriCache.get(placeCache.get(value));
-            entity.setOriginalField(originalField);
-            places.add(entity);
-            Iterator i$ = ((List) placeParents.get(entity.getUrl())).iterator();
-
-            while (i$.hasNext()) {
-                String uris = (String) i$.next();
-                places.add(placeUriCache.get(uris));
-            }
+        if (StringUtils.isEmpty(lang)) {
+            lang = "def";
         }
+        if (placeCache.get(lang+":"+value) != null) {
+
+                EntityWrapper entity = (EntityWrapper) placeUriCache.get(placeCache.get(lang+":"+value));
+                entity.setOriginalField(originalField);
+                places.add(entity);
+                Iterator i$ = ((List) placeParents.get(entity.getUrl())).iterator();
+
+                while (i$.hasNext()) {
+                    String uris = (String) i$.next();
+                    if (uris != null) {
+                        places.add(placeUriCache.get(uris));
+                    }
+                }
+            }
+
 
         return places;
     }
@@ -399,20 +426,25 @@ public class InternalEnricher {
 
 
     private List<? extends EntityWrapper> findTimespanEntities(String value,
-                                                               String originalField) throws JsonGenerationException,
+                                                               String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
         ArrayList timespans = new ArrayList();
-        if (timespanCache.get(value) != null) {
-            boolean i = false;
-            EntityWrapper entity = (EntityWrapper) timespanUriCache.get(timespanCache.get(value));
-            entity.setOriginalField(originalField);
-            timespans.add(entity);
-            Iterator i$ = ((List) timespanParents.get(entity.getUrl())).iterator();
+        if (StringUtils.isEmpty(lang)) {
+            lang = "def";
+        }
+        if (timespanCache.get(lang+":"+value) != null) {
 
-            while (i$.hasNext()) {
-                String uris = (String) i$.next();
-                timespans.add(timespanUriCache.get(uris));
-            }
+                EntityWrapper entity = (EntityWrapper) timespanUriCache.get(timespanCache.get(lang+":"+value));
+                entity.setOriginalField(originalField);
+                timespans.add(entity);
+                Iterator i$ = ((List) timespanParents.get(entity.getUrl())).iterator();
+
+                while (i$.hasNext()) {
+                    String uris = (String) i$.next();
+                    if (uris != null) {
+                        timespans.add(timespanUriCache.get(uris));
+                    }
+                }
         }
 
         return timespans;
@@ -437,6 +469,23 @@ public class InternalEnricher {
         return parentEntities;
     }
 
+    public EntityWrapper getByUri(String uri){
+        if(agentUriCache.get(uri)!=null){
+            return agentUriCache.get(uri);
+        }
+        if(placeUriCache.get(uri)!=null){
+            return placeUriCache.get(uri);
+        }
+        if(conceptUriCache.get(uri)!=null){
+            return conceptUriCache.get(uri);
+        }
+        if(timespanUriCache.get(uri)!=null){
+            return timespanUriCache.get(uri);
+        }
+
+        if(MongoDatabaseUtils.)
+        return null;
+    }
 
     private ObjectMapper getObjectMapper() {
         return obj;

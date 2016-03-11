@@ -30,8 +30,8 @@ public class EntityRemover {
         }
         MongoDatabaseUtils.dbExists(host, port);
         
-        MongoDatabaseUtils.delete(uris);
-        en.remove(uris);
+        List<String> retUris = MongoDatabaseUtils.delete(uris);
+        en.remove(retUris);
 
     }
 

@@ -23,6 +23,8 @@ public class InputValue {
 
 	private String value;
 
+	private String language;
+
 	private List<EntityClass> vocabularies;
 
 	public String getOriginalField() {
@@ -49,4 +51,11 @@ public class InputValue {
 		this.vocabularies = vocabularies;
 	}
 
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
 }

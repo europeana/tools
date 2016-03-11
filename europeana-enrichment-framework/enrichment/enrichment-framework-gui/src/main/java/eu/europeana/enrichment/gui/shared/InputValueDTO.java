@@ -14,6 +14,8 @@ public class InputValueDTO implements IsSerializable{
 	private String vocabulary;
 	
 	private String value;
+
+	private String language;
 	
 	/**
 	 * The (optional) metadata field name that generated the enrichment
@@ -52,6 +54,11 @@ public class InputValueDTO implements IsSerializable{
 	}
 
 
-	
-	
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
 }
