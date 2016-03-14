@@ -65,7 +65,10 @@ public class InternalEnricher {
     private static Map<String, EntityWrapper> placeUriCache;
     private static Map<String, EntityWrapper> timespanUriCache;
 
-
+    private static Map<String, String> agentSameAsCache;
+    private static Map<String,String> timespanSameAsCache;
+    private static Map<String, String> conceptSameAsCache;
+    private static Map<String,String> placeSameAsCache;
 
     private static Map<String, List<String>> agentParents;
     private static Map<String, List<String>> conceptParents;
@@ -88,6 +91,10 @@ public class InternalEnricher {
         conceptParents = new ConcurrentHashMap();
         timespanParents = new ConcurrentHashMap();
         placeParents = new ConcurrentHashMap();
+        agentSameAsCache = new ConcurrentHashMap<>();
+        timespanSameAsCache  = new ConcurrentHashMap<>();
+        placeSameAsCache = new ConcurrentHashMap<>();
+        conceptSameAsCache = new ConcurrentHashMap<>();
         populate();
     }
 
@@ -144,6 +151,11 @@ public class InternalEnricher {
                         agentCache.put(agent.getLang() + ":" + agent.getLabel(), agent.getCodeUri());
                         agentUriCache.put(agent.getCodeUri(), ag);
                         agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
+                        if(atl.getOwlSameAs()!=null) {
+                            for (String sameAs : atl.getOwlSameAs()) {
+                                agentSameAsCache.put(sameAs, agent.getCodeUri());
+                            }
+                        }
                     } catch (IOException var14) {
                         Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var14);
                     }
@@ -178,6 +190,11 @@ public class InternalEnricher {
                         conceptCache.put(concept.getLang() + ":" + concept.getLabel(), concept.getCodeUri());
                         conceptUriCache.put(concept.getCodeUri(), i$);
                         conceptParents.put(concept.getCodeUri(), this.findConceptParents(ctl.getParent()));
+                        if(ctl.getOwlSameAs()!=null){
+                            for(String sameAs:ctl.getOwlSameAs()){
+                                conceptSameAsCache.put(sameAs,ctl.getCodeUri());
+                            }
+                        }
                     } catch (IOException var12) {
                         Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var12);
                     }
@@ -213,6 +230,11 @@ public class InternalEnricher {
                         placeCache.put(place.getLang() + ":" + place.getLabel(), place.getCodeUri());
                         placeUriCache.put(place.getCodeUri(), entry);
                         placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
+                        if (ptl.getOwlSameAs()!=null){
+                            for (String sameAs:ptl.getOwlSameAs()){
+                                placeSameAsCache.put(sameAs,ptl.getCodeUri());
+                            }
+                        }
                     } catch (IOException var10) {
                         Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var10);
                     }
@@ -248,6 +270,11 @@ public class InternalEnricher {
                         timespanCache.put(timespan.getLabel(), timespan.getCodeUri());
                         timespanUriCache.put(timespan.getCodeUri(), ex);
                         timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
+                        if(tsl.getOwlSameAs()!=null){
+                            for (String sameAs:tsl.getOwlSameAs()){
+                                timespanSameAsCache.put(sameAs,tsl.getCodeUri());
+                            }
+                        }
                     } catch (IOException var8) {
                         Logger.getLogger(InternalEnricher.class.getName()).log(Level.SEVERE, (String) null, var8);
                     }
@@ -483,7 +510,18 @@ public class InternalEnricher {
             return timespanUriCache.get(uri);
         }
 
-        if(MongoDatabaseUtils.)
+        if(agentSameAsCache.get(uri)!=null){
+            return agentUriCache.get(agentSameAsCache.get(uri));
+        }
+        if(timespanSameAsCache.get(uri)!=null){
+            return timespanUriCache.get(timespanSameAsCache.get(uri));
+        }
+        if(placeSameAsCache.get(uri)!=null){
+            return placeUriCache.get(placeSameAsCache.get(uri));
+        }
+        if(conceptSameAsCache.get(uri)!=null){
+            return conceptUriCache.get(conceptSameAsCache.get(uri));
+        }
         return null;
     }
 
