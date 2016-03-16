@@ -305,7 +305,7 @@ public class MainPage implements EntryPoint {
                     inputDTO.setLanguage(txtLanguage.getText());
                     txtOriginal.setText("");
                     txtValue.setText("");
-
+                    txtLanguage.setText("");
                     inputValueDTOs.add(inputDTO);
                     inputValueProvider.updateRowCount(inputValueDTOs.size(), true);
                     inputValueProvider.updateRowData(0, inputValueDTOs);

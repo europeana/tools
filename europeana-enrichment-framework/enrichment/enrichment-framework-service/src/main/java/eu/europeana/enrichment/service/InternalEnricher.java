@@ -148,7 +148,7 @@ public class InternalEnricher {
                         ag.setUrl(agent.getCodeUri());
                         ag.setOriginalValue(agent.getOriginalLabel());
 
-                        agentCache.put(agent.getLang() + ":" + agent.getLabel(), agent.getCodeUri());
+                        agentCache.put((agent.getLang()==null?"def":agent.getLang()) + ":" + agent.getLabel(), agent.getCodeUri());
                         agentUriCache.put(agent.getCodeUri(), ag);
                         agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
                         if(atl.getOwlSameAs()!=null) {
@@ -187,7 +187,7 @@ public class InternalEnricher {
                         i$.setUrl(concept.getCodeUri());
                         i$.setOriginalValue(concept.getOriginalLabel());
 
-                        conceptCache.put(concept.getLang() + ":" + concept.getLabel(), concept.getCodeUri());
+                        conceptCache.put((concept.getLang()==null?"def":concept.getLang()) + ":" + concept.getLabel(), concept.getCodeUri());
                         conceptUriCache.put(concept.getCodeUri(), i$);
                         conceptParents.put(concept.getCodeUri(), this.findConceptParents(ctl.getParent()));
                         if(ctl.getOwlSameAs()!=null){
@@ -227,7 +227,7 @@ public class InternalEnricher {
                         entry.setUrl(place.getCodeUri());
                         entry.setOriginalValue(place.getOriginalLabel());
 
-                        placeCache.put(place.getLang() + ":" + place.getLabel(), place.getCodeUri());
+                        placeCache.put((place.getLang()==null?"def":place.getLang()) + ":" + place.getLabel(), place.getCodeUri());
                         placeUriCache.put(place.getCodeUri(), entry);
                         placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
                         if (ptl.getOwlSameAs()!=null){
@@ -267,7 +267,7 @@ public class InternalEnricher {
                         ex.setOriginalValue(timespan.getOriginalLabel());
                         ex.setUrl(timespan.getCodeUri());
 
-                        timespanCache.put(timespan.getLabel(), timespan.getCodeUri());
+                        timespanCache.put((timespan.getLang()==null?"def":timespan.getLang())+":"+timespan.getLabel(), timespan.getCodeUri());
                         timespanUriCache.put(timespan.getCodeUri(), ex);
                         timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
                         if(tsl.getOwlSameAs()!=null){

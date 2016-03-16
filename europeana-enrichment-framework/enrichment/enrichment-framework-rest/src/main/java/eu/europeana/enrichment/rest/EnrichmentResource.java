@@ -1,18 +1,11 @@
 package eu.europeana.enrichment.rest;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Logger;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
+import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.api.external.*;
+import eu.europeana.enrichment.service.Enricher;
 import eu.europeana.enrichment.service.EntityRemover;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -23,13 +16,16 @@ import org.codehaus.jackson.map.module.SimpleModule;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.corelib.solr.entity.PlaceImpl;
-import eu.europeana.corelib.solr.entity.TimespanImpl;
-import eu.europeana.enrichment.service.Enricher;
-import org.springframework.web.bind.annotation.RequestParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 @Path("/")
 @Component
@@ -59,10 +55,10 @@ public class EnrichmentResource {
         return Response.ok().build();
     }
 
-	@GET
+	@POST
 	@Path("getByUri")
 	@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
-	public Response getByUri(@RequestParam("uri") String uri, @RequestParam("toXml")boolean toEdm){
+	public Response getByUri(@FormParam("uri") String uri, @FormParam("toXml")boolean toEdm){
 
 		EntityWrapper wrapper = enricher.getByUri(uri);
 		if(wrapper!=null) {

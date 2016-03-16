@@ -59,7 +59,7 @@ public class EnrichmentDriver {
         form.param("input", new ObjectMapper().writeValueAsString(inList));
         form.param("toXml", Boolean.toString(toEdm));
         Response res = client
-                .target(path)
+                .target(path+"enrich")
                 .request()
                 .post(Entity
                                 .entity(form, MediaType.APPLICATION_FORM_URLENCODED),
@@ -91,9 +91,14 @@ public class EnrichmentDriver {
     }
 
     public EntityWrapper getByUri(String uri) throws IOException {
+        Form form = new Form();
+        form.param("uri", uri);
+        form.param("toXml","true");
         Response res = client
-                .target(path).queryParam("uri", uri).queryParam("toXml", true)
-                .request().get(Response.class);
+                .target(path + "getByUri")
+                .request().post(Entity
+                                .entity(form, MediaType.APPLICATION_FORM_URLENCODED),
+                        Response.class);
         if (res.getStatus() == Status.NO_CONTENT.getStatusCode()) {
             return null;
         } else {

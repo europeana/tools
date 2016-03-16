@@ -1,19 +1,6 @@
 package eu.europeana.enrichment.gui.server;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
@@ -21,7 +8,16 @@ import eu.europeana.enrichment.gui.client.EnrichmentService;
 import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 		EnrichmentService {
@@ -29,8 +25,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 	 * 
 	 */
 	private static final long serialVersionUID = 2840650647541713067L;
-	Logger log = Logger.getLogger(this.getClass());
-	EnrichmentDriver driver; 
+	EnrichmentDriver driver;
 
 	public EnrichmentServiceImpl() {
 		super();
@@ -62,6 +57,7 @@ public class EnrichmentServiceImpl extends RemoteServiceServlet implements
 			List<EntityClass> classes = new ArrayList<EntityClass>();
 			classes.add(EntityClass.valueOf(value.getVocabulary()));
 			inputValue.setVocabularies(classes);
+			inputValue.setLanguage(value.getLanguage());
 			inputValues.add(inputValue);
 		}
 
