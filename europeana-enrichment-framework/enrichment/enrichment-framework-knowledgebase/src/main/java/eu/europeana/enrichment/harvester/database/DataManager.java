@@ -1,5 +1,23 @@
 package eu.europeana.enrichment.harvester.database;
 
+import com.google.code.morphia.Datastore;
+import com.google.code.morphia.Morphia;
+import com.google.code.morphia.query.Query;
+import com.google.code.morphia.query.UpdateOperations;
+import com.google.code.morphia.query.UpdateResults;
+import com.mongodb.*;
+import com.mongodb.util.JSON;
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.enrichment.api.internal.*;
+import eu.europeana.enrichment.harvester.api.AgentMap;
+import org.apache.commons.lang.StringUtils;
+import org.jibx.runtime.JiBXException;
+import org.mongojack.DBQuery;
+import org.mongojack.DBRef;
+import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
+
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -12,41 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
-
-
-import com.google.code.morphia.query.Query;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.update.UpdateLog;
-import org.jibx.runtime.JiBXException;
-
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
-
-import com.google.code.morphia.query.UpdateOperations;
-import com.google.code.morphia.query.UpdateResults;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
-
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.enrichment.api.internal.AgentTermList;
-import eu.europeana.enrichment.api.internal.ConceptTermList;
-import eu.europeana.enrichment.api.internal.MongoTerm;
-import eu.europeana.enrichment.api.internal.PlaceTermList;
-import eu.europeana.enrichment.api.internal.TimespanTermList;
-import eu.europeana.enrichment.harvester.api.AgentMap;
-import eu.europeana.enrichment.converters.*;
-import org.mongojack.DBQuery;
-import org.mongojack.DBRef;
-import org.mongojack.JacksonDBCollection;
-import org.mongojack.WriteResult;
 
 public class DataManager {
 

@@ -1,21 +1,16 @@
 package eu.europeana.enrichment.harvester.transform.edm.concept;
 
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.enrichment.harvester.transform.XslTransformer;
+import eu.europeana.enrichment.harvester.transform.util.NormalizeUtils;
+
+import javax.xml.transform.*;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.enrichment.harvester.transform.util.NormalizeUtils;
-import eu.europeana.enrichment.harvester.transform.XslTransformer;
 
 /**
  * Concept Transformer class. It will transform any Controlled Vocabulary resource to an ConceptImpl by first applying the

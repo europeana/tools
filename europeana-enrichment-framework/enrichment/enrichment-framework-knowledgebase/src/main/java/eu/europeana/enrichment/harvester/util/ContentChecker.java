@@ -1,5 +1,9 @@
 package eu.europeana.enrichment.harvester.util;
 
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.enrichment.harvester.api.AgentMap;
+import eu.europeana.enrichment.harvester.database.DataManager;
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -8,12 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.jena.atlas.json.JsonObject;
-
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.enrichment.harvester.api.AgentMap;
-import eu.europeana.enrichment.harvester.database.DataManager;
 
 public class ContentChecker {
 

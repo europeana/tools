@@ -1,6 +1,7 @@
 package eu.europeana.enrichment.harvester.transform;
 
 import eu.europeana.corelib.definitions.edm.entity.ContextualClass;
+
 import javax.xml.transform.Source;
 
 

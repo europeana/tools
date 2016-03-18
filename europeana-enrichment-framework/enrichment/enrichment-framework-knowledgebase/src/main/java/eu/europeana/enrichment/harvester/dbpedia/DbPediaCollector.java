@@ -1,58 +1,29 @@
 package eu.europeana.enrichment.harvester.dbpedia;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.swing.text.html.HTMLDocument.Iterator;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Element;
- 
-
-
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFWriter;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
-
 import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.enrichment.converters.ContextualEntityToXmlConverter;
 import eu.europeana.enrichment.harvester.api.AgentMap;
 import eu.europeana.enrichment.harvester.database.DataManager;
 import eu.europeana.enrichment.harvester.transform.edm.agent.AgentTransformer;
 import eu.europeana.enrichment.harvester.transform.edm.concept.ConceptTransformer;
 import eu.europeana.enrichment.harvester.util.MongoDataSerializer;
-import eu.europeana.enrichment.converters.ContextualEntityToXmlConverter;
+import org.w3c.dom.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DbPediaCollector {
 
@@ -327,7 +298,7 @@ public class DbPediaCollector {
 	            
 	            
 	            doc.appendChild(mainRootElement);
-	            Set <String> conceptsSet = new HashSet<String>();
+	            Set<String> conceptsSet = new HashSet<String>();
 
 	            for(String line; (line = br.readLine()) != null; ) {
 	    	        if (line!=null && line.trim().startsWith("http://dbpedia")){

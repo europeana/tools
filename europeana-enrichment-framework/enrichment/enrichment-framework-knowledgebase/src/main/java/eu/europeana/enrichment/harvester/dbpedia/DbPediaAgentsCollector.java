@@ -1,22 +1,17 @@
 package eu.europeana.enrichment.harvester.dbpedia;
 
-import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
-
-import java.util.logging.Logger;
-
-import eu.europeana.enrichment.harvester.database.DataManager;
 import eu.europeana.enrichment.harvester.api.AgentMap;
-
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-
+import eu.europeana.enrichment.harvester.database.DataManager;
 import org.apache.commons.lang.StringUtils;
+
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DbPediaAgentsCollector {
 

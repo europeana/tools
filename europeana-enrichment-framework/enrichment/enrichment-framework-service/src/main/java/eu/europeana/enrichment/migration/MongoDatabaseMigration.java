@@ -1,31 +1,15 @@
 package eu.europeana.enrichment.migration;
 
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.mongodb.*;
+import eu.europeana.corelib.solr.entity.AbstractEdmEntityImpl;
+import eu.europeana.enrichment.api.internal.*;
 import org.apache.commons.lang3.StringUtils;
 import org.mongojack.DBCursor;
 import org.mongojack.JacksonDBCollection;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DuplicateKeyException;
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.ServerAddress;
-
-import eu.europeana.corelib.solr.entity.AbstractEdmEntityImpl;
-import eu.europeana.enrichment.api.internal.AgentTermList;
-import eu.europeana.enrichment.api.internal.ConceptTermList;
-import eu.europeana.enrichment.api.internal.ContextualCategory;
-import eu.europeana.enrichment.api.internal.MongoCodeLookup;
-import eu.europeana.enrichment.api.internal.MongoSequence;
-import eu.europeana.enrichment.api.internal.MongoTerm;
-import eu.europeana.enrichment.api.internal.MongoTermList;
-import eu.europeana.enrichment.api.internal.PlaceTermList;
-import eu.europeana.enrichment.api.internal.TimespanTermList;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author hgeorgiadis
@@ -377,30 +361,33 @@ public class MongoDatabaseMigration {
 			mongoSequence = new MongoSequence();
 		}
 
+		/*
 		migratePhaseOne(conceptTermListColl_source, conceptTermColl_source, conceptTermListColl_target,
 				conceptTermColl_target, ContextualCategory.CONCEPT, "concept");
 		migratePhaseOne(timespanTermListColl_source, timespanTermColl_source, timespanTermListColl_target,
 				timespanTermColl_target, ContextualCategory.TIMESPAN, "period");
 		migratePhaseOne(agentTermListColl_source, agentTermColl_source, agentTermListColl_target, agentTermColl_target,
-				ContextualCategory.AGENT, "people");
+				ContextualCategory.AGENT, "people");*/
 		migratePhaseOne(placeTermListColl_source, placeTermColl_source, placeTermListColl_target, placeTermColl_target,
 				ContextualCategory.PLACE, "place");
 
 		// loadCache();
 
+		/*
 		migratePhaseTwo(conceptTermColl_source, conceptTermColl_target, ContextualCategory.CONCEPT, 0);
 		migratePhaseTwo(timespanTermColl_source, timespanTermColl_target, ContextualCategory.TIMESPAN, 0);
 		migratePhaseTwo(agentTermColl_source, agentTermColl_target, ContextualCategory.AGENT, 0);
+		*/
 		migratePhaseTwo(placeTermColl_source, placeTermColl_target, ContextualCategory.PLACE, 0);
 
-		migratePhaseThree(conceptTermListColl_source, conceptTermListColl_target,
+		/*migratePhaseThree(conceptTermListColl_source, conceptTermListColl_target,
 				new ConceptRepresentationMigration(lookupCodeUri, lookupOriginalCodeUri), ContextualCategory.CONCEPT,
 				0);
 		migratePhaseThree(timespanTermListColl_source, timespanTermListColl_target,
 				new TimespanRepresentationMigration(lookupCodeUri, lookupOriginalCodeUri), ContextualCategory.TIMESPAN,
 				0);
 		migratePhaseThree(agentTermListColl_source, agentTermListColl_target,
-				new AgentRepresentationMigration(lookupCodeUri, lookupOriginalCodeUri), ContextualCategory.AGENT, 0);
+				new AgentRepresentationMigration(lookupCodeUri, lookupOriginalCodeUri), ContextualCategory.AGENT, 0);*/
 		migratePhaseThree(placeTermListColl_source, placeTermListColl_target,
 				new PlaceRepresentationMigration(lookupCodeUri, lookupOriginalCodeUri), ContextualCategory.PLACE, 0);
 

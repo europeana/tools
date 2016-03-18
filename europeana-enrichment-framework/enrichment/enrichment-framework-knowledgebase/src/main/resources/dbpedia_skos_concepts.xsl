@@ -4,12 +4,12 @@
 	: gmamakis, cesare Description: Map DBPedia to EDM-Agent -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	version="1.0" xmlns:edm="http://www.europeana.eu/schemas/edm/"
-	xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"
-	xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:skos="http://www.w3.org/2004/02/skos/core#"
-	xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	xmlns:rdaGr2="http://rdvocab.info/ElementsGr2/" xmlns:dbpedia-owl="http://dbpedia.org/ontology/"
-	xmlns:dbpprop="http://dbpedia.org/property/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+				version="1.0"
+				xmlns:dcterms="http://purl.org/dc/terms/"
+				xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+				xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+				xmlns:dbpedia-owl="http://dbpedia.org/ontology/"
+				xmlns:dbpprop="http://dbpedia.org/property/" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
 	<xsl:output indent="yes" />
 	<xsl:param name="rdf_about">
 		<xsl:text>test</xsl:text>

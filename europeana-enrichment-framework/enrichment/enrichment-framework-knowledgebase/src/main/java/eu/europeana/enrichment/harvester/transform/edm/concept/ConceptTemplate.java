@@ -1,10 +1,10 @@
 package eu.europeana.enrichment.harvester.transform.edm.concept;
 
-import java.util.Map;
-
 import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.enrichment.harvester.transform.util.CsvUtils;
 import eu.europeana.enrichment.harvester.transform.Template;
+import eu.europeana.enrichment.harvester.transform.util.CsvUtils;
+
+import java.util.Map;
 
 /**
  * Concept specific implementation of a Template. The template loads the predefined mapping between EDM/XML fields and setter methods and generates a valide 

@@ -1,12 +1,12 @@
 package eu.europeana.enrichment.harvester.transform.util;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * Utility class that will read a ;-separated CSV file and will generate the mapping between a EDM/XML and a Contextual

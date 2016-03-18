@@ -1,29 +1,15 @@
 package eu.europeana.enrichment.harvester.util;
 
-import java.awt.List;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.validator.routines.UrlValidator;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.corelib.solr.entity.ConceptImpl;
-
+import org.apache.commons.validator.routines.UrlValidator;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.io.IOException;
 
 public class MongoDataSerializer {
 

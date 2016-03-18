@@ -235,7 +235,9 @@ public class Enricher {
 			vocabularyOfPlaces.loadTermPropertiesSPARQL("country",
 					makePlacePropertyQuery("country"), cacheDir, baseDir,
 					placeFiles, countryFiles);
-
+			/*vocabularyOfPlaces.loadTermPropertiesSPARQL("skos",
+					makePlacePropertyQuery("country"), cacheDir, baseDir,
+					placeFiles, countryFiles);*/
 			MongoDatabaseUtils.save("place", vocabularyOfPlaces);
 			String timeFiles = "time/*.rdf";
 			vocabularyOfPeriods.loadTermsSPARQL(

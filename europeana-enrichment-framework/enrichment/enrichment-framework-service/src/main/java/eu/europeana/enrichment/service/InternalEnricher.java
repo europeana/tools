@@ -15,6 +15,23 @@ a * Copyright 2005-2009 the original author or authors.
  */
 package eu.europeana.enrichment.service;
 
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
+import eu.europeana.corelib.solr.entity.TimespanImpl;
+import eu.europeana.enrichment.api.external.EntityClass;
+import eu.europeana.enrichment.api.external.EntityWrapper;
+import eu.europeana.enrichment.api.external.InputValue;
+import eu.europeana.enrichment.api.external.ObjectIdSerializer;
+import eu.europeana.enrichment.api.internal.*;
+import eu.europeana.enrichment.utils.MongoDatabaseUtils;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.Version;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.module.SimpleModule;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -24,24 +41,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import eu.europeana.enrichment.api.internal.*;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.module.SimpleModule;
-
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.corelib.solr.entity.PlaceImpl;
-import eu.europeana.corelib.solr.entity.TimespanImpl;
-import eu.europeana.enrichment.api.external.EntityClass;
-import eu.europeana.enrichment.api.external.EntityWrapper;
-import eu.europeana.enrichment.api.external.InputValue;
-import eu.europeana.enrichment.api.external.ObjectIdSerializer;
-import eu.europeana.enrichment.utils.MongoDatabaseUtils;
 
 /**
  * Main enrichment class
@@ -147,8 +146,10 @@ public class InternalEnricher {
                         ag.setContextualEntity(this.getObjectMapper().writeValueAsString(atl.getRepresentation()));
                         ag.setUrl(agent.getCodeUri());
                         ag.setOriginalValue(agent.getOriginalLabel());
-
-                        agentCache.put((agent.getLang()==null?"def":agent.getLang()) + ":" + agent.getLabel(), agent.getCodeUri());
+                        agentCache.put("def:" + agent.getLabel(), agent.getCodeUri());
+                        if(agent.getLang()!=null&& !StringUtils.equals(agent.getLang(),"def")) {
+                            agentCache.put(agent.getLang() + ":" + agent.getLabel(), agent.getCodeUri());
+                        }
                         agentUriCache.put(agent.getCodeUri(), ag);
                         agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
                         if(atl.getOwlSameAs()!=null) {
@@ -186,8 +187,10 @@ public class InternalEnricher {
                         i$.setContextualEntity(this.getObjectMapper().writeValueAsString(ctl.getRepresentation()));
                         i$.setUrl(concept.getCodeUri());
                         i$.setOriginalValue(concept.getOriginalLabel());
-
-                        conceptCache.put((concept.getLang()==null?"def":concept.getLang()) + ":" + concept.getLabel(), concept.getCodeUri());
+                        conceptCache.put("def:" + concept.getLabel(), concept.getCodeUri());
+                        if(concept.getLang()!=null&&StringUtils.equals(concept.getLang(),"def")) {
+                            conceptCache.put(concept.getLang() + ":" + concept.getLabel(), concept.getCodeUri());
+                        }
                         conceptUriCache.put(concept.getCodeUri(), i$);
                         conceptParents.put(concept.getCodeUri(), this.findConceptParents(ctl.getParent()));
                         if(ctl.getOwlSameAs()!=null){
@@ -226,8 +229,11 @@ public class InternalEnricher {
                         entry.setContextualEntity(this.getObjectMapper().writeValueAsString(ptl.getRepresentation()));
                         entry.setUrl(place.getCodeUri());
                         entry.setOriginalValue(place.getOriginalLabel());
-
-                        placeCache.put((place.getLang()==null?"def":place.getLang()) + ":" + place.getLabel(), place.getCodeUri());
+                        placeCache.put("def:" + place.getLabel(), place.getCodeUri());
+                        if(place.getLang()!=null&&!StringUtils.equals("def",place.getLang())){
+                            placeCache.put(place.getLang()+":" + place.getLabel(), place.getCodeUri());
+                        }
+                        placeCache.put(place.getLang() + ":" + place.getLabel(), place.getCodeUri());
                         placeUriCache.put(place.getCodeUri(), entry);
                         placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
                         if (ptl.getOwlSameAs()!=null){
@@ -266,8 +272,10 @@ public class InternalEnricher {
                         ex.setContextualEntity(this.getObjectMapper().writeValueAsString(tsl.getRepresentation()));
                         ex.setOriginalValue(timespan.getOriginalLabel());
                         ex.setUrl(timespan.getCodeUri());
-
-                        timespanCache.put((timespan.getLang()==null?"def":timespan.getLang())+":"+timespan.getLabel(), timespan.getCodeUri());
+                        timespanCache.put("def:"+timespan.getLabel(), timespan.getCodeUri());
+                        if(timespan.getLang()!=null && StringUtils.equals("def",timespan.getLang())) {
+                            timespanCache.put(timespan.getLang() + ":" + timespan.getLabel(), timespan.getCodeUri());
+                        }
                         timespanUriCache.put(timespan.getCodeUri(), ex);
                         timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
                         if(tsl.getOwlSameAs()!=null){

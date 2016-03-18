@@ -1,29 +1,17 @@
 package eu.europeana.enrichment.harvester.freebase;
 
+import com.hp.hpl.jena.query.*;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.tdb.TDBFactory;
+import eu.europeana.enrichment.harvester.api.AgentMap;
+import eu.europeana.enrichment.harvester.database.DataManager;
+import org.apache.commons.lang.StringUtils;
+
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Model;
-
-import com.hp.hpl.jena.tdb.TDBFactory;
-
-import java.util.logging.Logger;
-
-import eu.europeana.enrichment.harvester.database.DataManager;
-import eu.europeana.enrichment.harvester.api.AgentMap;
-
-import java.net.URISyntaxException;
 import java.util.logging.Level;
-
-import org.apache.commons.lang.StringUtils;
+import java.util.logging.Logger;
 
 public class FreebaseAgentsCollector {
 

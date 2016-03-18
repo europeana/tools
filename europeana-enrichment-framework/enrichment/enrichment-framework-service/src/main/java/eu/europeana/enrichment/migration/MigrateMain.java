@@ -9,7 +9,7 @@ import java.net.UnknownHostException;
 public class MigrateMain {
 
 	public static void main(String[] args) {
-		String sourceHost;
+		/*String sourceHost;
 		int sourcePort = 0;
 		String sourceDBName;
 		String targetHost;
@@ -39,7 +39,14 @@ public class MigrateMain {
 					"Argument #5 is a source mongo port and must be an integer. '" + args[4] + "' is not an integer");
 		}
 		targetDBName = args[5];
+*/
 
+		String sourceHost="172.17.0.2";
+		int sourcePort = 27017;
+		String sourceDBName="annocultor_db";
+		String targetHost="172.17.0.2";
+		int targetPort = 27017;
+		String targetDBName="annocultor_db_new";
 		MongoDatabaseMigration mongoDatabaseMigration = null;
 		try {
 			mongoDatabaseMigration = new MongoDatabaseMigration(sourceHost, sourcePort, sourceDBName, targetHost,
