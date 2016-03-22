@@ -7,6 +7,9 @@ import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.api.external.*;
 import eu.europeana.enrichment.service.Enricher;
 import eu.europeana.enrichment.service.EntityRemover;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.Version;
@@ -30,6 +33,7 @@ import java.util.logging.Logger;
 @Path("/")
 @Component
 @Scope("request")
+@Api("/")
 public class EnrichmentResource {
 	Logger log = Logger.getLogger(this.getClass().getName());
 	private static Enricher enricher = new Enricher("");
@@ -58,6 +62,7 @@ public class EnrichmentResource {
 	@POST
 	@Path("getByUri")
 	@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+	@ApiOperation(value = "Retrieve an entity by URI or its sameAs", response = EntityWrapper.class)
 	public Response getByUri(@FormParam("uri") String uri, @FormParam("toXml")boolean toEdm){
 
 		EntityWrapper wrapper = enricher.getByUri(uri);
@@ -93,8 +98,9 @@ public class EnrichmentResource {
     @Path("enrich")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Response enrich(@FormParam("input") String input,
-            @FormParam("toXml") String toXML) throws JsonParseException,
+	@ApiOperation(value = "Enrich a series of field value pairs", response = EntityWrapperList.class)
+    public Response enrich(@ApiParam("input")@FormParam("input") String input,
+            @ApiParam("toXml")@FormParam("toXml") String toXML) throws JsonParseException,
             JsonMappingException, IOException, Exception {
         try{
 			ObjectMapper mapper = new ObjectMapper();
