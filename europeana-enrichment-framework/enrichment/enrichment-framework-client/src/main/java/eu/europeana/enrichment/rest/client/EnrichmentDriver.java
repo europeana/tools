@@ -91,6 +91,7 @@ public class EnrichmentDriver {
     }
 
     public EntityWrapper getByUri(String uri) throws IOException {
+
         Form form = new Form();
         form.param("uri", uri);
         form.param("toXml","true");
@@ -102,7 +103,8 @@ public class EnrichmentDriver {
         if (res.getStatus() == Status.NO_CONTENT.getStatusCode()) {
             return null;
         } else {
-            return new ObjectMapper().readValue(res.readEntity(String.class),
+            String entity =res.readEntity(String.class);
+            return new ObjectMapper().readValue(entity,
                     EntityWrapper.class);
         }
     }

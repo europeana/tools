@@ -38,7 +38,7 @@ public class EntityAppender {
 
     private void addEntities(FullBean fBean,
 			ProxyImpl europeanaProxy, List<RetrievedEntity> enrichedEntities)
-			throws JsonParseException, JsonMappingException, IOException {
+			throws  IOException {
 
 		for (RetrievedEntity enrichedEntity : enrichedEntities) {
 			if (enrichedEntity.getEntity().getClass().getName().equals(
@@ -178,7 +178,6 @@ public class EntityAppender {
 			}
 
 		}
-//		new PlaceSolrCreator().create(basicDocument, place);
 
 	}
 

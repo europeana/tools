@@ -1,33 +1,25 @@
 package eu.europeana.enrichment.rest.client.main;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import eu.europeana.enrichment.api.external.EntityWrapper;
+import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.enrichment.api.external.EntityClass;
-import eu.europeana.enrichment.api.external.EntityWrapper;
-import eu.europeana.enrichment.api.external.EntityWrapperList;
-import eu.europeana.enrichment.api.external.InputValue;
-import eu.europeana.enrichment.api.external.InputValueList;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 public class EnrichmentClient {
 
 	public static void main(String[] args) throws JsonGenerationException, JsonMappingException, IOException {
 
 		JerseyClient client = JerseyClientBuilder.createClient();
-		List<InputValue> values = new ArrayList<InputValue>();
+		/*List<InputValue> values = new ArrayList<InputValue>();
 
 		InputValue val1 = new InputValue();
 		val1.setOriginalField("proxy_dc_subject");
@@ -79,22 +71,26 @@ public class EnrichmentClient {
 		values.add(val6);
 		InputValueList inList = new InputValueList();
 		inList.setInputValueList(values);
-		
+		*/
 		ObjectMapper obj = new ObjectMapper();
 		
-		client.register(InputValueList.class);
+		//client.register(InputValueList.class);
 		
 		Form form = new Form();
-		form.param("input", obj.writeValueAsString(inList));
+		form.param("uri", "http://data.europeana.eu/concept/base/96");
 		form.param("toXml", Boolean.toString(true));
 		Response res = client.target(
-				"http://testenv-solr.eanadev.org:9191/enrichment-framework-rest-0.1-SNAPSHOT/enrich/")
+				"http://136.243.103.29:8080/enrichment-framework-rest-0.1-SNAPSHOT/getByUri/")
 				.request()
 				.post(Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED), 
 						Response.class);
-		List<EntityWrapper> entities = new ObjectMapper().readValue(res.readEntity(String.class),EntityWrapperList.class).getWrapperList();
-		System.out.println(res);
-		
+		EntityWrapper entity = new ObjectMapper().readValue(res.readEntity(String.class),EntityWrapper.class);
+		EnrichmentDriver driver = new EnrichmentDriver("http://136.243.103.29:8080/enrichment-framework-rest-0.1-SNAPSHOT/");
+		EntityWrapper entityRet = driver.getByUri("http://vocab.getty.edu/aat/300177435");
+
+
+
+		System.out.println(entityRet.getContextualEntity());
 	}
 
 }

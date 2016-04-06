@@ -1,48 +1,30 @@
 package eu.europeana.enrichment.utils;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.Mongo;
+import com.mongodb.MongoException;
+import eu.europeana.corelib.solr.entity.AgentImpl;
+import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
+import eu.europeana.corelib.solr.entity.TimespanImpl;
+import eu.europeana.enrichment.api.internal.*;
+import eu.europeana.enrichment.tagger.vocabularies.*;
+import org.apache.commons.lang.StringUtils;
+import org.jibx.runtime.JiBXException;
+import org.mongojack.DBCursor;
+import org.mongojack.DBRef;
+import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
-import com.mongodb.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.update.UpdateLog;
-import org.jibx.runtime.JiBXException;
-
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.corelib.solr.entity.ConceptImpl;
-import eu.europeana.corelib.solr.entity.PlaceImpl;
-import eu.europeana.corelib.solr.entity.TimespanImpl;
-import eu.europeana.enrichment.api.internal.AgentTermList;
-import eu.europeana.enrichment.api.internal.ConceptTermList;
-import eu.europeana.enrichment.api.internal.MongoTerm;
-import eu.europeana.enrichment.api.internal.MongoTermList;
-import eu.europeana.enrichment.api.internal.PlaceTermList;
-import eu.europeana.enrichment.api.internal.Term;
-import eu.europeana.enrichment.api.internal.TermList;
-import eu.europeana.enrichment.api.internal.TimespanTermList;
-import eu.europeana.enrichment.tagger.vocabularies.AbstractVocabulary;
-import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPeople;
-import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfPlaces;
-import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTerms;
-import eu.europeana.enrichment.tagger.vocabularies.VocabularyOfTime;
-import org.mongojack.*;
-import org.mongojack.DBCursor;
-import org.mongojack.DBRef;
-import org.mongojack.WriteResult;
 
 
 /**
@@ -272,7 +254,7 @@ public class MongoDatabaseUtils<T> {
 
     private static TimespanTermList findTimespanByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
-        DBCursor<TimespanTermList> curs = tColl.find().is("codeUri", codeUri);
+        DBCursor<TimespanTermList> curs = tColl.find(new BasicDBObject("entityType","TimespanImpl")).is("codeUri", codeUri);
         if (curs.hasNext()) {
             TimespanTermList terms = curs.next();
             typeMap.put(codeUri, terms);
@@ -284,7 +266,7 @@ public class MongoDatabaseUtils<T> {
 
     private static MongoTermList findAgentByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
-        DBCursor<AgentTermList> curs = aColl.find().is("codeUri", codeUri);
+        DBCursor<AgentTermList> curs = aColl.find(new BasicDBObject("entityType","AgentImpl")).is("codeUri", codeUri);
 
         if (curs.hasNext()) {
             AgentTermList terms = curs.next();
@@ -296,7 +278,7 @@ public class MongoDatabaseUtils<T> {
 
     private static MongoTermList findPlaceByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
-        DBCursor<PlaceTermList> curs = pColl.find().is("codeUri", codeUri);
+        DBCursor<PlaceTermList> curs = pColl.find(new BasicDBObject("entityType","PlaceImpl")).is("codeUri", codeUri);
         if (curs.hasNext()) {
             PlaceTermList terms = curs.next();
 
@@ -307,7 +289,7 @@ public class MongoDatabaseUtils<T> {
 
     private static MongoTermList findConceptByCode(String codeUri,
             Map<String, MongoTermList> typeMap) {
-        DBCursor<ConceptTermList> curs = cColl.find().is("codeUri", codeUri);
+        DBCursor<ConceptTermList> curs = cColl.find(new BasicDBObject("entityType","ConceptImpl")).is("codeUri", codeUri);
         if (curs.hasNext()) {
             ConceptTermList terms = curs.next();
 

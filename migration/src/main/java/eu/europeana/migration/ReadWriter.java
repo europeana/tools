@@ -5,33 +5,27 @@
  */
 package eu.europeana.migration;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import eu.europeana.corelib.definitions.edm.entity.Aggregation;
 import eu.europeana.corelib.definitions.edm.entity.EuropeanaAggregation;
+import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
+import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
+import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.solr.entity.*;
+import eu.europeana.enrichment.api.external.EntityClass;
+import eu.europeana.enrichment.api.external.EntityWrapper;
+import eu.europeana.enrichment.api.external.InputValue;
+import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
-import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
-import eu.europeana.corelib.mongo.server.EdmMongoServer;
-import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
-import eu.europeana.corelib.solr.entity.AggregationImpl;
-import eu.europeana.corelib.solr.entity.WebResourceImpl;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *  Read from a Mongo and a Solr and Write to a Mongo and Solr
@@ -52,6 +46,8 @@ public class ReadWriter implements Runnable {
     private CloudSolrServer cloudServerProd;
     private EdmMongoServer targetMongoProd;
     private FullBeanHandler fBeanHandlerProd;
+    private EnrichmentDriver driver;
+    private MigrationUtils utils;
     
     
     public List<SolrDocument> getSegment() {
@@ -137,7 +133,10 @@ public class ReadWriter implements Runnable {
 	public void setfBeanHandlerProd(FullBeanHandler fBeanHandlerProd) {
 		this.fBeanHandlerProd = fBeanHandlerProd;
 	}
-	
+
+    public void setEnrichmentDriver(EnrichmentDriver driver){
+        this.driver = driver;
+    }
 	/**
 	 * To set all Ingestion settings at once.
 	 * @param solrHandler
@@ -178,7 +177,7 @@ public class ReadWriter implements Runnable {
         //save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst);
         //write data to PRODUCTION
         try {
-            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst, solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd);
+            save(solrHandlerIngst, cloudServerIngst, targetMongoIngst, fBeanHandlerIngst, solrHandlerProd, cloudServerProd, targetMongoProd, fBeanHandlerProd, driver);
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -195,7 +194,8 @@ public class ReadWriter implements Runnable {
                       SolrDocumentHandler solrHandlerProd,
                       CloudSolrServer cloudServerProd,
                       EdmMongoServer targetMongoProd,
-						FullBeanHandler fBeanHandlerProd) {
+						FullBeanHandler fBeanHandlerProd,
+                      EnrichmentDriver driver) {
 		List<SolrInputDocument> docList = new ArrayList<>();
          //For every document
          for (SolrDocument doc : segment) {
@@ -252,6 +252,9 @@ public class ReadWriter implements Runnable {
                 fBean.getAggregations().get(0).setEdmRights(edmRights);
                 }
                 //Generate Solr document from bean
+                clean(fBean);
+                enrich(fBean);
+
                 SolrInputDocument inputDoc = solrHandler.generate(fBean);
                 
                 //Add to list for saving later
@@ -279,8 +282,124 @@ public class ReadWriter implements Runnable {
         }
 	}
 
-	
-	 /**
+    private void clean(FullBeanImpl fBean) {
+
+        ProxyImpl provProxy = findProviderProxy(fBean);
+        ProxyImpl euProxy = findEuropeanaProxy(fBean);
+        List<LangValue> euProxyValues = utils.extractValuesFromProxy(euProxy);
+        Set<String> uris = utils.extractAllUris(provProxy);
+        for (LangValue value:euProxyValues){
+            value.getValue().stream().filter(uri -> !uris.contains(uri)).forEach(uri -> {
+                switch (value.getVocabulary()){
+                    case "AGENT":
+                        if(fBean.getAgents()!=null){
+                            fBean.getAgents().stream().filter(agent -> StringUtils.equals(agent.getAbout(), uri)).forEach(agent -> {
+                                List<AgentImpl> agents = fBean.getAgents();
+                                agents.remove(agent);
+                                fBean.setAgents(agents);
+                            });
+                        }
+                        break;
+                    case "PLACE":
+                        if(fBean.getPlaces()!=null){
+                            fBean.getPlaces().stream().filter(place -> StringUtils.equals(place.getAbout(), uri)).forEach(place -> {
+                                List<PlaceImpl> places = fBean.getPlaces();
+                                places.remove(place);
+                                fBean.setPlaces(places);
+                            });
+                        }
+                        break;
+                    case "TIMESPAN":
+                        if(fBean.getTimespans()!=null){
+                            fBean.getTimespans().stream().filter(timespan -> StringUtils.equals(timespan.getAbout(), uri)).forEach(timespan -> {
+                                List<TimespanImpl> timespans = fBean.getTimespans();
+                                timespans.remove(timespan);
+                                fBean.setTimespans(timespans);
+                            });
+                        }
+                        break;
+                    case "CONCEPT":
+                        if(fBean.getConcepts()!=null){
+                            fBean.getConcepts().stream().filter(concept -> StringUtils.equals(concept.getAbout(), uri)).forEach(concept -> {
+                                List<ConceptImpl> concepts = fBean.getConcepts();
+                                concepts.remove(concept);
+                                fBean.setConcepts(concepts);
+                            });
+                        }
+                        break;
+                }
+            });
+        }
+    }
+
+    private void enrich(FullBeanImpl fBean) {
+        ProxyImpl provProxy = findProviderProxy(fBean);
+        List<LangValue> provProxyValues = utils.extractValuesFromProxy(provProxy);
+
+        List<InputValue> values = new ArrayList<>();
+        for(LangValue val:provProxyValues){
+            for(String langVal :val.getValue()){
+                InputValue value = new InputValue();
+                value.setLanguage(val.getLanguage());
+                value.setValue(langVal);
+                List<EntityClass> vocs = new ArrayList<>();
+                vocs.add(EntityClass.valueOf(val.getVocabulary()));
+                value.setVocabularies(vocs);
+                value.setOriginalField(val.getOriginalField());
+                values.add(value);
+            }
+        }
+
+        try {
+            List<EntityWrapper> entities= driver.enrich(values,false);
+            mergeEntitiesToBean(entities,fBean);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void mergeEntitiesToBean(List<EntityWrapper> entities, FullBeanImpl fBean) throws IOException {
+        ProxyImpl euProxy = findEuropeanaProxy(fBean);
+        if(entities!=null&&entities.size()>0) {
+            for(EntityWrapper entity: entities){
+                ProxyImpl euProxyRet = utils.addValueToProxy(entity,euProxy);
+                replaceProxy(fBean, euProxyRet);
+                utils.addContextualClassToBean(fBean,entity);
+            }
+        }
+
+    }
+
+    private void replaceProxy(FullBeanImpl fBean, ProxyImpl proxy){
+        List<ProxyImpl> proxies = fBean.getProxies();
+        int i=0;
+        for(ProxyImpl pr:proxies){
+            if(StringUtils.equals(pr.getAbout(),proxy.getAbout())){
+                proxies.set(i,proxy);
+            }
+            i++;
+        }
+        fBean.setProxies(proxies);
+    }
+
+    private ProxyImpl findEuropeanaProxy(FullBeanImpl fBean){
+        for (ProxyImpl proxy: fBean.getProxies()){
+            if(proxy.isEuropeanaProxy()){
+                return proxy;
+            }
+        }
+        return null;
+    }
+    private ProxyImpl findProviderProxy(FullBeanImpl fBean){
+        for (ProxyImpl proxy: fBean.getProxies()){
+            if(!proxy.isEuropeanaProxy()){
+                return proxy;
+            }
+        }
+        return null;
+    }
+    /**
      * Create web resources for edm:object, edm:isShownBy, edm:isShownAt and edm:hasView
      * @param fBean 
      */
@@ -321,4 +440,5 @@ public class ReadWriter implements Runnable {
         wrs.addAll(toAdd);
         fBean.getAggregations().get(0).setWebResources(wrs);
     }
+
 }

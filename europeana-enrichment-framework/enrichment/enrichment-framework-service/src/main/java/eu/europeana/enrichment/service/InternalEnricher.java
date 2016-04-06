@@ -34,10 +34,7 @@ import org.codehaus.jackson.map.module.SimpleModule;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,19 +52,19 @@ public class InternalEnricher {
     private final static String TIMESPAN = "period";
     private final static String PLACE = "place";
     private final static String AGENT = "people";
-    private static Map<String, String> agentCache;
-    private static Map<String, String> conceptCache;
-    private static Map<String, String> placeCache;
-    private static Map<String, String> timespanCache;
+    private static Map<String, Set<String>> agentCache;
+    private static Map<String, Set<String>> conceptCache;
+    private static Map<String, Set<String>> placeCache;
+    private static Map<String, Set<String>> timespanCache;
     private static Map<String, EntityWrapper> agentUriCache;
     private static Map<String, EntityWrapper> conceptUriCache;
     private static Map<String, EntityWrapper> placeUriCache;
     private static Map<String, EntityWrapper> timespanUriCache;
 
     private static Map<String, String> agentSameAsCache;
-    private static Map<String,String> timespanSameAsCache;
+    private static Map<String, String> timespanSameAsCache;
     private static Map<String, String> conceptSameAsCache;
-    private static Map<String,String> placeSameAsCache;
+    private static Map<String, String> placeSameAsCache;
 
     private static Map<String, List<String>> agentParents;
     private static Map<String, List<String>> conceptParents;
@@ -91,7 +88,7 @@ public class InternalEnricher {
         timespanParents = new ConcurrentHashMap();
         placeParents = new ConcurrentHashMap();
         agentSameAsCache = new ConcurrentHashMap<>();
-        timespanSameAsCache  = new ConcurrentHashMap<>();
+        timespanSameAsCache = new ConcurrentHashMap<>();
         placeSameAsCache = new ConcurrentHashMap<>();
         conceptSameAsCache = new ConcurrentHashMap<>();
         populate();
@@ -107,25 +104,49 @@ public class InternalEnricher {
             conceptParents.remove(str);
             placeParents.remove(str);
             timespanParents.remove(str);
-            for (Map.Entry<String, String> agentEntry : agentCache.entrySet()) {
-                if (StringUtils.equals(agentEntry.getValue(), str)) {
-                    agentCache.remove(agentEntry.getKey());
-                }
+            for (Map.Entry<String, Set<String>> agentEntry : agentCache.entrySet()) {
+                Set<String> agentEntrySet = agentEntry.getValue();
+                agentEntrySet.stream().filter(agentUri -> StringUtils.equals(agentUri, str)).forEach(agentUri -> {
+                    agentEntrySet.remove(str);
+                    if (agentEntrySet.isEmpty()) {
+                        agentCache.remove(agentEntry.getKey());
+                    } else {
+                        agentCache.put(agentEntry.getKey(), agentEntrySet);
+                    }
+                });
             }
-            for (Map.Entry<String, String> agentEntry : placeCache.entrySet()) {
-                if (StringUtils.equals(agentEntry.getValue(), str)) {
-                    placeCache.remove(agentEntry.getKey());
-                }
+            for (Map.Entry<String, Set<String>> agentEntry : placeCache.entrySet()) {
+                Set<String> agentEntrySet = agentEntry.getValue();
+                agentEntrySet.stream().filter(agentUri -> StringUtils.equals(agentUri, str)).forEach(agentUri -> {
+                    agentEntrySet.remove(str);
+                    if (agentEntrySet.isEmpty()) {
+                        placeCache.remove(agentEntry.getKey());
+                    } else {
+                        placeCache.put(agentEntry.getKey(), agentEntrySet);
+                    }
+                });
             }
-            for (Map.Entry<String, String> agentEntry : conceptCache.entrySet()) {
-                if (StringUtils.equals(agentEntry.getValue(), str)) {
-                    conceptCache.remove(agentEntry.getKey());
-                }
+            for (Map.Entry<String, Set<String>> agentEntry : conceptCache.entrySet()) {
+                Set<String> agentEntrySet = agentEntry.getValue();
+                agentEntrySet.stream().filter(agentUri -> StringUtils.equals(agentUri, str)).forEach(agentUri -> {
+                    agentEntrySet.remove(str);
+                    if (agentEntrySet.isEmpty()) {
+                        conceptCache.remove(agentEntry.getKey());
+                    } else {
+                        conceptCache.put(agentEntry.getKey(), agentEntrySet);
+                    }
+                });
             }
-            for (Map.Entry<String, String> agentEntry : timespanCache.entrySet()) {
-                if (StringUtils.equals(agentEntry.getValue(), str)) {
-                    timespanCache.remove(agentEntry.getKey());
-                }
+            for (Map.Entry<String, Set<String>> agentEntry : timespanCache.entrySet()) {
+                Set<String> agentEntrySet = agentEntry.getValue();
+                agentEntrySet.stream().filter(agentUri -> StringUtils.equals(agentUri, str)).forEach(agentUri -> {
+                    agentEntrySet.remove(str);
+                    if (agentEntrySet.isEmpty()) {
+                        conceptCache.remove(agentEntry.getKey());
+                    } else {
+                        conceptCache.put(agentEntry.getKey(), agentEntrySet);
+                    }
+                });
             }
         }
     }
@@ -146,13 +167,24 @@ public class InternalEnricher {
                         ag.setContextualEntity(this.getObjectMapper().writeValueAsString(atl.getRepresentation()));
                         ag.setUrl(agent.getCodeUri());
                         ag.setOriginalValue(agent.getOriginalLabel());
-                        agentCache.put("def:" + agent.getLabel(), agent.getCodeUri());
-                        if(agent.getLang()!=null&& !StringUtils.equals(agent.getLang(),"def")) {
-                            agentCache.put(agent.getLang() + ":" + agent.getLabel(), agent.getCodeUri());
+                        Set<String> uris = agentCache.get("def:" + agent.getLabel());
+                        if (uris == null) {
+                            uris = new HashSet<>();
+                        }
+                        uris.add(agent.getCodeUri());
+                        agentCache.put("def:" + agent.getLabel(), uris);
+
+                        if (agent.getLang() != null && !StringUtils.equals(agent.getLang(), "def")) {
+                            Set<String> uris2 = agentCache.get(agent.getLang() + ":" + agent.getLabel());
+                            if (uris2 == null) {
+                                uris2 = new HashSet<>();
+                            }
+                            uris2.add(agent.getCodeUri());
+                            agentCache.put(agent.getLang() + ":" + agent.getLabel(), uris2);
                         }
                         agentUriCache.put(agent.getCodeUri(), ag);
                         agentParents.put(agent.getCodeUri(), this.findAgentParents(atl.getParent()));
-                        if(atl.getOwlSameAs()!=null) {
+                        if (atl.getOwlSameAs() != null) {
                             for (String sameAs : atl.getOwlSameAs()) {
                                 agentSameAsCache.put(sameAs, agent.getCodeUri());
                             }
@@ -187,15 +219,26 @@ public class InternalEnricher {
                         i$.setContextualEntity(this.getObjectMapper().writeValueAsString(ctl.getRepresentation()));
                         i$.setUrl(concept.getCodeUri());
                         i$.setOriginalValue(concept.getOriginalLabel());
-                        conceptCache.put("def:" + concept.getLabel(), concept.getCodeUri());
-                        if(concept.getLang()!=null&&StringUtils.equals(concept.getLang(),"def")) {
-                            conceptCache.put(concept.getLang() + ":" + concept.getLabel(), concept.getCodeUri());
+                        Set<String> uris = conceptCache.get("def:" + concept.getLabel());
+                        if (uris == null) {
+                            uris = new HashSet<>();
+                        }
+                        uris.add(concept.getCodeUri());
+                        conceptCache.put("def:" + concept.getLabel(), uris);
+
+                        if (concept.getLang() != null && !StringUtils.equals(concept.getLang(), "def")) {
+                            Set<String> uris2 = conceptCache.get(concept.getLang() + ":" + concept.getLabel());
+                            if (uris2 == null) {
+                                uris2 = new HashSet<>();
+                            }
+                            uris2.add(concept.getCodeUri());
+                            conceptCache.put(concept.getLang() + ":" + concept.getLabel(), uris2);
                         }
                         conceptUriCache.put(concept.getCodeUri(), i$);
                         conceptParents.put(concept.getCodeUri(), this.findConceptParents(ctl.getParent()));
-                        if(ctl.getOwlSameAs()!=null){
-                            for(String sameAs:ctl.getOwlSameAs()){
-                                conceptSameAsCache.put(sameAs,ctl.getCodeUri());
+                        if (ctl.getOwlSameAs() != null) {
+                            for (String sameAs : ctl.getOwlSameAs()) {
+                                conceptSameAsCache.put(sameAs, ctl.getCodeUri());
                             }
                         }
                     } catch (IOException var12) {
@@ -229,16 +272,26 @@ public class InternalEnricher {
                         entry.setContextualEntity(this.getObjectMapper().writeValueAsString(ptl.getRepresentation()));
                         entry.setUrl(place.getCodeUri());
                         entry.setOriginalValue(place.getOriginalLabel());
-                        placeCache.put("def:" + place.getLabel(), place.getCodeUri());
-                        if(place.getLang()!=null&&!StringUtils.equals("def",place.getLang())){
-                            placeCache.put(place.getLang()+":" + place.getLabel(), place.getCodeUri());
+                        Set<String> uris = placeCache.get("def:" + place.getLabel());
+                        if (uris == null) {
+                            uris = new HashSet<>();
                         }
-                        placeCache.put(place.getLang() + ":" + place.getLabel(), place.getCodeUri());
+                        uris.add(place.getCodeUri());
+                        placeCache.put("def:" + place.getLabel(), uris);
+
+                        if (place.getLang() != null && !StringUtils.equals(place.getLang(), "def")) {
+                            Set<String> uris2 = placeCache.get(place.getLang() + ":" + place.getLabel());
+                            if (uris2 == null) {
+                                uris2 = new HashSet<>();
+                            }
+                            uris2.add(place.getCodeUri());
+                            placeCache.put(place.getLang() + ":" + place.getLabel(), uris2);
+                        }
                         placeUriCache.put(place.getCodeUri(), entry);
                         placeParents.put(place.getCodeUri(), this.findPlaceParents(ptl.getParent()));
-                        if (ptl.getOwlSameAs()!=null){
-                            for (String sameAs:ptl.getOwlSameAs()){
-                                placeSameAsCache.put(sameAs,ptl.getCodeUri());
+                        if (ptl.getOwlSameAs() != null) {
+                            for (String sameAs : ptl.getOwlSameAs()) {
+                                placeSameAsCache.put(sameAs, ptl.getCodeUri());
                             }
                         }
                     } catch (IOException var10) {
@@ -272,15 +325,27 @@ public class InternalEnricher {
                         ex.setContextualEntity(this.getObjectMapper().writeValueAsString(tsl.getRepresentation()));
                         ex.setOriginalValue(timespan.getOriginalLabel());
                         ex.setUrl(timespan.getCodeUri());
-                        timespanCache.put("def:"+timespan.getLabel(), timespan.getCodeUri());
-                        if(timespan.getLang()!=null && StringUtils.equals("def",timespan.getLang())) {
-                            timespanCache.put(timespan.getLang() + ":" + timespan.getLabel(), timespan.getCodeUri());
+                        Set<String> uris = timespanCache.get("def:" + timespan.getLabel());
+                        if (uris == null) {
+                            uris = new HashSet<>();
+                        }
+                        uris.add(timespan.getCodeUri());
+                        timespanCache.put("def:" + timespan.getLabel(), uris);
+
+                        if (timespan.getLang() != null && !StringUtils.equals(timespan.getLang(), "def")) {
+                            Set<String> uris2 = timespanCache.get(timespan.getLang() + ":" + timespan.getLabel());
+                            if (uris2 == null) {
+                                uris2 = new HashSet<>();
+                            }
+                            uris2.add(timespan.getCodeUri());
+                            timespanCache.put(timespan.getLang() + ":" + timespan.getLabel(), uris2);
                         }
                         timespanUriCache.put(timespan.getCodeUri(), ex);
                         timespanParents.put(timespan.getCodeUri(), this.findTimespanParents(tsl.getParent()));
-                        if(tsl.getOwlSameAs()!=null){
-                            for (String sameAs:tsl.getOwlSameAs()){
-                                timespanSameAsCache.put(sameAs,tsl.getCodeUri());
+
+                        if (tsl.getOwlSameAs() != null) {
+                            for (String sameAs : tsl.getOwlSameAs()) {
+                                timespanSameAsCache.put(sameAs, tsl.getCodeUri());
                             }
                         }
                     } catch (IOException var8) {
@@ -343,28 +408,32 @@ public class InternalEnricher {
     private List<EntityWrapper> findConceptEntities(String value,
                                                     String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
-        ArrayList concepts = new ArrayList();
+        Set concepts = new HashSet();
 
-        if (StringUtils.isEmpty(lang)) {
+        if (StringUtils.isEmpty(lang) || lang.length() != 2) {
             lang = "def";
         }
         if (conceptCache.get(lang + ":" + value) != null) {
+            Set<String> urisToCheck = conceptCache.get(lang + ":" + value);
+            if (urisToCheck != null) {
+                for (String uri : urisToCheck) {
+                    EntityWrapper entity = (EntityWrapper) conceptUriCache.get(uri);
+                    entity.setOriginalField(originalField);
+                    concepts.add(entity);
+                    Iterator i$ = ((List) conceptParents.get(entity.getUrl())).iterator();
 
-
-            EntityWrapper entity = (EntityWrapper) conceptUriCache.get(conceptCache.get(lang + ":" + value));
-            entity.setOriginalField(originalField);
-            concepts.add(entity);
-            Iterator i$ = ((List) conceptParents.get(entity.getUrl())).iterator();
-
-            while (i$.hasNext()) {
-                String uris = (String) i$.next();
-                if (uris != null) {
-                    concepts.add(conceptUriCache.get(uris));
+                    while (i$.hasNext()) {
+                        String uris = (String) i$.next();
+                        if (uris != null) {
+                            concepts.add(conceptUriCache.get(uris));
+                        }
+                    }
                 }
             }
         }
-
-        return concepts;
+        List list = new ArrayList<>();
+        list.addAll(concepts);
+        return list;
     }
 
     private List<String> findConceptParents(String parent) throws JsonGenerationException, JsonMappingException, IOException {
@@ -383,28 +452,35 @@ public class InternalEnricher {
     private List<? extends EntityWrapper> findAgentEntities(String value,
                                                             String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
-        ArrayList agents = new ArrayList();
-        if (StringUtils.isEmpty(lang)) {
+        Set agents = new HashSet<>();
+        if (StringUtils.isEmpty(lang) || lang.length() != 2) {
             lang = "def";
         }
         if (agentCache.get(lang + ":" + value) != null) {
 
+            Set<String> urisToCheck = agentCache.get(lang + ":" + value);
+            if (urisToCheck != null) {
+                for (String uri : urisToCheck) {
 
-            EntityWrapper entity = (EntityWrapper) agentUriCache.get(agentCache.get(lang + ":" + value));
-            entity.setOriginalField(originalField);
-            agents.add(entity);
-            Iterator i$ = ((List) agentParents.get(entity.getUrl())).iterator();
+                    EntityWrapper entity = (EntityWrapper) agentUriCache.get(uri);
+                    entity.setOriginalField(originalField);
+                    agents.add(entity);
+                    Iterator i$ = ((List) agentParents.get(entity.getUrl())).iterator();
 
-            while (i$.hasNext()) {
-                String uris = (String) i$.next();
-                if (uris != null) {
-                    agents.add(agentUriCache.get(uris));
+                    while (i$.hasNext()) {
+                        String uris = (String) i$.next();
+                        if (uris != null) {
+                            agents.add(agentUriCache.get(uris));
+                        }
+                    }
                 }
             }
         }
 
 
-        return agents;
+        List list = new ArrayList<>();
+        list.addAll(agents);
+        return list;
     }
 
     private List<String> findAgentParents(String parent) throws JsonGenerationException, JsonMappingException, IOException {
@@ -423,27 +499,33 @@ public class InternalEnricher {
     private List<? extends EntityWrapper> findPlaceEntities(String value,
                                                             String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
-        ArrayList places = new ArrayList();
-        if (StringUtils.isEmpty(lang)) {
+        Set places = new HashSet<>();
+        if (StringUtils.isEmpty(lang) || lang.length() != 2) {
             lang = "def";
         }
-        if (placeCache.get(lang+":"+value) != null) {
+        if (placeCache.get(lang + ":" + value) != null) {
+            Set<String> urisToCheck = placeCache.get(lang + ":" + value);
+            if (urisToCheck != null) {
+                for (String uri : urisToCheck) {
+                    EntityWrapper entity = (EntityWrapper) placeUriCache.get(uri);
+                    entity.setOriginalField(originalField);
+                    places.add(entity);
+                    Iterator i$ = ((List) placeParents.get(entity.getUrl())).iterator();
 
-                EntityWrapper entity = (EntityWrapper) placeUriCache.get(placeCache.get(lang+":"+value));
-                entity.setOriginalField(originalField);
-                places.add(entity);
-                Iterator i$ = ((List) placeParents.get(entity.getUrl())).iterator();
-
-                while (i$.hasNext()) {
-                    String uris = (String) i$.next();
-                    if (uris != null) {
-                        places.add(placeUriCache.get(uris));
+                    while (i$.hasNext()) {
+                        String uris = (String) i$.next();
+                        if (uris != null) {
+                            places.add(placeUriCache.get(uris));
+                        }
                     }
                 }
             }
+        }
 
 
-        return places;
+        List list = new ArrayList<>();
+        list.addAll(places);
+        return list;
     }
 
     private List<String> findPlaceParents(String parent) throws JsonGenerationException, JsonMappingException, IOException {
@@ -463,26 +545,32 @@ public class InternalEnricher {
     private List<? extends EntityWrapper> findTimespanEntities(String value,
                                                                String originalField, String lang) throws JsonGenerationException,
             JsonMappingException, IOException {
-        ArrayList timespans = new ArrayList();
-        if (StringUtils.isEmpty(lang)) {
+        Set timespans = new HashSet<>();
+        if (StringUtils.isEmpty(lang) || lang.length() != 2) {
             lang = "def";
         }
-        if (timespanCache.get(lang+":"+value) != null) {
+        if (timespanCache.get(lang + ":" + value) != null) {
+            Set<String> urisToCheck = timespanCache.get(lang + ":" + value);
+            if (urisToCheck != null) {
+                for (String uri : urisToCheck) {
+                    EntityWrapper entity = (EntityWrapper) timespanUriCache.get(uri);
+                    entity.setOriginalField(originalField);
+                    timespans.add(entity);
+                    Iterator i$ = ((List) timespanParents.get(entity.getUrl())).iterator();
 
-                EntityWrapper entity = (EntityWrapper) timespanUriCache.get(timespanCache.get(lang+":"+value));
-                entity.setOriginalField(originalField);
-                timespans.add(entity);
-                Iterator i$ = ((List) timespanParents.get(entity.getUrl())).iterator();
-
-                while (i$.hasNext()) {
-                    String uris = (String) i$.next();
-                    if (uris != null) {
-                        timespans.add(timespanUriCache.get(uris));
+                    while (i$.hasNext()) {
+                        String uris = (String) i$.next();
+                        if (uris != null) {
+                            timespans.add(timespanUriCache.get(uris));
+                        }
                     }
                 }
+            }
         }
 
-        return timespans;
+        List list = new ArrayList<>();
+        list.addAll(timespans);
+        return list;
     }
 
     private List<String> findTimespanParents(String parent) throws JsonGenerationException, JsonMappingException, IOException {
@@ -504,30 +592,30 @@ public class InternalEnricher {
         return parentEntities;
     }
 
-    public EntityWrapper getByUri(String uri){
-        if(agentUriCache.get(uri)!=null){
+    public EntityWrapper getByUri(String uri) {
+        if (agentUriCache.get(uri) != null) {
             return agentUriCache.get(uri);
         }
-        if(placeUriCache.get(uri)!=null){
+        if (placeUriCache.get(uri) != null) {
             return placeUriCache.get(uri);
         }
-        if(conceptUriCache.get(uri)!=null){
+        if (conceptUriCache.get(uri) != null) {
             return conceptUriCache.get(uri);
         }
-        if(timespanUriCache.get(uri)!=null){
+        if (timespanUriCache.get(uri) != null) {
             return timespanUriCache.get(uri);
         }
 
-        if(agentSameAsCache.get(uri)!=null){
+        if (agentSameAsCache.get(uri) != null) {
             return agentUriCache.get(agentSameAsCache.get(uri));
         }
-        if(timespanSameAsCache.get(uri)!=null){
+        if (timespanSameAsCache.get(uri) != null) {
             return timespanUriCache.get(timespanSameAsCache.get(uri));
         }
-        if(placeSameAsCache.get(uri)!=null){
+        if (placeSameAsCache.get(uri) != null) {
             return placeUriCache.get(placeSameAsCache.get(uri));
         }
-        if(conceptSameAsCache.get(uri)!=null){
+        if (conceptSameAsCache.get(uri) != null) {
             return conceptUriCache.get(conceptSameAsCache.get(uri));
         }
         return null;
