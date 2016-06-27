@@ -1,1 +1,116 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+   
+  <groupId>eu.europeana</groupId>
+  <artifactId>enrichment-vocab-getty</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
 
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.sesame>4.1.1</version.sesame>
+	</properties>
+
+  	<build>
+   
+   <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>  
+    
+  <dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+            <version>2.5.0</version>
+		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+<dependency>
+	<groupId>org.apache.commons</groupId>
+	<artifactId>commons-csv</artifactId>
+	<version>1.2</version>
+</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>				
+			<version>1.2.15</version>
+				<exclusions>
+					<exclusion>
+						<groupId>javax.mail</groupId>
+						<artifactId>mail</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>javax.jms</groupId>
+						<artifactId>jms</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.sun.jdmk</groupId>
+						<artifactId>jmxtools</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.sun.jmx</groupId>
+						<artifactId>jmxri</artifactId>
+					</exclusion>
+				</exclusions>
+			<scope>runtime</scope>
+		</dependency>
+		
+	<dependency>
+		<groupId>org.openrdf.sesame</groupId>
+		<artifactId>sesame-repository-sparql</artifactId>
+		<version>4.1.1</version>
+	</dependency>
+
+
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-sail-memory</artifactId>
+			<version>${version.sesame}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-sail-nativerdf</artifactId>
+			<version>${version.sesame}</version>
+        </dependency> 
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-repository-sail</artifactId>
+			<version>${version.sesame}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-rio-rdfxml</artifactId>
+			<version>${version.sesame}</version>
+        </dependency>
+
+	</dependencies>  
+	<repositories>
+	
+		
+	</repositories>
+	<name>Enrichment with Getty vocabularies' LOD links</name>
+	<description>Experimental work done at TEL during DSI-1, for linking subject data with labels from the Getty vocabularies AAT and TGN</description>
+</project>
