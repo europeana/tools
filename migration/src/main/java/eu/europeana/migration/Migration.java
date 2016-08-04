@@ -5,17 +5,14 @@
  */
 package eu.europeana.migration;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.mongodb.Mongo;
+import com.mongodb.ServerAddress;
+import eu.europeana.corelib.edm.exceptions.MongoDBException;
+import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
+import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
+import eu.europeana.corelib.mongo.server.EdmMongoServer;
+import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
+import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -27,14 +24,16 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
 
-import com.mongodb.Mongo;
-import com.mongodb.ServerAddress;
-
-import eu.europeana.corelib.edm.exceptions.MongoDBException;
-import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
-import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
-import eu.europeana.corelib.mongo.server.EdmMongoServer;
-import eu.europeana.corelib.mongo.server.impl.EdmMongoServerImpl;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Migration application prototype for a proposed Europeana infrastructure
@@ -46,7 +45,7 @@ public class Migration {
     private static HttpSolrServer sourceSolr;
     private static EdmMongoServer sourceMongo;
     
-    private static Target ingestion;
+   // private static Target ingestion;
     private static Target production;
     
     private static Properties properties;
@@ -64,14 +63,16 @@ public class Migration {
             //Connect to Solr and Mongo (source)
             mongo = new Mongo(srcMongoUrl, 27017);
             sourceSolr = new HttpSolrServer(srcSolrUrl);
-            sourceMongo = new EdmMongoServerImpl(mongo, "europeana_test1", null, null);
+            sourceMongo = new EdmMongoServerImpl(mongo, "europeana", null, null);
             
-            ingestion = Target.INGESTION;
+            //ingestion = Target.INGESTION;
             production = Target.PRODUCTION;
-            
+            EnrichmentDriver driver = new EnrichmentDriver("http://136.243.103.29:8080/enrichment-framework-rest-0.1-SNAPSHOT/");
             //Query to the source
             String query = "*:*";
+            //String query = "europeana_id:"+ ClientUtils.escapeQueryChars("/00101/65D6FA0D3552F0E42AAFDC884A2F32DBDBD78897");
             String fl = "europeana_id";
+           // String[] crfFields = new String[]{fl,"has_thumbnails","has_media","filter_tags","facet_tags","has_landingpage"};
             SolrQuery params = new SolrQuery();
             params.setQuery(query);
             params.setRows(10000);
@@ -98,7 +99,7 @@ public class Migration {
 				Logger.getLogger(Migration.class.getName()).log(
 						Level.INFO, "*** Migrating the batch #" + (i / 10000 + 1)
 																+ " started. ***");
-                doCustomProcessingOfResults(resp);
+                doCustomProcessingOfResults(resp,driver);
                 
                 //Exit if reached the end
                 if (cursorMark.equals(nextCursorMark)) {
@@ -134,9 +135,9 @@ public class Migration {
     /**
      * Process the batch of data to target
      * @param resp
-     * @param target
+   //  * @param target
      */
-    private static void doCustomProcessingOfResults(QueryResponse resp) {
+    private static void doCustomProcessingOfResults(QueryResponse resp,EnrichmentDriver driver) {
         //If the list of results is full 
         if (resp.getResults().size() == 10000) {
             List<List<SolrDocument>> segments = segment(resp.getResults());
@@ -148,18 +149,19 @@ public class Migration {
                 writer.setSegment(segment);
                 writer.setSourceMongo(sourceMongo);
                 writer.setLatch(latch);
-                
+                /*
 				writer.setTargetsIngestion(
 						ingestion.getSolrHandler(),
 						ingestion.getTargetSolr(), 
 						ingestion.getTargetMongo(),
-						ingestion.getMongoHandler());
+						ingestion.getMongoHandler());*/
 				writer.setTargetsProduction(
 						production.getSolrHandler(),
 						production.getTargetSolr(),
 						production.getTargetMongo(),
 						production.getMongoHandler());
 
+                writer.setEnrichmentDriver(driver);
                 Thread t = new Thread(writer);                
                 t.start();
             }
@@ -178,17 +180,18 @@ public class Migration {
             writer.setSourceMongo(sourceMongo);
             writer.setLatch(latch);
             
-            writer.setTargetsIngestion(
+           /* writer.setTargetsIngestion(
 					ingestion.getSolrHandler(),
 					ingestion.getTargetSolr(), 
 					ingestion.getTargetMongo(),
 					ingestion.getMongoHandler());
+					*/
 			writer.setTargetsProduction(
 					production.getSolrHandler(),
 					production.getTargetSolr(),
 					production.getTargetMongo(),
 					production.getMongoHandler());
-
+            writer.setEnrichmentDriver(driver);
             Thread t = new Thread(writer);
             t.start();
             try {
@@ -227,7 +230,7 @@ public class Migration {
      */
     private static enum Target {
     	
-    	INGESTION, PRODUCTION;
+    	 PRODUCTION;
     	
     	private String[] targetMongoUrl;
 		private String[] targetSolrUrl;    	
@@ -258,7 +261,7 @@ public class Migration {
         		    addresses.add(address);
         		}
         		Mongo tgtMongo = new Mongo(addresses);
-        		this.targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana_test1", null, null);
+        		this.targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana_1", null, null);
             } catch (UnknownHostException | MongoDBException | MalformedURLException  ex) {
                 Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
             }
