@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -169,7 +170,7 @@ public class InternalEnricher {
                         ag.setOriginalValue(agent.getOriginalLabel());
                         Set<String> uris = agentCache.get("def:" + agent.getLabel());
                         if (uris == null) {
-                            uris = new HashSet<>();
+                            uris = new CopyOnWriteArraySet<>();
                         }
                         uris.add(agent.getCodeUri());
                         agentCache.put("def:" + agent.getLabel(), uris);
@@ -177,7 +178,7 @@ public class InternalEnricher {
                         if (agent.getLang() != null && !StringUtils.equals(agent.getLang(), "def")) {
                             Set<String> uris2 = agentCache.get(agent.getLang() + ":" + agent.getLabel());
                             if (uris2 == null) {
-                                uris2 = new HashSet<>();
+                                uris2 = new CopyOnWriteArraySet<>();
                             }
                             uris2.add(agent.getCodeUri());
                             agentCache.put(agent.getLang() + ":" + agent.getLabel(), uris2);
@@ -221,7 +222,7 @@ public class InternalEnricher {
                         i$.setOriginalValue(concept.getOriginalLabel());
                         Set<String> uris = conceptCache.get("def:" + concept.getLabel());
                         if (uris == null) {
-                            uris = new HashSet<>();
+                            uris = new CopyOnWriteArraySet<>();
                         }
                         uris.add(concept.getCodeUri());
                         conceptCache.put("def:" + concept.getLabel(), uris);
@@ -229,7 +230,7 @@ public class InternalEnricher {
                         if (concept.getLang() != null && !StringUtils.equals(concept.getLang(), "def")) {
                             Set<String> uris2 = conceptCache.get(concept.getLang() + ":" + concept.getLabel());
                             if (uris2 == null) {
-                                uris2 = new HashSet<>();
+                                uris2 = new CopyOnWriteArraySet<>();
                             }
                             uris2.add(concept.getCodeUri());
                             conceptCache.put(concept.getLang() + ":" + concept.getLabel(), uris2);
@@ -274,7 +275,7 @@ public class InternalEnricher {
                         entry.setOriginalValue(place.getOriginalLabel());
                         Set<String> uris = placeCache.get("def:" + place.getLabel());
                         if (uris == null) {
-                            uris = new HashSet<>();
+                            uris = new CopyOnWriteArraySet<>();
                         }
                         uris.add(place.getCodeUri());
                         placeCache.put("def:" + place.getLabel(), uris);
@@ -282,7 +283,7 @@ public class InternalEnricher {
                         if (place.getLang() != null && !StringUtils.equals(place.getLang(), "def")) {
                             Set<String> uris2 = placeCache.get(place.getLang() + ":" + place.getLabel());
                             if (uris2 == null) {
-                                uris2 = new HashSet<>();
+                                uris2 = new CopyOnWriteArraySet<>();
                             }
                             uris2.add(place.getCodeUri());
                             placeCache.put(place.getLang() + ":" + place.getLabel(), uris2);
@@ -327,7 +328,7 @@ public class InternalEnricher {
                         ex.setUrl(timespan.getCodeUri());
                         Set<String> uris = timespanCache.get("def:" + timespan.getLabel());
                         if (uris == null) {
-                            uris = new HashSet<>();
+                            uris = new CopyOnWriteArraySet<>();
                         }
                         uris.add(timespan.getCodeUri());
                         timespanCache.put("def:" + timespan.getLabel(), uris);
@@ -335,7 +336,7 @@ public class InternalEnricher {
                         if (timespan.getLang() != null && !StringUtils.equals(timespan.getLang(), "def")) {
                             Set<String> uris2 = timespanCache.get(timespan.getLang() + ":" + timespan.getLabel());
                             if (uris2 == null) {
-                                uris2 = new HashSet<>();
+                                uris2 = new CopyOnWriteArraySet<>();
                             }
                             uris2.add(timespan.getCodeUri());
                             timespanCache.put(timespan.getLang() + ":" + timespan.getLabel(), uris2);

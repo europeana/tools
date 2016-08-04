@@ -63,25 +63,29 @@ public class MongoDatabaseUtils<T> {
                             db.getCollection("TermList"),
                             ConceptTermList.class, String.class);
 
-                    cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     cColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
-                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     aColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
-                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     tColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
-                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     pColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
 
                     return true;
@@ -90,25 +94,29 @@ public class MongoDatabaseUtils<T> {
                             db.getCollection("TermList"),
                             ConceptTermList.class, String.class);
 
-                    cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                   // cColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     cColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     aColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), AgentTermList.class,
                             String.class);
 
-                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    aColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     aColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     tColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"),
                             TimespanTermList.class, String.class);
 
-                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    tColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     tColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     pColl = JacksonDBCollection.wrap(
                             db.getCollection("TermList"), PlaceTermList.class,
                             String.class);
 
-                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    //pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
+                    pColl.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", false));
                     pColl.createIndex(new BasicDBObject("owlSameAs",1), new BasicDBObject("unique",false));
                     return false;
                 }

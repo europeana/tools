@@ -6,7 +6,7 @@
     <parent>
         <artifactId>enrichment-parent</artifactId>
         <groupId>eu.europeana.enrichment</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <packaging>war</packaging>
@@ -16,12 +16,12 @@
         <dependency>
             <groupId>eu.europeana.enrichment</groupId>
             <artifactId>enrichment-framework-common</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.enrichment</groupId>
             <artifactId>enrichment-framework-service</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>org.mongojack</groupId>
@@ -191,7 +191,7 @@
 
     <properties>
 
-        <enrichment.version>0.1-SNAPSHOT</enrichment.version>
+        <enrichment.version>0.1</enrichment.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 </project>

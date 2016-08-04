@@ -1,41 +1,15 @@
 package eu.europeana.enrichment.rest;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.module.SimpleModule;
+import eu.europeana.enrichment.service.Enricher;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 
-import eu.europeana.corelib.solr.entity.AgentImpl;
-import eu.europeana.enrichment.api.exceptions.UnknownException;
-import eu.europeana.enrichment.api.external.EntityClass;
-import eu.europeana.enrichment.api.external.EntityWrapper;
-import eu.europeana.enrichment.api.external.EntityWrapperList;
-import eu.europeana.enrichment.api.external.InputValue;
-import eu.europeana.enrichment.api.external.InputValueList;
-import eu.europeana.enrichment.api.external.ObjectIdSerializer;
-import eu.europeana.enrichment.api.external.web.EnrichmentError;
-import eu.europeana.enrichment.service.Enricher;
+import javax.ws.rs.core.Application;
 
 /**
  * Unit tests for enrichment REST API
@@ -43,6 +17,7 @@ import eu.europeana.enrichment.service.Enricher;
  *
  */
 @SuppressWarnings("unchecked")
+@Ignore
 public class EnrichmentResourceTest extends JerseyTest {
 
 	private Enricher enricher;

@@ -1,23 +1,22 @@
 package eu.europeana.enrichment.rest.client;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
 import eu.europeana.enrichment.api.external.EntityClass;
 import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class EnrichmentDriverTest {
 
@@ -31,7 +30,7 @@ public class EnrichmentDriverTest {
 		Properties props = new Properties();
 		props.load(new FileInputStream("src/test/resources/test.properties"));
 		String basePath = props.getProperty("base.path");
-		EnrichmentDriver driver = new EnrichmentDriver(basePath+"/enrich");
+		EnrichmentDriver driver = new EnrichmentDriver(basePath+"/");
 		List<InputValue> values = prepareValues();
 		
 		List<EntityWrapper> lst = driver

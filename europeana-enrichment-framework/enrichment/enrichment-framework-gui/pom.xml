@@ -6,7 +6,7 @@
     <parent>
         <artifactId>enrichment-parent</artifactId>
         <groupId>eu.europeana.enrichment</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <packaging>war</packaging>
@@ -22,12 +22,12 @@
         <dependency>
             <groupId>eu.europeana.enrichment</groupId>
             <artifactId>enrichment-framework-common</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>eu.europeana.enrichment</groupId>
             <artifactId>enrichment-framework-client</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>

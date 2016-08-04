@@ -4,7 +4,7 @@
   <groupId>eu.europeana.enrichment</groupId>
   <artifactId>enrichment-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>Enrichment Framework Parent</name>
   <modules>
 	<module>enrichment-framework-service</module>

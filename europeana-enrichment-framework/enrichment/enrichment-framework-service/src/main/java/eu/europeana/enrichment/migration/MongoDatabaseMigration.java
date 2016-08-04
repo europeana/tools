@@ -2,6 +2,7 @@ package eu.europeana.enrichment.migration;
 
 import com.mongodb.*;
 import eu.europeana.corelib.solr.entity.AbstractEdmEntityImpl;
+import eu.europeana.corelib.solr.entity.PlaceImpl;
 import eu.europeana.enrichment.api.internal.*;
 import org.apache.commons.lang3.StringUtils;
 import org.mongojack.DBCursor;
@@ -78,28 +79,28 @@ public class MongoDatabaseMigration {
 
 		sourceDB = mongo.getDB(sourceDBName);
 
-		conceptTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"), ConceptTermList.class,
-				String.class);
+		//conceptTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"), ConceptTermList.class,
+		//		String.class);
 
 		placeTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"), PlaceTermList.class,
 				String.class);
 
-		timespanTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"),
-				TimespanTermList.class, String.class);
+		//timespanTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"),
+		//		TimespanTermList.class, String.class);
 
-		agentTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"), AgentTermList.class,
-				String.class);
+		//agentTermListColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("TermList"), AgentTermList.class,
+		//		String.class);
 
-		conceptTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("concept"), MongoTerm.class,
-				String.class);
+		//conceptTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("concept"), MongoTerm.class,
+		//		String.class);
 
 		placeTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("place"), MongoTerm.class, String.class);
 
-		timespanTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("period"), MongoTerm.class,
-				String.class);
+		//timespanTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("period"), MongoTerm.class,
+		//		String.class);
 
-		agentTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("people"), MongoTerm.class,
-				String.class);
+		//agentTermColl_source = JacksonDBCollection.wrap(sourceDB.getCollection("people"), MongoTerm.class,
+		//		String.class);
 
 		if (!sourceHost.equals(targetHost) || sourcePort != targetPort) {
 			mongo = new MongoClient(new ServerAddress(targetHost, targetPort), options);
@@ -107,14 +108,15 @@ public class MongoDatabaseMigration {
 
 		targetDB = mongo.getDB(targetDBName);
 
+		/*
 		conceptTermListColl_target = JacksonDBCollection.wrap(targetDB.getCollection("TermList"), ConceptTermList.class,
 				String.class);
 		conceptTermListColl_target.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
-
+*/
 		placeTermListColl_target = JacksonDBCollection.wrap(targetDB.getCollection("TermList"), PlaceTermList.class,
 				String.class);
 		placeTermListColl_target.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
-
+/*
 		timespanTermListColl_target = JacksonDBCollection.wrap(targetDB.getCollection("TermList"),
 				TimespanTermList.class, String.class);
 		timespanTermListColl_target.createIndex(new BasicDBObject("codeUri", 1), new BasicDBObject("unique", true));
@@ -128,12 +130,12 @@ public class MongoDatabaseMigration {
 		conceptTermColl_target.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
 				new BasicDBObject("unique", true));
 		conceptTermColl_target.createIndex(new BasicDBObject("codeUri", 1));
-
+*/
 		placeTermColl_target = JacksonDBCollection.wrap(targetDB.getCollection("place"), MongoTerm.class, String.class);
 		placeTermColl_target.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
 				new BasicDBObject("unique", true));
 		placeTermColl_target.createIndex(new BasicDBObject("codeUri", 1));
-
+/*
 		timespanTermColl_target = JacksonDBCollection.wrap(targetDB.getCollection("period"), MongoTerm.class,
 				String.class);
 		timespanTermColl_target.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
@@ -145,7 +147,7 @@ public class MongoDatabaseMigration {
 		agentTermColl_target.createIndex(new BasicDBObject("label", 1).append("lang", 1).append("codeUri", 1),
 				new BasicDBObject("unique", true));
 		agentTermColl_target.createIndex(new BasicDBObject("codeUri", 1));
-
+*/
 		lookupColl_target = JacksonDBCollection.wrap(targetDB.getCollection("lookup"), MongoCodeLookup.class,
 				String.class);
 		lookupColl_target.createIndex(new BasicDBObject("codeUri", 1).append("originalCodeUri", 1),
@@ -191,7 +193,8 @@ public class MongoDatabaseMigration {
 					counter++;
 
 					G termList = curs.next();
-					String newCodeUri = String.format("http://data.europeana.eu/%s/basic/%d",
+					String newCodeUri = String.format("http://data.europeana.eu/%s/base" +
+							"/%d",
 							contextualCategory.getLabel(), nextSequence);
 					String oldCodeUri = termList.getCodeUri();
 
@@ -332,7 +335,7 @@ public class MongoDatabaseMigration {
 
 					T representation = termList.getRepresentation();
 					representationMagrition.migrateRepresentation(codeUri, originalUri, representation);
-
+					termList.setOwlSameAs(((PlaceImpl)representation).getOwlSameAs());
 					try {
 						termListColl_target.insert(termList);
 
