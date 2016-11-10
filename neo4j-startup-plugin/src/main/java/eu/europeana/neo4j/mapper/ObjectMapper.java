@@ -23,9 +23,9 @@ public class ObjectMapper {
         ObjectNode json = JsonNodeFactory.instance.objectNode();
         json.put("parents", assimilate(hierarchy.getParents(), json.arrayNode()));
         json.put("followingSiblings", assimilate(hierarchy.getFollowingSiblings(), json.arrayNode()));
-        json.put("precedingSiblings", assimilate(hierarchy.getPreviousSiblings(), json.arrayNode()));
+        json.put("precedingSiblings", assimilate(hierarchy.getPrecedingSiblings(), json.arrayNode()));
         json.put("followingSiblingChildren", assimilate(hierarchy.getFollowingSiblingChildren(), json.arrayNode()));
-        json.put("precedingSiblingChildren", assimilate(hierarchy.getPreviousSiblingChildren(), json.arrayNode()));
+        json.put("precedingSiblingChildren", assimilate(hierarchy.getPrecedingSiblingChildren(), json.arrayNode()));
         return json.toString();
     }
 

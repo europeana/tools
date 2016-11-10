@@ -57,8 +57,8 @@ public class HierarchyCount {
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
-                    .relationships(ISFAKEORDER, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
                     .traverse(startNode);
 
             for (Path path : traverse) {

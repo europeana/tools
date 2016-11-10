@@ -19,9 +19,9 @@ public class Hierarchy {
     
     List<Node> parents = new ArrayList<>();
     List<Node> followingSiblings = new ArrayList<>();
-    List<Node> previousSiblings = new ArrayList<>();
+    List<Node> precedingSiblings = new ArrayList<>();
     List<Node> followingSiblingChildren = new ArrayList<>();
-    List<Node> previousSiblingChildren = new ArrayList<>();
+    List<Node> precedingSiblingChildren = new ArrayList<>();
 
     public List<Node> getParents() {
         return parents;
@@ -39,12 +39,12 @@ public class Hierarchy {
         this.followingSiblings = followingSiblings;
     }
 
-    public List<Node> getPreviousSiblings() {
-        return previousSiblings;
+    public List<Node> getPrecedingSiblings() {
+        return precedingSiblings;
     }
 
-    public void setPreviousSiblings(List<Node> previousSiblings) {
-        this.previousSiblings = previousSiblings;
+    public void setPrecedingSiblings(List<Node> precedingSiblings) {
+        this.precedingSiblings = precedingSiblings;
     }
 
     public List<Node> getFollowingSiblingChildren() {
@@ -55,12 +55,12 @@ public class Hierarchy {
         this.followingSiblingChildren = followingSiblingChildren;
     }
 
-    public List<Node> getPreviousSiblingChildren() {
-        return previousSiblingChildren;
+    public List<Node> getPrecedingSiblingChildren() {
+        return precedingSiblingChildren;
     }
 
-    public void setPreviousSiblingChildren(List<Node> previousSiblingChildren) {
-        this.previousSiblingChildren = previousSiblingChildren;
+    public void setPrecedingSiblingChildren(List<Node> precedingSiblingChildren) {
+        this.precedingSiblingChildren = precedingSiblingChildren;
     }
     
     

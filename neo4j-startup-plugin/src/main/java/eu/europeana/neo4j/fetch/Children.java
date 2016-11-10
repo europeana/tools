@@ -64,8 +64,8 @@ public class Children {
             // Get all children
             for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
                 Node child = r1.getEndNode();
-                if ((child.getDegree(IS_FAKE, Direction.INCOMING) == 0) &&
-                        (child.getDegree(IS_NEXT, Direction.INCOMING) == 0)) {
+                if ((child.getDegree(IS_FAKE, Direction.OUTGOING) == 0) &&
+                        (child.getDegree(IS_NEXT, Direction.OUTGOING) == 0)) {
                     first = child;
                 }
             }
@@ -77,10 +77,11 @@ public class Children {
             // Go up to limit hops away
             TraversalDescription td = db.traversalDescription()
                     .depthFirst()
-                    .relationships(IS_FAKE, Direction.OUTGOING)
-                    .relationships(IS_NEXT, Direction.OUTGOING)
+                    .relationships(IS_FAKE, Direction.INCOMING)
+                    .relationships(IS_NEXT, Direction.INCOMING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
-                    .evaluator(Evaluators.toDepth(limit - 1));
+                    .evaluator(Evaluators.fromDepth(offset))
+                    .evaluator(Evaluators.toDepth((offset + limit) - 1));
 
             // Add to the results
             for (org.neo4j.graphdb.Path path : td.traverse(first)) {

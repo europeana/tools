@@ -63,16 +63,17 @@ public class FollowingSiblings {
                     .relationships(IS_FAKE, Direction.INCOMING)
                     .relationships(IS_NEXT, Direction.INCOMING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
+                    .evaluator(Evaluators.excludeStartPosition())
                     .evaluator(Evaluators.toDepth(limit ));
 
             // Add to the results
             for (org.neo4j.graphdb.Path path : td.traverse(sibling)) {
                 Node child = path.endNode();
-                if (first) {
+//                if (first) {
                     followingSiblings.add(child);
-                } else {
-                    first = true;
-                }
+//                } else {
+//                    first = true;
+//                }
             }
             String obj = new ObjectMapper().siblingsToJson(followingSiblings, "siblings");
             tx.success();

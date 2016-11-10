@@ -91,13 +91,13 @@ public class Startup {
             }
             hierarchy.setParents(parents);
             
-            List<Node> previousSiblings = new ArrayList<>();
-            List<Node> previousSiblingChildren = new ArrayList<>();
+            List<Node> precedingSiblings = new ArrayList<>();
+            List<Node> precedingSiblingChildren = new ArrayList<>();
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
-                    .relationships(ISFAKEORDER, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
                     .evaluator(Evaluators.toDepth(length))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
@@ -106,7 +106,7 @@ public class Startup {
                 if (endNode.hasProperty("hasChildren")) {
                     long childrenCount = getChildrenCount(endNode.getProperty("rdf:about").toString());
                     endNode.setProperty("childrenCount", childrenCount);
-                    previousSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
+                    precedingSiblingChildren.add(getFirstChild(endNode.getProperty("rdf:about").toString()));
                 }
                 
                 if (endNode.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
@@ -114,18 +114,18 @@ public class Startup {
                 } else if (endNode.hasRelationship(ISNEXTINSEQUENCE, Direction.INCOMING)) {
                     endNode.setProperty("relBefore", true);
                 }
-                previousSiblings.add(path.endNode());
+                precedingSiblings.add(path.endNode());
             }
-            hierarchy.setPreviousSiblings(previousSiblings);
-            hierarchy.setPreviousSiblingChildren(previousSiblingChildren);
+            hierarchy.setPrecedingSiblings(precedingSiblings);
+            hierarchy.setPrecedingSiblingChildren(precedingSiblingChildren);
             
             List<Node> followingSiblings = new ArrayList<>();
             List<Node> followingSiblingChildren = new ArrayList<>();
             TraversalDescription traversalBefore = db.traversalDescription();
             Traverser traverseBefore = traversalBefore
                     .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
-                    .relationships(ISFAKEORDER, Direction.OUTGOING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
                     .evaluator(Evaluators.toDepth(lengthBefore))
                     .evaluator(Evaluators.excludeStartPosition())
                     .traverse(node);
