@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.LogRecord;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
@@ -59,14 +60,21 @@ public class Startup {
     public Response hierarchy(@PathParam("nodeId") String nodeId,
                               @QueryParam("length") @DefaultValue("32") int length,
                               @QueryParam("lengthBefore") @DefaultValue("8") int lengthBefore) {
+        String rdfAbout = ObjectMapper.fixSlashes(nodeId);
         Hierarchy hierarchy = new Hierarchy();
         List<Node> parents = new ArrayList<>();
+        String obj = "";
         Transaction tx = db.beginTx();
         try {
-            Node node = db.index().forNodes("edmsearch2").get("rdf_about", nodeId).getSingle();
+            Node node = db.index().forNodes("edmsearch2").get("rdf_about", rdfAbout).getSingle();
+
             if (node.hasProperty("hasChildren")) {
                 long childrenCount = getChildrenCount(node.getProperty("rdf:about").toString());
-                node.setProperty("childrenCount", childrenCount);
+                if (childrenCount > 0) {
+                    node.setProperty("childrenCount", childrenCount);
+                } else {
+                    throw new Neo4jDataConsistencyException("Inconsistency found between node's hasChildren property and actual unique children", node.getProperty("rdf:about").toString());
+                }
             }
             if (node.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
                 node.setProperty("relBefore", false);
@@ -147,43 +155,52 @@ public class Startup {
             hierarchy.setFollowingSiblings(followingSiblings);
             hierarchy.setFollowingSiblingChildren(followingSiblingChildren);
 
+            obj = new ObjectMapper().toJson(hierarchy);
+
+        } catch (Neo4jDataConsistencyException ne) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
+                    ne.getRdfAbout() + "\n" + ne.getCause() + "\n" + ne.getMessage());
+            obj = "INCONSISTENT_DATA";
         } catch (Exception e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
+                    e.getCause() + "\n" + e.getMessage());
+            obj = "ERROR";
+        } finally {
+            tx.success();
+            tx.finish();
+            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
+                    "application/json").build();
         }
-        String obj = new ObjectMapper().toJson(hierarchy);
-        tx.success();
-        tx.finish();
-        return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
-                "application/json").build();
     }
     
-    private synchronized long getIndex(long nodeId) {
-        long maxLength = 0;
-        try {
-            Node startNode = db.getNodeById(nodeId);
-            TraversalDescription traversal = db.traversalDescription();
-            Traverser traverse = traversal
-                    .depthFirst()
-                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
-                    .relationships(ISFAKEORDER, Direction.OUTGOING)
-                    .traverse(startNode);
-
-            for (Path path : traverse) {
-                if (path.length() > maxLength) {
-                    maxLength = path.length();
-                }
-            }
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
-        }
-        return maxLength;
-    }
+//    private synchronized long getIndex(long nodeId) {
+//        long maxLength = 0;
+//        try {
+//            Node startNode = db.getNodeById(nodeId);
+//            TraversalDescription traversal = db.traversalDescription();
+//            Traverser traverse = traversal
+//                    .depthFirst()
+//                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+//                    .relationships(ISFAKEORDER, Direction.OUTGOING)
+//                    .traverse(startNode);
+//
+//            for (Path path : traverse) {
+//                if (path.length() > maxLength) {
+//                    maxLength = path.length();
+//                }
+//            }
+//        } catch (Exception e) {
+//            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
+//        }
+//        return maxLength;
+//    }
 
     private long getChildrenCount(String rdfAbout) {
         Transaction tx = db.beginTx();
         ExecutionResult result = engine.execute(
                 "start n = node:edmsearch2(rdf_about=\"" + rdfAbout
-                + "\") MATCH (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
+                + "\") MATCH (n)-[:`dcterms:hasPart`]->(part) WHERE NOT ID(n)=ID(part) " +
+                        "RETURN COUNT(part) as children");
         Iterator<Long> columns = result.columnAs("children");
         tx.success();
         tx.finish();

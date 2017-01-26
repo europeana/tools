@@ -34,14 +34,6 @@ public class Children {
     private static final RelationshipType IS_FAKE  = DynamicRelationshipType.withName("isFakeOrder");
     private static final RelationshipType IS_NEXT  = DynamicRelationshipType.withName("edm:isNextInSequence");
 
-//    private GraphDatabaseService db;
-//    private ExecutionEngine engine;
-
-//    public Children(@Context GraphDatabaseService db) {
-//        this.db = db;
-//        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
-//    }
-
 
     @GET
     @javax.ws.rs.Path("/nodeId/{nodeId}")
@@ -51,13 +43,14 @@ public class Children {
                                 @QueryParam("limit") @DefaultValue("10") int limit,
                                 @Context GraphDatabaseService db) throws IOException {
         List<Node> children = new ArrayList<>();
+        String rdfAbout = ObjectMapper.fixSlashes(nodeId);
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
-            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
             Node            parent     = hits.getSingle();
             if (parent==null) {
-                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
             Node first = null;
 
@@ -120,42 +113,4 @@ public class Children {
         return sb.toString();
     }
 
-
-
-
-//    @GET
-//    @javax.ws.rs.Path("/nodeId/{nodeId}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//
-//    public Response getchildren(@PathParam("nodeId") String nodeId,
-//                                @QueryParam("offset") @DefaultValue("0") int offset,
-//                                @QueryParam("limit") @DefaultValue("10") int limit) {
-//        List<Node> children = new ArrayList<>();
-//        Transaction tx = db.beginTx();
-//        try {
-//            ExecutionResult result = engine.execute(
-//                    "start parent = node:edmsearch2(rdf_about=\"" + nodeId + "\") "
-//                    + "MATCH (parent)-[:`dcterms:hasPart`]->(child) "
-//                    + "WHERE NOT ()-[:isFakeOrder]->(child) "
-//                    + "AND NOT ()-[:`edm:isNextInSequence`]->(child) "
-//                    + "WITH child AS first "
-//                    + "MATCH (first)-[:isFakeOrder|`edm:isNextInSequence`*]->(next) "
-//                    + "WITH DISTINCT first + COLLECT(next) AS spool "
-//                    + "UNWIND spool as children RETURN children "
-//                    + "SKIP " + offset + " LIMIT " + limit);
-//            Iterator<Node> childIterator = result.columnAs("children");
-//            while (childIterator.hasNext()) {
-//                children.add(childIterator.next());
-//            }
-//        } catch (Exception e) {
-//            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
-//        } finally {
-//
-//            String obj = new ObjectMapper().siblingsToJson(children, "siblings");
-//            tx.success();
-//            tx.finish();
-//            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
-//                    "application/json").build();
-//        }
-//    }
 }
