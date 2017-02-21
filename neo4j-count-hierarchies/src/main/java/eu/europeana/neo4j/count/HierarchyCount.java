@@ -51,8 +51,7 @@ public class HierarchyCount {
     public Response distance(@PathParam("nodeId") int nodeId) throws IOException {
         int maxLength = 0;
         long start = System.currentTimeMillis();
-        Transaction tx = db.beginTx();
-        try {
+        try ( Transaction tx = db.beginTx() ) {
             Node startNode = db.getNodeById(nodeId);
             TraversalDescription traversal = db.traversalDescription();
             Traverser traverse = traversal
@@ -67,7 +66,6 @@ public class HierarchyCount {
                 }
             }
             tx.success();
-            tx.finish();
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
         }

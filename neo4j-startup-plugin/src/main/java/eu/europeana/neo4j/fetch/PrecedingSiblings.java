@@ -30,8 +30,8 @@ import java.util.List;
 public class PrecedingSiblings {
 
 
-    private static final RelationshipType IS_FAKE  = DynamicRelationshipType.withName("isFakeOrder");
-    private static final RelationshipType IS_NEXT  = DynamicRelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISNEXTINSEQUENCE = DynamicRelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISFAKEORDER = DynamicRelationshipType.withName("isFakeOrder");
 
     private GraphDatabaseService db;
 
@@ -46,7 +46,6 @@ public class PrecedingSiblings {
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
         List<Node> precedingSiblings = new ArrayList<>();
         String rdfAbout = ObjectMapper.fixSlashes(nodeId);
-        boolean first = false;
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
@@ -59,8 +58,8 @@ public class PrecedingSiblings {
             // Gather all ye preceding brothers and sisters but take heed! No more than in 'limit' number shall ye come!
             TraversalDescription td = db.traversalDescription()
                     .breadthFirst()
-                    .relationships(IS_FAKE, Direction.OUTGOING)
-                    .relationships(IS_NEXT, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
                     .evaluator(Evaluators.excludeStartPosition())
                     .evaluator(Evaluators.toDepth(limit));
@@ -68,11 +67,7 @@ public class PrecedingSiblings {
             // Add to the results
             for (org.neo4j.graphdb.Path path : td.traverse(sibling)) {
                 Node child = path.endNode();
-//                if (first) {
-                    precedingSiblings.add(child);
-//                } else {
-//                    first = true;
-//                }
+                precedingSiblings.add(child);
             }
 
             String obj = new ObjectMapper().siblingsToJson(precedingSiblings, "siblings");

@@ -31,8 +31,8 @@ import java.util.*;
 public class Children {
 
     private static final RelationshipType HAS_PART = DynamicRelationshipType.withName("dcterms:hasPart");
-    private static final RelationshipType IS_FAKE  = DynamicRelationshipType.withName("isFakeOrder");
-    private static final RelationshipType IS_NEXT  = DynamicRelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISNEXTINSEQUENCE = DynamicRelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISFAKEORDER = DynamicRelationshipType.withName("isFakeOrder");
 
 
     @GET
@@ -57,9 +57,10 @@ public class Children {
             // Get all children
             for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
                 Node child = r1.getEndNode();
-                if ((child.getDegree(IS_FAKE, Direction.OUTGOING) == 0) &&
-                        (child.getDegree(IS_NEXT, Direction.OUTGOING) == 0)) {
+                if ((child.getDegree(ISFAKEORDER, Direction.OUTGOING) == 0) &&
+                    (child.getDegree(ISNEXTINSEQUENCE, Direction.OUTGOING) == 0)) {
                     first = child;
+                    break;
                 }
             }
 
@@ -70,8 +71,8 @@ public class Children {
             // Go up to limit hops away
             TraversalDescription td = db.traversalDescription()
                     .depthFirst()
-                    .relationships(IS_FAKE, Direction.INCOMING)
-                    .relationships(IS_NEXT, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
                     .evaluator(Evaluators.fromDepth(offset))
                     .evaluator(Evaluators.toDepth((offset + limit) - 1));

@@ -38,64 +38,48 @@ public class DeleteHierarchy {
 	@GET
 	@javax.ws.rs.Path("/collection/{collectionId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response delete(@PathParam("collectionId") String collectionId)
-			throws IOException {
+	public Response delete(@PathParam("collectionId") String collectionId) throws IOException {
 		ExecutionEngine engine = new ExecutionEngine(db);
-		StringBuilder sb = new StringBuilder();
-		Transaction tx;
-		long started = System.currentTimeMillis();
-		ExecutionResult result = engine.execute(String.format(findNumber,
-				collectionId));
+		long countTime = System.currentTimeMillis();
+		ExecutionResult result = engine.execute(String.format(findNumber, collectionId));
 		ResourceIterator<?> res = result.columnAs("count(n)");
 		long numberOfResults = Long.parseLong(res.next().toString());
-		sb.append("Found ");
-		sb.append(numberOfResults);
-		sb.append(" objects\n");
-		sb.append("Executed query ");
-		sb.append(String.format(String.format(findNumber, collectionId)));
-		sb.append(" in ");
-		sb.append(System.currentTimeMillis() - started);
-		sb.append(" ms\n");
-		logger.log(Level.INFO, "Number of results: "+ numberOfResults);
-		int maxIterations = (int) (numberOfResults / 1000l) + 1;
+		String message = "Found " + String.valueOf(numberOfResults) +  "objects\nExecuted query: "
+				+ String.format(findNumber, collectionId) + " in "
+				+ String.valueOf(System.currentTimeMillis() - countTime) + " ms\n";
 
+		logger.log(Level.INFO, "Number of results: "+ numberOfResults);
+
+		int maxIterations = (int) (numberOfResults / 1000l) + 1;
 		int i = 0;
-		started = System.currentTimeMillis();
+		long deleteTime = System.currentTimeMillis();
 
 		while (i < maxIterations) {
-			ExecutionResult findRecordIds = engine.execute(String.format(
-					findIds, collectionId));
-			sb.append(String.format(
-					findIds, collectionId));
-			sb.append("\n");
-			logger.log(Level.INFO, "Executing: "+ String.format(
-					findIds, collectionId));
+			ExecutionResult findRecordIds = engine.execute(String.format(findIds, collectionId));
+			message += String.format(findIds, collectionId) + "\n";
+			logger.log(Level.INFO, "Executing: "+ String.format(findIds, collectionId));
+
 			ResourceIterator<Node> resIterator = findRecordIds.columnAs("n");
-			tx = db.beginTx();
-			while (resIterator.hasNext()) {
-				Node resObject = resIterator.next();
-			
-				Transaction tx2 = db.beginTx();
-				if(resObject.getRelationships()!=null){
-					Iterator<Relationship> rels = resObject.getRelationships().iterator();
-					while (rels.hasNext()){
-						rels.next().delete();
+			try ( Transaction tx = db.beginTx() ) {
+				while (resIterator.hasNext()) {
+					Node resObject = resIterator.next();
+					try ( Transaction tx2 = db.beginTx() ) {
+						if (resObject.getRelationships() != null) {
+							Iterator<Relationship> rels = resObject.getRelationships().iterator();
+							while (rels.hasNext()){
+								rels.next().delete();
+							}
+						}
+					resObject.delete();
+					tx2.success();
 					}
 				}
-				resObject.delete();
-				tx2.success();
-				tx2.finish();
+				tx.success();
+				i++;
 			}
-			tx.success();
-			tx.finish();
-			i++;
 		}
-		sb.append("Executed query for deletion with relationships of collection ");
-		sb.append(collectionId);
-		sb.append(" in ");
-		sb.append(System.currentTimeMillis() - started);
-		sb.append(" ms\n");
-		started = System.currentTimeMillis();
-		return Response.ok(sb.toString()).build();
+		message += "Executed query for deletion with relationships of collection " + collectionId + " in "
+				+  String.valueOf(System.currentTimeMillis() - deleteTime) + " ms\n";
+		return Response.ok(message).build();
 	}
 }

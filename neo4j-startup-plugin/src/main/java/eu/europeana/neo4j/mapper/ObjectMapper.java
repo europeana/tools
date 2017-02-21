@@ -64,7 +64,7 @@ public class ObjectMapper {
 
     public static String fixSlashes(String rdfAbout){
         rdfAbout.replace("%2F", "/");
-        if (!rdfAbout.startsWith("/")){
+        if (rdfAbout.contains("/") && !rdfAbout.startsWith("/")){
             rdfAbout = "/" + rdfAbout;
         }
         return rdfAbout;
