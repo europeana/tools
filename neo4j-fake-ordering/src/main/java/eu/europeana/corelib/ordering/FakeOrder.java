@@ -55,23 +55,26 @@ public class FakeOrder {
 	@javax.ws.rs.Path("/nodeId/{nodeId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response generate(@PathParam("nodeId") String parentId) {
-		Node node = db.index().forNodes("edmsearch2").get("rdf_about", parentId).getSingle();
-		if (node != null) {
-			if (node.hasProperty("hasChildren")) {
-				List<NaturalOrderNode> orderedOrphanNodeList = getOrderedOrphanNodes(getChildren(parentId, false), true);
-				try ( Transaction tx = db.beginTx() ) {
-					generateFakeRelations(orderedOrphanNodeList);
-					tx.success();
-				}
-				List<NaturalOrderNode> firstInSequenceNodeList = getFirstInSequenceNodes(getChildren(parentId, true));
+		Node node;
+		List<NaturalOrderNode> orderedOrphanNodeList = null;
+		List<NaturalOrderNode> firstInSequenceNodeList;
+		try ( Transaction tx = db.beginTx() ) {
+			node = db.index().forNodes("edmsearch2").get("rdf_about", parentId).getSingle();
+			if (node != null && node.hasProperty("hasChildren")) {
+				orderedOrphanNodeList = getOrderedOrphanNodes(getChildren(parentId, false), true);
+				generateFakeRelations(orderedOrphanNodeList);
+			}
+			tx.success();
+		}
+		try ( Transaction tx = db.beginTx() ) {
+			if (node != null && node.hasProperty("hasChildren")) {
+				firstInSequenceNodeList = getFirstInSequenceNodes(getChildren(parentId, true));
 				if (orderedOrphanNodeList.size() > 0) {
 					firstInSequenceNodeList.add(orderedOrphanNodeList.get(0));
 				}
-				try (Transaction tx = db.beginTx() ) {
-					generateFakeRelations(firstInSequenceNodeList);
-					tx.success();
-				}
+				generateFakeRelations(firstInSequenceNodeList);
 			}
+			tx.success();
 		}
 		return null;
 	}
