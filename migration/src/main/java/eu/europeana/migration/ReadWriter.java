@@ -5,6 +5,7 @@
  */
 package eu.europeana.migration;
 
+import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
@@ -16,6 +17,7 @@ import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,8 +26,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Predicate;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public class ReadWriter implements Runnable {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriter.class);
   private List<SolrDocument> solrDocuments;
   private EdmMongoServer sourceMongo;
@@ -68,18 +73,45 @@ public class ReadWriter implements Runnable {
   @Override
   public void run() {
     try {
-      int i = 0;
+      List<SolrInputDocument> docList = new ArrayList<>();
+      String europeana_id = null;
       for (SolrDocument solrDocument : solrDocuments) {
-        String europeana_id = solrDocument.getFieldValue("europeana_id").toString();
-        FullBeanImpl fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
+        europeana_id = solrDocument.getFieldValue("europeana_id").toString();
+        FullBeanImpl fBean = null;
+        try {
+          fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
+        } catch (MongoDBException e) {
+          LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo");
+        }
         removeSemiumTimespanEntities(fBean);
         removeSemiumReferences(fBean);
         enrich(fBean);
-        System.out.println();
-      }
 
-    } catch (Exception e) {
-      e.printStackTrace();
+        SolrInputDocument inputDoc = null;
+        try {
+          inputDoc = solrHandler.generate(fBean);
+        } catch (SolrServerException e) {
+          LOGGER.error("Could not convert fullbean to solrInputDocument with id: " + europeana_id);
+        }
+
+        //Add to list for saving later
+        docList.add(inputDoc);
+
+        //Save the individual classes in the Mongo cluster
+        try {
+          mongoHandler.saveEdmClasses(fBean, true);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+          LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
+        }
+        //and then save the records themselves (this does not happen in one go, because of UIM)
+        targetMongo.getDatastore().save(fBean);
+      }
+      try {
+        //add documents to Solr, no need to commit, they will become available
+        targetCloudSolr.add(docList);
+      } catch (SolrServerException | IOException ex) {
+        LOGGER.error("Error when adding document with id: " + europeana_id + " in solr", ex);
+      }
     } finally {
       latch.countDown();
     }
@@ -91,8 +123,9 @@ public class ReadWriter implements Runnable {
       @Override
       public boolean test(TimespanImpl timespan) {
         boolean semium = StringUtils.contains(timespan.getAbout(), "semium");
-        if (semium)
+        if (semium) {
           LOGGER.info("Removing Timespan Entity with about: " + timespan.getAbout());
+        }
         return semium;
       }
     });
@@ -105,7 +138,6 @@ public class ReadWriter implements Runnable {
       removeSemiumDctermsCreated(europeanaProxy);
       removeSemiumDctermsIssued(europeanaProxy);
       removeSemiumDctermsSpatial(europeanaProxy);
-      System.out.println();
     }
   }
 
@@ -157,10 +189,11 @@ public class ReadWriter implements Runnable {
       valueList.removeIf(new Predicate<String>() {
         @Override
         public boolean test(String value) {
-        boolean semium = StringUtils.contains(value, "semium");
-        if (semium)
+          boolean semium = StringUtils.contains(value, "semium");
+          if (semium) {
             LOGGER.info("Removing reference with value: " + value);
-        return semium;
+          }
+          return semium;
         }
       });
       if (valueList.isEmpty()) {
@@ -226,7 +259,6 @@ public class ReadWriter implements Runnable {
     return null;
   }
 
-
 //  private void replaceProxy(FullBeanImpl fBean, ProxyImpl proxy) {
 //    List<ProxyImpl> proxies = fBean.getProxies();
 //    int i = 0;
@@ -238,7 +270,6 @@ public class ReadWriter implements Runnable {
 //    }
 //    fBean.setProxies(proxies);
 //  }
-
 
 //  private void save(SolrDocumentHandler solrHandlerProd,
 //      CloudSolrServer cloudServerProd,
