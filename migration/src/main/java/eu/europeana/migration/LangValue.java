@@ -7,7 +7,7 @@ import java.util.List;
  */
 public class LangValue {
     private String language;
-    private List<String> value;
+    private List<String> values;
     private String vocabulary;
     private String originalField;
 
@@ -19,12 +19,12 @@ public class LangValue {
         this.language = language;
     }
 
-    public List<String> getValue() {
-        return value;
+    public List<String> getValues() {
+        return values;
     }
 
-    public void setValue(List<String> value) {
-        this.value = value;
+    public void setValues(List<String> values) {
+        this.values = values;
     }
 
     public String getVocabulary() {

@@ -73,7 +73,7 @@ public class Migration {
 
         //Process
         LOGGER.info("*** Migrating the batch #" + (i / 10000 + 1) + " started. ***");
-//        doCustomProcessingOfResults(resp, driver);
+        doCustomProcessingOfResults(resp);
 
         //Exit if reached the end
         if (cursorMark.equals(nextCursorMark)) {
@@ -90,7 +90,7 @@ public class Migration {
             + (int) ((time / 1000) % 60) + " seconds. ***");
         LOGGER.info("*** Added " + i + " documents. ***");
 
-        if (i >= 20000) {
+        if (i >= 200000) {
           done = true;
         }
       }
