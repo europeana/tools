@@ -32,6 +32,8 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * Read from a Mongo and a Solr and Write to a Mongo and Solr
@@ -41,6 +43,7 @@ import org.slf4j.LoggerFactory;
 public class ReadWriter implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriter.class);
+  private static final Marker errorIdsMarker = MarkerFactory.getMarker("ERROR_IDS");
   private List<SolrDocument> solrDocuments;
   private EdmMongoServer sourceMongo;
   private CountDownLatch latch;
@@ -51,7 +54,16 @@ public class ReadWriter implements Runnable {
   private FullBeanHandler mongoHandler;
   private EnrichmentDriver enrichmentDriver;
   private MigrationUtils utils = new MigrationUtils();
+  private String europeana_id = null;
 
+  public ReadWriter() {
+    Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        LOGGER.error("Uncaught Exception caught when processing id: " + europeana_id, e);
+        LOGGER.error(errorIdsMarker, europeana_id);
+      }
+    });
+  }
 
   public void setEnrichmentDriver(EnrichmentDriver enrichmentDriver) {
     this.enrichmentDriver = enrichmentDriver;
@@ -74,14 +86,15 @@ public class ReadWriter implements Runnable {
   public void run() {
     try {
       List<SolrInputDocument> docList = new ArrayList<>();
-      String europeana_id = null;
-      for (SolrDocument solrDocument : solrDocuments) {
+      for(int i = 0; i < solrDocuments.size(); i++) {
+        SolrDocument solrDocument = solrDocuments.get(i);
         europeana_id = solrDocument.getFieldValue("europeana_id").toString();
         FullBeanImpl fBean = null;
         try {
           fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
         } catch (MongoDBException e) {
-          LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo");
+          LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo", e);
+          LOGGER.error(errorIdsMarker, europeana_id);
         }
         removeSemiumTimespanEntities(fBean);
         removeSemiumReferences(fBean);
@@ -91,7 +104,9 @@ public class ReadWriter implements Runnable {
         try {
           inputDoc = solrHandler.generate(fBean);
         } catch (SolrServerException e) {
-          LOGGER.error("Could not convert fullbean to solrInputDocument with id: " + europeana_id);
+          LOGGER
+              .error("Could not convert fullbean to solrInputDocument with id: " + europeana_id, e);
+          LOGGER.error(errorIdsMarker, europeana_id);
         }
 
         //Add to list for saving later
@@ -102,6 +117,9 @@ public class ReadWriter implements Runnable {
           mongoHandler.saveEdmClasses(fBean, true);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
           LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
+          LOGGER.error(errorIdsMarker, europeana_id);
+          i--;
+          continue;
         }
         //and then save the records themselves (this does not happen in one go, because of UIM)
         targetMongo.getDatastore().save(fBean);
@@ -111,6 +129,7 @@ public class ReadWriter implements Runnable {
         targetCloudSolr.add(docList);
       } catch (SolrServerException | IOException ex) {
         LOGGER.error("Error when adding document with id: " + europeana_id + " in solr", ex);
+        LOGGER.error(errorIdsMarker, europeana_id);
       }
     } finally {
       latch.countDown();
@@ -124,7 +143,8 @@ public class ReadWriter implements Runnable {
       public boolean test(TimespanImpl timespan) {
         boolean semium = StringUtils.contains(timespan.getAbout(), "semium");
         if (semium) {
-          LOGGER.info("Removing Timespan Entity with about: " + timespan.getAbout());
+          LOGGER.info("Removing Timespan Entity with about: " + timespan.getAbout() + " from id: "
+              + europeana_id);
         }
         return semium;
       }
@@ -191,7 +211,7 @@ public class ReadWriter implements Runnable {
         public boolean test(String value) {
           boolean semium = StringUtils.contains(value, "semium");
           if (semium) {
-            LOGGER.info("Removing reference with value: " + value);
+            LOGGER.info("Removing reference with value: " + value + " from id: " + europeana_id);
           }
           return semium;
         }
@@ -234,6 +254,9 @@ public class ReadWriter implements Runnable {
       throws IOException {
     if (entities != null && entities.size() > 0) {
       ProxyImpl europeanaProxy = findEuropeanaProxy(fBean);
+      if (europeanaProxy == null) {
+        System.out.println("europeana proxy is null");
+      }
       for (EntityWrapper entity : entities) {
         utils.addValueToProxy(entity, europeanaProxy);
         utils.addContextualClassToBean(fBean, entity);

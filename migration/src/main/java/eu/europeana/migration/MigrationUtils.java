@@ -270,7 +270,6 @@ public class MigrationUtils {
       map = new HashMap<>();
     }
     List<String> getDef = map.get("def");
-    getDef.add("test");
     if (getDef == null) {
       getDef = new ArrayList<>();
     }

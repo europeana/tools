@@ -29,10 +29,9 @@ import org.slf4j.LoggerFactory;
  * @author Yorgos.Mamakis@ europeana.eu
  */
 public class Migration {
-
+  private static final Logger LOGGER = LoggerFactory.getLogger(Migration.class);
   private static final String propertiesPath = "/migration.properties";
   private static DBConnectionHandler dbConnectionHandler = null;
-  private static final Logger LOGGER = LoggerFactory.getLogger(Migration.class);
 
   static {
     try {
@@ -72,7 +71,7 @@ public class Migration {
         String nextCursorMark = resp.getNextCursorMark();
 
         //Process
-        LOGGER.info("*** Migrating the batch #" + (i / 10000 + 1) + " started. ***");
+        LOGGER.info("*** MIGRATING THE BATCH #" + (i / 10000 + 1) + " STARTED. ***");
         doCustomProcessingOfResults(resp);
 
         //Exit if reached the end
@@ -81,16 +80,17 @@ public class Migration {
         }
         cursorMark = nextCursorMark;
         //Update the querymark
-        FileUtils.write(new File("querymark"), cursorMark, false);
+        FileUtils.write(new File("./querymark"), cursorMark, false);
         i += 10000;
         time = System.currentTimeMillis() - time;
         //Logging
-        LOGGER.info("*** Time spent for migrating the batch: " + time + " milliseconds which is around "
-            + (int) ((time / 1000) / 60) + " minutes "
-            + (int) ((time / 1000) % 60) + " seconds. ***");
-        LOGGER.info("*** Added " + i + " documents. ***");
+        LOGGER.info("*** TIME SPEND FOR MIGRATING THE BATCH: " + time + " MILLISECONDS WHICH IS AROUND "
+            + (int) ((time / 1000) / 60) + " MINUTES "
+            + (int) ((time / 1000) % 60) + " SECONDS. ***");
+        LOGGER.info("*** ADDED " + i + " DOCUMENTS. ***");
 
-        if (i >= 200000) {
+        //20million limit
+        if (i >= 20000000) {
           done = true;
         }
       }
