@@ -28,7 +28,6 @@ import java.util.function.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +42,11 @@ import org.slf4j.MarkerFactory;
 public class ReadWriter implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriter.class);
+  private static final Marker currentStateMarker = MarkerFactory.getMarker("CURRENT_STATE");
   private static final Marker errorIdsMarker = MarkerFactory.getMarker("ERROR_IDS");
-  private List<SolrDocument> solrDocuments;
+  private List<String> idsBatch;
+  private final int counterBatch;
+  private final int counterSegment;
   private EdmMongoServer sourceMongo;
   private CountDownLatch latch;
 
@@ -56,7 +58,10 @@ public class ReadWriter implements Runnable {
   private MigrationUtils utils = new MigrationUtils();
   private String europeana_id = null;
 
-  public ReadWriter() {
+  public ReadWriter(List<String> idsBatch, int counterBatch, int counterSegment) {
+    this.idsBatch = idsBatch;
+    this.counterBatch = counterBatch;
+    this.counterSegment = counterSegment;
     Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
         LOGGER.error("Uncaught Exception caught when processing id: " + europeana_id, e);
@@ -85,17 +90,26 @@ public class ReadWriter implements Runnable {
   @Override
   public void run() {
     try {
+      LOGGER.info(currentStateMarker,
+          "*** MIGRATING BATCH: " + counterBatch + ", SEGMENT: " + counterSegment + ", WITH SIZE: "
+              + idsBatch.size() + " ***");
       List<SolrInputDocument> docList = new ArrayList<>();
-      for(int i = 0; i < solrDocuments.size(); i++) {
-        SolrDocument solrDocument = solrDocuments.get(i);
-        europeana_id = solrDocument.getFieldValue("europeana_id").toString();
+      for (int i = 0; i < idsBatch.size(); i++) {
+        europeana_id = idsBatch.get(i);
         FullBeanImpl fBean = null;
         try {
           fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
         } catch (MongoDBException e) {
           LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo", e);
           LOGGER.error(errorIdsMarker, europeana_id);
+          continue;
         }
+        if (fBean == null) {
+          LOGGER.error("Fullbean return null with id: " + europeana_id + " from mongo");
+          LOGGER.error(errorIdsMarker, europeana_id);
+          continue;
+        }
+
         removeSemiumTimespanEntities(fBean);
         removeSemiumReferences(fBean);
         enrich(fBean);
@@ -107,6 +121,7 @@ public class ReadWriter implements Runnable {
           LOGGER
               .error("Could not convert fullbean to solrInputDocument with id: " + europeana_id, e);
           LOGGER.error(errorIdsMarker, europeana_id);
+          continue;
         }
 
         //Add to list for saving later
@@ -118,7 +133,7 @@ public class ReadWriter implements Runnable {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
           LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
           LOGGER.error(errorIdsMarker, europeana_id);
-          i--;
+//          i--;
           continue;
         }
         //and then save the records themselves (this does not happen in one go, because of UIM)
@@ -132,6 +147,9 @@ public class ReadWriter implements Runnable {
         LOGGER.error(errorIdsMarker, europeana_id);
       }
     } finally {
+      LOGGER.info(currentStateMarker,
+          "*** MIGRATED BATCH: " + counterBatch + ", SEGMENT: " + counterSegment + ", WITH SIZE: "
+              + idsBatch.size() + " ***");
       latch.countDown();
     }
   }
@@ -158,6 +176,7 @@ public class ReadWriter implements Runnable {
       removeSemiumDctermsCreated(europeanaProxy);
       removeSemiumDctermsIssued(europeanaProxy);
       removeSemiumDctermsSpatial(europeanaProxy);
+      removeSemiumDctermsTemporal(europeanaProxy);
     }
   }
 
@@ -197,6 +216,16 @@ public class ReadWriter implements Runnable {
       removeSemiumFromMap(dctermsSpatial);
       if (dctermsSpatial.size() == 0) {
         proxy.setDctermsSpatial(null);
+      }
+    }
+  }
+
+  private void removeSemiumDctermsTemporal(ProxyImpl proxy) {
+    Map<String, List<String>> dctermsTemporal = proxy.getDctermsTemporal();
+    if (dctermsTemporal != null) {
+      removeSemiumFromMap(dctermsTemporal);
+      if (dctermsTemporal.size() == 0) {
+        proxy.setDctermsTemporal(null);
       }
     }
   }
@@ -497,14 +526,9 @@ public class ReadWriter implements Runnable {
 //    fBean.getAggregations().get(0).setWebResources(wrs);
 //  }
 
-
-  public List<SolrDocument> getBatches() {
-    return solrDocuments;
-  }
-
-  public void setBatches(List<SolrDocument> batches) {
-    this.solrDocuments = batches;
-  }
+//  public void setIdsBatch(List<String> idsBatch) {
+//    this.idsBatch = idsBatch;
+//  }
 
   public EdmMongoServer getSourceMongo() {
     return sourceMongo;

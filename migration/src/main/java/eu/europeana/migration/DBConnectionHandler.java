@@ -40,7 +40,7 @@ public class DBConnectionHandler {
     if(isProduction)
       target = "production";
     Properties properties = new Properties();
-    properties.load(Migration.class.getResourceAsStream(propertiesPath));
+    properties.load(DBConnectionHandler.class.getResourceAsStream(propertiesPath));
     //Get all source properties
     String sourceMongoUrl = properties.getProperty("source.mongo");
     String sourceMongoDB = properties.getProperty("source.mongo.db");
@@ -117,5 +117,12 @@ public class DBConnectionHandler {
 
   public EnrichmentDriver getEnrichmentDriver() {
     return enrichmentDriver;
+  }
+
+  public void close(){
+    sourceMongo.close();
+    targetMongo.close();
+    targetCloudSolr.shutdown();
+    sourceSolr.shutdown();
   }
 }
