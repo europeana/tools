@@ -42,7 +42,7 @@ public class DBConnectionHandler {
     Properties properties = new Properties();
     properties.load(DBConnectionHandler.class.getResourceAsStream(propertiesPath));
     //Get all source properties
-    String sourceMongoUrl = properties.getProperty("source.mongo");
+    String[] sourceMongoUrl = properties.getProperty("source.mongo").split(",");;
     String sourceMongoDB = properties.getProperty("source.mongo.db");
     int sourceMongoPort = Integer.parseInt(properties.getProperty("source.mongo.port"));
     String sourceSolrUrl = properties.getProperty("source.solr");
@@ -58,7 +58,12 @@ public class DBConnectionHandler {
     String[] targetZookeeper = properties.getProperty("zookeeper." + target + ".host").split(",");
 
     //Connect to  Solr and Mongo
-    Mongo mongo = new Mongo(sourceMongoUrl, sourceMongoPort);
+    List<ServerAddress> addresses = new ArrayList<>();
+    for (String mongoStr : sourceMongoUrl) {
+      ServerAddress address = new ServerAddress(mongoStr, sourceMongoPort);
+      addresses.add(address);
+    }
+    Mongo mongo = new Mongo(addresses);
     sourceSolr = new HttpSolrServer(sourceSolrUrl);
     sourceMongo = new EdmMongoServerImpl(mongo, sourceMongoDB, null, null);
     enrichmentDriver = new EnrichmentDriver(enrichmentUrl);
@@ -67,7 +72,7 @@ public class DBConnectionHandler {
       this.targetCloudSolr = new CloudSolrServer(targetZookeeper[0], lbTarget);
       this.targetCloudSolr.setDefaultCollection(targetCollection);
       this.targetCloudSolr.connect();
-      List<ServerAddress> addresses = new ArrayList<>();
+      addresses = new ArrayList<>();
       for (String mongoStr : targetMongoUrl) {
         ServerAddress address = new ServerAddress(mongoStr, targetMongoPort);
         addresses.add(address);

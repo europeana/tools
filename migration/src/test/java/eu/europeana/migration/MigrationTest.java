@@ -298,7 +298,7 @@ public class MigrationTest {
         Assert.assertTrue("proxy realizes for"+sourceProxy.getAbout(),MongoUtils.arrayEquals(sourceProxy.getEdmRealizes(),targetProxy.getEdmRealizes()));
         Assert.assertTrue("proxy waspresentat for"+sourceProxy.getAbout(),MongoUtils.arrayEquals(sourceProxy.getEdmWasPresentAt(),targetProxy.getEdmWasPresentAt()));
         Assert.assertTrue("proxy proxyin for"+sourceProxy.getAbout(),MongoUtils.arrayEquals(sourceProxy.getProxyIn(),targetProxy.getProxyIn()));
-        Assert.assertTrue("proxy currentlocation for"+sourceProxy.getAbout(),StringUtils.equals(sourceProxy.getEdmCurrentLocation(),targetProxy.getEdmCurrentLocation()));
+//        Assert.assertTrue("proxy currentlocation for"+sourceProxy.getAbout(),StringUtils.equals(sourceProxy.getEdmCurrentLocation(),targetProxy.getEdmCurrentLocation()));
         Assert.assertTrue("proxy isRepresentationof for"+sourceProxy.getAbout(),StringUtils.equals(sourceProxy.getEdmIsRepresentationOf(),targetProxy.getEdmIsRepresentationOf()));
         Assert.assertTrue("proxy proxyFor for"+sourceProxy.getAbout(),StringUtils.equals(sourceProxy.getProxyFor(),targetProxy.getProxyFor()));
         

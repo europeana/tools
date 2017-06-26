@@ -140,6 +140,12 @@ public class MigrationUtils {
     if (proxy.getDcSubject() != null) {
       values.addAll(addFromMap(proxy.getDcSubject(), "CONCEPT", "proxy_dc_subject"));
     }
+    if (proxy.getDcType() != null) {
+      values.addAll(addFromMap(proxy.getDcType(), "CONCEPT", "proxy_dcterms_medium"));
+    }
+    if (proxy.getDcSubject() != null) {
+      values.addAll(addFromMap(proxy.getDcSubject(), "CONCEPT", "proxy_dc_format"));
+    }
     if (proxy.getDcCreator() != null) {
       values.addAll(addFromMap(proxy.getDcCreator(), "AGENT", "proxy_dc_creator"));
     }
