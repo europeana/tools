@@ -85,7 +85,7 @@ public class DBConnectionHandler {
 
     //Initialize Solr Document and Mongo Bean handlers
     this.mongoHandler = new FullBeanHandler(targetMongo);
-    this.solrHandler = new SolrDocumentHandler(targetCloudSolr);
+    this.solrHandler = new SolrDocumentHandler(sourceSolr);
   }
 
   public static DBConnectionHandler getInstance(boolean isProduction, String propertiesPath)
