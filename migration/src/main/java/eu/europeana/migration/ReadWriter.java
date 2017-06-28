@@ -31,8 +31,6 @@ import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 
 /**
  * Read from a Mongo and a Solr and Write to a Mongo and Solr
@@ -42,8 +40,6 @@ import org.slf4j.MarkerFactory;
 public class ReadWriter implements Runnable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriter.class);
-  private static final Marker currentStateMarker = MarkerFactory.getMarker("CURRENT_STATE");
-  private static final Marker errorIdsMarker = MarkerFactory.getMarker("ERROR_IDS");
   private List<String> idsBatch;
   private final int counterBatch;
   private final int counterSegment;
@@ -65,7 +61,7 @@ public class ReadWriter implements Runnable {
     Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
         LOGGER.error("Uncaught Exception caught when processing id: " + europeana_id, e);
-        LOGGER.error(errorIdsMarker, europeana_id);
+        LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
       }
     });
   }
@@ -90,7 +86,7 @@ public class ReadWriter implements Runnable {
   @Override
   public void run() {
     try {
-      LOGGER.info(currentStateMarker,
+      LOGGER.info(LogMarker.currentStateMarker,
           "*** MIGRATING BATCH: " + counterBatch + ", SEGMENT: " + counterSegment + ", WITH SIZE: "
               + idsBatch.size() + " ***");
       List<SolrInputDocument> docList = new ArrayList<>();
@@ -101,12 +97,12 @@ public class ReadWriter implements Runnable {
           fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
         } catch (MongoDBException e) {
           LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo", e);
-          LOGGER.error(errorIdsMarker, europeana_id);
+          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
           continue;
         }
         if (fBean == null) {
           LOGGER.error("Fullbean return null with id: " + europeana_id + " from mongo");
-          LOGGER.error(errorIdsMarker, europeana_id);
+          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
           continue;
         }
 
@@ -114,13 +110,13 @@ public class ReadWriter implements Runnable {
         removeSemiumReferences(fBean);
         enrich(fBean);
 
-        SolrInputDocument inputDoc = null;
+        SolrInputDocument inputDoc;
         try {
           inputDoc = solrHandler.generate(fBean);
         } catch (SolrServerException e) {
           LOGGER
               .error("Could not convert fullbean to solrInputDocument with id: " + europeana_id, e);
-          LOGGER.error(errorIdsMarker, europeana_id);
+          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
           continue;
         }
 
@@ -132,7 +128,7 @@ public class ReadWriter implements Runnable {
           mongoHandler.saveEdmClasses(fBean, true);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
           LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
-          LOGGER.error(errorIdsMarker, europeana_id);
+          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
 //          i--;
           continue;
         }
@@ -144,10 +140,10 @@ public class ReadWriter implements Runnable {
         targetCloudSolr.add(docList);
       } catch (SolrServerException | IOException ex) {
         LOGGER.error("Error when adding document with id: " + europeana_id + " in solr", ex);
-        LOGGER.error(errorIdsMarker, europeana_id);
+        LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
       }
     } finally {
-      LOGGER.info(currentStateMarker,
+      LOGGER.info(LogMarker.currentStateMarker,
           "*** MIGRATED BATCH: " + counterBatch + ", SEGMENT: " + counterSegment + ", WITH SIZE: "
               + idsBatch.size() + " ***");
       latch.countDown();

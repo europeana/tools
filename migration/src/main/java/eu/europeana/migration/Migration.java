@@ -9,8 +9,7 @@ import eu.europeana.corelib.edm.exceptions.MongoDBException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,8 +22,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 
 /**
  * Migration application prototype for a proposed Europeana infrastructure
@@ -34,13 +31,12 @@ import org.slf4j.MarkerFactory;
 public class Migration {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Migration.class);
-  private static final Marker currentStateMarker = MarkerFactory.getMarker("CURRENT_STATE");
   private static final String propertiesPath = "/migration.properties";
   private static final String queryMarkFileName = "querymark";
-  private static final String idsFileName = "test_ids.txt";
+  private static final String idsFileName = "/test_ids.txt";
   private static final String returnField = "europeana_id";
   private static final int maxIdsPerBatch = 10000;
-  private static File idsFile;
+  private static InputStream fileInputStream;
   private static final File queryMarkFile = new File(queryMarkFileName);
   private static DBConnectionHandler dbConnectionHandler = null;
 
@@ -53,14 +49,24 @@ public class Migration {
   }
 
   public static void main(String... args) throws IOException, SolrServerException {
-    if(Migration.class.getClassLoader().getResource(idsFileName) != null)
-      idsFile = new File(Migration.class.getClassLoader().getResource(idsFileName).getFile());
-    else if(new File(idsFileName).exists())
-      idsFile = new File(idsFileName);
-    if (idsFile != null && idsFile.exists()) {
-      LOGGER.info(currentStateMarker, "*** ID'S FILE FOUND: " + idsFile.getAbsolutePath() + " ***");
+
+    if (dbConnectionHandler.isIdsFileReindex()) {
+      fileInputStream = Migration.class.getResourceAsStream(idsFileName);
+    }
+
+    if (fileInputStream != null) {
+      LOGGER.info(LogMarker.currentStateMarker, "*** ID'S FILE FOUND: " + idsFileName + " ***");
       idsReindex();
-    } else {
+    }
+    else if (dbConnectionHandler.isIdsFileReindex())
+    {
+      LOGGER
+          .info(LogMarker.currentStateMarker, "*** ID'S FILE NOT FOUND: starting full reindex ***");
+      fullReindex();
+    }
+    else {
+      LOGGER
+          .info(LogMarker.currentStateMarker, "*** Starting full reindex ***");
       fullReindex();
     }
     dbConnectionHandler.getTargetCloudSolr().commit();
@@ -99,9 +105,10 @@ public class Migration {
 
         //Process
         LOGGER
-            .info(currentStateMarker,
+            .info(LogMarker.currentStateMarker,
                 "*** MIGRATING THE BATCH #" + counterBatch + " STARTED. ***");
-        List<List<String>> segments = createSegments(getFieldValuesListFromSolrDocument(resp.getResults(), returnField));
+        List<List<String>> segments = createSegments(
+            getFieldValuesListFromSolrDocument(resp.getResults(), returnField));
         doCustomProcessingOfResults(segments, counterBatch);
 
         //Exit if reached the end
@@ -115,17 +122,15 @@ public class Migration {
         counterBatch++;
         time = System.currentTimeMillis() - time;
         //Logging
-        LOGGER.info(currentStateMarker,
+        LOGGER.info(LogMarker.currentStateMarker,
             "*** TIME SPEND FOR MIGRATING THE BATCH: " + time + " MILLISECONDS WHICH IS AROUND "
                 + (int) ((time / 1000) / 60) + " MINUTES "
                 + (int) ((time / 1000) % 60) + " SECONDS. ***");
-        LOGGER.info(currentStateMarker, "*** ADDED " + counterProcessed + " DOCUMENTS. ***");
+        LOGGER.info(LogMarker.currentStateMarker,
+            "*** ADDED " + counterProcessed + " DOCUMENTS. ***");
       }
       queryMarkFile.delete();
-    } catch (UnknownHostException | SolrServerException
-        | MalformedURLException ex) {
-      LOGGER.error(null, ex);
-    } catch (IOException ex) {
+    } catch (SolrServerException | IOException ex) {
       LOGGER.error(null, ex);
     }
   }
@@ -133,64 +138,65 @@ public class Migration {
   private static void idsReindex() {
     List<String> ids = null;
     try {
-      ids = readFileLinesToList(idsFile);
+      ids = readFileLinesToList(fileInputStream);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     }
 
     List<List<String>> segments = createSegments(ids);
     long time = System.currentTimeMillis();
-    LOGGER.info(currentStateMarker, "*** MIGRATING THE MANUAL IDS #" + ids.size() + " STARTED. ***");
+    LOGGER.info(LogMarker.currentStateMarker,
+        "*** MIGRATING THE MANUAL IDS #" + ids.size() + " STARTED. ***");
     doCustomProcessingOfResults(segments, 1);
 
     //Logging
     time = System.currentTimeMillis() - time;
-    LOGGER.info(currentStateMarker,
+    LOGGER.info(LogMarker.currentStateMarker,
         "*** TIME SPEND FOR MIGRATING THE BATCH: " + time + " MILLISECONDS WHICH IS AROUND "
             + (int) ((time / 1000) / 60) + " MINUTES "
             + (int) ((time / 1000) % 60) + " SECONDS. ***");
-    LOGGER.info(currentStateMarker, "*** PROCESSED " + ids.size() + " DOCUMENTS. ***");
+    LOGGER.info(LogMarker.currentStateMarker, "*** PROCESSED " + ids.size() + " DOCUMENTS. ***");
 
   }
 
   /**
    * Process a batch of data and store it to target databases
-   *
    */
   private static void doCustomProcessingOfResults(List<List<String>> segments, int counterBatch) {
-      //Prepare the creation of 50 threads
-      CountDownLatch latch = new CountDownLatch(segments.size());
+    //Prepare the creation of 50 threads
+    CountDownLatch latch = new CountDownLatch(segments.size());
 
-      int counterSegment = 0;
-      for (List<String> segment : segments) {
-        counterSegment++;
-        final ReadWriter writer = new ReadWriter(segment, counterBatch, counterSegment);
+    int counterSegment = 0;
+    for (List<String> segment : segments) {
+      counterSegment++;
+      final ReadWriter writer = new ReadWriter(segment, counterBatch, counterSegment);
 //        writer.setIdsBatch(batch);
-        writer.setSourceMongo(dbConnectionHandler.getSourceMongo());
-        writer.setLatch(latch);
+      writer.setSourceMongo(dbConnectionHandler.getSourceMongo());
+      writer.setLatch(latch);
                 /*
         writer.setTargetsIngestion(
 						ingestion.getSolrHandler(),
 						ingestion.getTargetSolr(), 
 						ingestion.getTargetMongo(),
 						ingestion.getMongoHandler());*/
-        writer.setConnectionTargets(
-            dbConnectionHandler.getSolrHandler(),
-            dbConnectionHandler.getTargetCloudSolr(),
-            dbConnectionHandler.getTargetMongo(),
-            dbConnectionHandler.getMongoHandler());
+      writer.setConnectionTargets(
+          dbConnectionHandler.getSolrHandler(),
+          dbConnectionHandler.getTargetCloudSolr(),
+          dbConnectionHandler.getTargetMongo(),
+          dbConnectionHandler.getMongoHandler());
 
-        writer.setEnrichmentDriver(dbConnectionHandler.getEnrichmentDriver());
-        Thread t = new Thread(writer);
-        t.start();
-      }
-      try {
-        //Block until all threads are done
-        latch.await();
-      } catch (InterruptedException ex) {
-        LOGGER.error(null, ex);
-      }
+      writer.setEnrichmentDriver(dbConnectionHandler.getEnrichmentDriver());
+      Thread t = new Thread(writer);
+      t.start();
+    }
+    try {
+      //Block until all threads are done
+      latch.await();
+    } catch (InterruptedException ex) {
+      LOGGER.error(null, ex);
+    }
   }
+
   /**
    * Segment the results
    */
@@ -199,8 +205,8 @@ public class Migration {
 
     int offset = 0;
     int maxSizePerList = 200;
-    int numberOfLists = results.size()/maxSizePerList;
-    int remainingListSize = results.size()%maxSizePerList;
+    int numberOfLists = results.size() / maxSizePerList;
+    int remainingListSize = results.size() % maxSizePerList;
     while (offset < numberOfLists * maxSizePerList) {
       List<String> segment = results.subList(offset, offset + maxSizePerList);
       segments.add(segment);
@@ -213,8 +219,9 @@ public class Migration {
     return segments;
   }
 
-  private static List<String> readFileLinesToList(File fileToRead) throws FileNotFoundException {
-    Scanner s = new Scanner(fileToRead);
+  private static List<String> readFileLinesToList(InputStream fileInputStreamToRead)
+      throws FileNotFoundException {
+    Scanner s = new Scanner(fileInputStreamToRead);
     List<String> list = new ArrayList<>();
     while (s.hasNext()) {
       list.add(s.next());
@@ -223,10 +230,10 @@ public class Migration {
     return list;
   }
 
-  private static List<String> getFieldValuesListFromSolrDocument(List<SolrDocument> solrDocuments, String fieldName)
-  {
+  private static List<String> getFieldValuesListFromSolrDocument(List<SolrDocument> solrDocuments,
+      String fieldName) {
     List<String> europeanaIds = new ArrayList<>(solrDocuments.size());
-    for(int i = 0; i < solrDocuments.size(); i++) {
+    for (int i = 0; i < solrDocuments.size(); i++) {
       SolrDocument solrDocument = solrDocuments.get(i);
       europeanaIds.add(solrDocument.getFieldValue(fieldName).toString());
     }

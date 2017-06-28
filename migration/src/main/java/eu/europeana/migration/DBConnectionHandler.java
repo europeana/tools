@@ -14,18 +14,20 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Simon Tzanakis (Simon.Tzanakis@europeana.eu)
  * @since 2017-03-23
  */
 public class DBConnectionHandler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DBConnectionHandler.class);
   private static DBConnectionHandler DBConnectionHandler;
+  private boolean isIdsFileReindex;
   private HttpSolrServer sourceSolr;
   private EdmMongoServer sourceMongo;
   private CloudSolrServer targetCloudSolr;
@@ -41,6 +43,8 @@ public class DBConnectionHandler {
       target = "production";
     Properties properties = new Properties();
     properties.load(DBConnectionHandler.class.getResourceAsStream(propertiesPath));
+    isIdsFileReindex = Boolean.parseBoolean(properties.getProperty("ids.file.reindex"));
+
     //Get all source properties
     String[] sourceMongoUrl = properties.getProperty("source.mongo").split(",");;
     String sourceMongoDB = properties.getProperty("source.mongo.db");
@@ -65,27 +69,33 @@ public class DBConnectionHandler {
     }
     Mongo mongo = new Mongo(addresses);
     sourceSolr = new HttpSolrServer(sourceSolrUrl);
+    LOGGER.info("Connected to source Solr {}", sourceSolr.getBaseURL());
     sourceMongo = new EdmMongoServerImpl(mongo, sourceMongoDB, null, null);
+    LOGGER.info("Connected to source Mongo {}", mongo.getAllAddress());
     enrichmentDriver = new EnrichmentDriver(enrichmentUrl);
     try {
       LBHttpSolrServer lbTarget = new LBHttpSolrServer(targetSolrUrls);
       this.targetCloudSolr = new CloudSolrServer(targetZookeeper[0], lbTarget);
       this.targetCloudSolr.setDefaultCollection(targetCollection);
       this.targetCloudSolr.connect();
+      LOGGER.info("Connected to target Solr {}", targetCloudSolr.getZkStateReader().getClusterState().getLiveNodes());
       addresses = new ArrayList<>();
       for (String mongoStr : targetMongoUrl) {
         ServerAddress address = new ServerAddress(mongoStr, targetMongoPort);
         addresses.add(address);
       }
-      Mongo tgtMongo = new Mongo(addresses);
-      this.targetMongo = new EdmMongoServerImpl(tgtMongo, targetMongoDb, null, null);
+      Mongo targetMongo = new Mongo(addresses);
+      this.targetMongo = new EdmMongoServerImpl(targetMongo, targetMongoDb, null, null);
+      LOGGER.info("Connected to target Mongo {}", targetMongo.getAllAddress());
     } catch (UnknownHostException | MongoDBException | MalformedURLException ex) {
-      Logger.getLogger(Migration.class.getName()).log(Level.SEVERE, null, ex);
+      LOGGER.error(null, ex);
     }
 
     //Initialize Solr Document and Mongo Bean handlers
     this.mongoHandler = new FullBeanHandler(targetMongo);
     this.solrHandler = new SolrDocumentHandler(sourceSolr);
+    LOGGER.info("MongoHandler is set as {}", targetMongo);
+    LOGGER.info("SolrHandler is set as {}", sourceSolr);
   }
 
   public static DBConnectionHandler getInstance(boolean isProduction, String propertiesPath)
@@ -94,6 +104,10 @@ public class DBConnectionHandler {
       DBConnectionHandler = new DBConnectionHandler(isProduction, propertiesPath);
     }
     return DBConnectionHandler;
+  }
+
+  public boolean isIdsFileReindex() {
+    return isIdsFileReindex;
   }
 
   public HttpSolrServer getSourceSolr() {
