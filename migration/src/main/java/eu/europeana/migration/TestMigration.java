@@ -35,9 +35,9 @@ public class TestMigration {
     private static EdmMongoServer targetMongo;
     private static CloudSolrServer targetSolr;
     private static Properties properties;
-     
+
     public static void main (String[] args){
-        
+
          properties = new Properties();
 
         Mongo mongo;
@@ -64,7 +64,7 @@ public class TestMigration {
             }
             Mongo tgtMongo = new Mongo(addresses);
             targetMongo = new EdmMongoServerImpl(tgtMongo, "europeana", null, null);
-            
+
             List<Count> collections = fetchMigratedSolr();
             for(Count collection:collections){
                 testData(collection);
@@ -73,7 +73,7 @@ public class TestMigration {
             Logger.getLogger(TestMigration.class.getName()).log(Level.SEVERE, null, ex);
         } catch (MongoDBException ex) {
             Logger.getLogger(TestMigration.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
     }
 
     private static List<Count> fetchMigratedSolr() {
@@ -111,8 +111,8 @@ public class TestMigration {
             FullBean sourceBean = sourceMongo.getFullBean(id);
             FullBean targetBean = targetMongo.getFullBean(id);
             boolean equals = true;
-            
-            
+
+
         } catch (MongoDBException ex) {
             Logger.getLogger(TestMigration.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -10,4 +10,7 @@ import org.slf4j.MarkerFactory;
 public interface LogMarker {
   Marker currentStateMarker = MarkerFactory.getMarker("CURRENT_STATE");
   Marker errorIdsMarker = MarkerFactory.getMarker("ERROR_IDS");
+  Marker errorIdsNullMongoMarker = MarkerFactory.getMarker("ERROR_IDS_NULL_MONGO");
+  Marker errorIdsUncaughtMarker = MarkerFactory.getMarker("ERROR_IDS_UNCAUGHT");
+  Marker errorIdsMissingStreamMarker = MarkerFactory.getMarker("ERROR_IDS_MISSING_STREAM");
 }

@@ -17,6 +17,24 @@
       </PatternLayout>
       <MarkerFilter marker="ERROR_IDS" onMatch="ACCEPT" onMismatch="DENY"/>
     </File>
+    <File name="IdsFileNullMongo" fileName="./logs/error_ids_null_mongo-${date:yyyy-MM-dd-HHmmss}.log">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <MarkerFilter marker="ERROR_IDS_NULL_MONGO" onMatch="ACCEPT" onMismatch="DENY"/>
+    </File>
+    <File name="IdsFileUncaught" fileName="./logs/error_ids_uncaught-${date:yyyy-MM-dd-HHmmss}.log">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <MarkerFilter marker="ERROR_IDS_UNCAUGHT" onMatch="ACCEPT" onMismatch="DENY"/>
+    </File>
+    <File name="IdsFileMissingStream" fileName="./logs/error_ids_missing_stream-${date:yyyy-MM-dd-HHmmss}.log">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <MarkerFilter marker="ERROR_IDS_MISSING_STREAM" onMatch="ACCEPT" onMismatch="DENY"/>
+    </File>
     <File name="CurrentState" fileName="./logs/current_state-${date:yyyy-MM-dd-HHmmss}.log">
       <PatternLayout>
         <Pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5p %C:%L [%t] - %m%n</Pattern>
@@ -31,6 +49,9 @@
       <AppenderRef ref="CurrentState" level="INFO"/>
       <AppenderRef ref="FileError" level="ERROR"/>
       <AppenderRef ref="IdsFileError" level="ERROR"/>
+      <AppenderRef ref="IdsFileNullMongo" level="ERROR"/>
+      <AppenderRef ref="IdsFileUncaught" level="ERROR"/>
+      <AppenderRef ref="IdsFileMissingStream" level="ERROR"/>
     </Root>
   </Loggers>
 </Configuration>

@@ -10,6 +10,7 @@ import eu.europeana.corelib.edm.utils.construct.FullBeanHandler;
 import eu.europeana.corelib.edm.utils.construct.SolrDocumentHandler;
 import eu.europeana.corelib.mongo.server.EdmMongoServer;
 import eu.europeana.corelib.solr.bean.impl.FullBeanImpl;
+import eu.europeana.corelib.solr.entity.AggregationImpl;
 import eu.europeana.corelib.solr.entity.ProxyImpl;
 import eu.europeana.corelib.solr.entity.TimespanImpl;
 import eu.europeana.enrichment.api.external.EntityClass;
@@ -28,6 +29,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer.RemoteSolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,7 @@ public class ReadWriter implements Runnable {
     Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
         LOGGER.error("Uncaught Exception caught when processing id: " + europeana_id, e);
+        LOGGER.error(LogMarker.errorIdsUncaughtMarker, europeana_id);
         LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
       }
     });
@@ -92,7 +95,7 @@ public class ReadWriter implements Runnable {
       List<SolrInputDocument> docList = new ArrayList<>();
       for (int i = 0; i < idsBatch.size(); i++) {
         europeana_id = idsBatch.get(i);
-        FullBeanImpl fBean = null;
+        FullBeanImpl fBean;
         try {
           fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
         } catch (MongoDBException e) {
@@ -102,13 +105,15 @@ public class ReadWriter implements Runnable {
         }
         if (fBean == null) {
           LOGGER.error("Fullbean return null with id: " + europeana_id + " from mongo");
+          LOGGER.error(LogMarker.errorIdsNullMongoMarker, europeana_id);
           LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
           continue;
         }
 
-        removeSemiumTimespanEntities(fBean);
-        removeSemiumReferences(fBean);
+//        removeSemiumTimespanEntities(fBean);
+//        removeSemiumReferences(fBean);
         enrich(fBean);
+        addFalseToNullUgc(fBean);
 
         SolrInputDocument inputDoc;
         try {
@@ -139,8 +144,20 @@ public class ReadWriter implements Runnable {
         //add documents to Solr, no need to commit, they will become available
         targetCloudSolr.add(docList);
       } catch (SolrServerException | IOException ex) {
-        LOGGER.error("Error when adding document with id: " + europeana_id + " in solr", ex);
-        LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
+        LOGGER
+            .error("Error when adding list of documents with size: " + docList.size() + " in solr",
+                ex);
+      } catch (RemoteSolrException ex) {
+        LOGGER
+            .error("Error when adding list of documents with size: " + docList.size() + " in solr",
+                ex);
+        for (SolrInputDocument solrInputDocument : docList
+            ) {
+          LOGGER.error(LogMarker.errorIdsMissingStreamMarker,
+              solrInputDocument.getField("europeana_id").toString());
+          LOGGER.error(LogMarker.errorIdsMarker,
+              solrInputDocument.getField("europeana_id").toString());
+        }
       }
     } finally {
       LOGGER.info(LogMarker.currentStateMarker,
@@ -244,6 +261,14 @@ public class ReadWriter implements Runnable {
       if (valueList.isEmpty()) {
         it.remove();
       }
+    }
+  }
+
+  private void addFalseToNullUgc(FullBeanImpl fBean) {
+    if (fBean.getAggregations().get(0).getEdmUgc() == null || fBean.getAggregations().get(0).getEdmUgc().equals("")) {
+      AggregationImpl aggr = fBean.getAggregations().get(0);
+      aggr.setEdmUgc("false");
+      fBean.getAggregations().set(0, aggr);
     }
   }
 

@@ -140,11 +140,11 @@ public class MigrationUtils {
     if (proxy.getDcSubject() != null) {
       values.addAll(addFromMap(proxy.getDcSubject(), "CONCEPT", "proxy_dc_subject"));
     }
-    if (proxy.getDcType() != null) {
-      values.addAll(addFromMap(proxy.getDcType(), "CONCEPT", "proxy_dcterms_medium"));
+    if (proxy.getDctermsMedium() != null) {
+      values.addAll(addFromMap(proxy.getDctermsMedium(), "CONCEPT", "proxy_dcterms_medium"));
     }
-    if (proxy.getDcSubject() != null) {
-      values.addAll(addFromMap(proxy.getDcSubject(), "CONCEPT", "proxy_dc_format"));
+    if (proxy.getDcFormat() != null) {
+      values.addAll(addFromMap(proxy.getDcFormat(), "CONCEPT", "proxy_dc_format"));
     }
     if (proxy.getDcCreator() != null) {
       values.addAll(addFromMap(proxy.getDcCreator(), "AGENT", "proxy_dc_creator"));
@@ -203,6 +203,14 @@ public class MigrationUtils {
       europeanaProxy
           .setDcContributor(addToMap(europeanaProxy.getDcContributor(), wrapper.getUrl()));
     }
+    if (StringUtils.equals(wrapper.getOriginalField(), "proxy_dcterms_medium")) {
+      europeanaProxy
+          .setDctermsMedium(addToMap(europeanaProxy.getDctermsMedium(), wrapper.getUrl()));
+    }
+    if (StringUtils.equals(wrapper.getOriginalField(), "proxy_dc_format")) {
+      europeanaProxy
+          .setDcFormat(addToMap(europeanaProxy.getDcFormat(), wrapper.getUrl()));
+    }
     return europeanaProxy;
   }
 
@@ -245,18 +253,18 @@ public class MigrationUtils {
           fBean.setPlaces(places);
         }
         break;
-//      case "eu.europeana.corelib.solr.entity.TimespanImpl":
-//        List<TimespanImpl> ts = fBean.getTimespans();
-//        if (ts == null) {
-//          ts = new ArrayList<>();
-//        }
-//        if (!entityExists(ts, entityWrapper.getUrl())) {
-//          ts.add(mapper.readValue(entityWrapper.getContextualEntity(), TimespanImpl.class));
-//        }
-//        if (ts.size() > 0) {
-//          fBean.setTimespans(ts);
-//        }
-//        break;
+      case "eu.europeana.corelib.solr.entity.TimespanImpl":
+        List<TimespanImpl> ts = fBean.getTimespans();
+        if (ts == null) {
+          ts = new ArrayList<>();
+        }
+        if (!entityExists(ts, entityWrapper.getUrl())) {
+          ts.add(mapper.readValue(entityWrapper.getContextualEntity(), TimespanImpl.class));
+        }
+        if (ts.size() > 0) {
+          fBean.setTimespans(ts);
+        }
+        break;
     }
   }
 
