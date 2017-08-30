@@ -18,7 +18,6 @@ import eu.europeana.enrichment.api.external.EntityWrapper;
 import eu.europeana.enrichment.api.external.InputValue;
 import eu.europeana.enrichment.rest.client.EnrichmentDriver;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.HttpSolrServer.RemoteSolrException;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
@@ -55,6 +55,8 @@ public class ReadWriter implements Runnable {
   private EnrichmentDriver enrichmentDriver;
   private MigrationUtils utils = new MigrationUtils();
   private String europeana_id = null;
+
+  private HttpSolrServer sourceSolr;
 
   public ReadWriter(List<String> idsBatch, int counterBatch, int counterSegment) {
     this.idsBatch = idsBatch;
@@ -95,10 +97,11 @@ public class ReadWriter implements Runnable {
       List<SolrInputDocument> docList = new ArrayList<>();
       for (int i = 0; i < idsBatch.size(); i++) {
         europeana_id = idsBatch.get(i);
+
         FullBeanImpl fBean;
         try {
           fBean = (FullBeanImpl) sourceMongo.getFullBean(europeana_id);
-        } catch (MongoDBException e) {
+        } catch (MongoDBException | RuntimeException e) {
           LOGGER.error("Could not retrieve fullbean with id: " + europeana_id + " from mongo", e);
           LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
           continue;
@@ -112,8 +115,8 @@ public class ReadWriter implements Runnable {
 
 //        removeSemiumTimespanEntities(fBean);
 //        removeSemiumReferences(fBean);
-        enrich(fBean);
-        addFalseToNullUgc(fBean);
+//        enrich(fBean);
+//        addFalseToNullUgc(fBean);
 
         SolrInputDocument inputDoc;
         try {
@@ -128,35 +131,32 @@ public class ReadWriter implements Runnable {
         //Add to list for saving later
         docList.add(inputDoc);
 
-        //Save the individual classes in the Mongo cluster
-        try {
-          mongoHandler.saveEdmClasses(fBean, true);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-          LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
-          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
-//          i--;
-          continue;
-        }
-        //and then save the records themselves (this does not happen in one go, because of UIM)
-        targetMongo.getDatastore().save(fBean);
+//        //Save the individual classes in the Mongo cluster
+//        try {
+//          mongoHandler.saveEdmClasses(fBean, true);
+//        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+//          LOGGER.error("Error when saving edm classes with id: " + europeana_id + " in mongo", e);
+//          LOGGER.error(LogMarker.errorIdsMarker, europeana_id);
+////          i--;
+//          continue;
+//        }
+//        //and then save the records themselves (this does not happen in one go, because of UIM)
+//        targetMongo.getDatastore().save(fBean);
       }
-      try {
-        //add documents to Solr, no need to commit, they will become available
-        targetCloudSolr.add(docList);
-      } catch (SolrServerException | IOException ex) {
-        LOGGER
-            .error("Error when adding list of documents with size: " + docList.size() + " in solr",
-                ex);
-      } catch (RemoteSolrException ex) {
-        LOGGER
-            .error("Error when adding list of documents with size: " + docList.size() + " in solr",
-                ex);
-        for (SolrInputDocument solrInputDocument : docList
-            ) {
-          LOGGER.error(LogMarker.errorIdsMissingStreamMarker,
-              solrInputDocument.getField("europeana_id").toString());
-          LOGGER.error(LogMarker.errorIdsMarker,
-              solrInputDocument.getField("europeana_id").toString());
+      if (docList.size() != 0) {
+        try {
+          //add documents to Solr, no need to commit, they will become available
+          targetCloudSolr.add(docList);
+        } catch (SolrServerException | IOException | RemoteSolrException ex) {
+          LOGGER.error(
+              "Error when adding list of documents with size: " + docList.size() + " in solr", ex);
+          for (SolrInputDocument solrInputDocument : docList
+              ) {
+            LOGGER.error(LogMarker.errorIdsMissingStreamMarker,
+                solrInputDocument.getFieldValue("europeana_id").toString());
+            LOGGER.error(LogMarker.errorIdsMarker,
+                solrInputDocument.getFieldValue("europeana_id").toString());
+          }
         }
       }
     } finally {
@@ -265,7 +265,8 @@ public class ReadWriter implements Runnable {
   }
 
   private void addFalseToNullUgc(FullBeanImpl fBean) {
-    if (fBean.getAggregations().get(0).getEdmUgc() == null || fBean.getAggregations().get(0).getEdmUgc().equals("")) {
+    if (fBean.getAggregations().get(0).getEdmUgc() == null || fBean.getAggregations().get(0)
+        .getEdmUgc().equals("")) {
       AggregationImpl aggr = fBean.getAggregations().get(0);
       aggr.setEdmUgc("false");
       fBean.getAggregations().set(0, aggr);
@@ -330,6 +331,11 @@ public class ReadWriter implements Runnable {
       }
     }
     return null;
+  }
+
+  private void addTimestampSolrFields(FullBeanImpl fBean, SolrInputDocument inputDoc)
+  {
+
   }
 
 //  private void replaceProxy(FullBeanImpl fBean, ProxyImpl proxy) {
@@ -550,6 +556,15 @@ public class ReadWriter implements Runnable {
 //  public void setIdsBatch(List<String> idsBatch) {
 //    this.idsBatch = idsBatch;
 //  }
+
+
+  public HttpSolrServer getSourceSolr() {
+    return sourceSolr;
+  }
+
+  public void setSourceSolr(HttpSolrServer sourceSolr) {
+    this.sourceSolr = sourceSolr;
+  }
 
   public EdmMongoServer getSourceMongo() {
     return sourceMongo;

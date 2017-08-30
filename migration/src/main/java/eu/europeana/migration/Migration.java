@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CursorMarkParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ public class Migration {
       String cursorMark = CursorMarkParams.CURSOR_MARK_START;
       //Unless the querymark file exists which means start from where you previously stopped
       if (queryMarkFile.exists()) {
-        cursorMark = FileUtils.readFileToString(queryMarkFile);
+        cursorMark = FileUtils.readFileToString(queryMarkFile).trim();
       }
       boolean done = false;
       int counterProcessed = 0;
@@ -100,16 +101,32 @@ public class Migration {
       while (!done) {
         long time = System.currentTimeMillis();
         params.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
+        LOGGER
+            .info(LogMarker.currentStateMarker,
+                "Executing query with a parameters: " + params.toString());
         QueryResponse resp = dbConnectionHandler.getSourceSolr().query(params);
-        String nextCursorMark = resp.getNextCursorMark();
+        String nextCursorMark = resp.getNextCursorMark().trim();
 
         //Process
         LOGGER
             .info(LogMarker.currentStateMarker,
-                "*** MIGRATING THE BATCH #" + counterBatch + " STARTED. ***");
-        List<List<String>> segments = createSegments(
-            getFieldValuesListFromSolrDocument(resp.getResults(), returnField));
-        doCustomProcessingOfResults(segments, counterBatch);
+                "*** MIGRATING THE BATCH #" + counterBatch + " STARTED. with cursorMark: " + cursorMark + " ***");
+        SolrDocumentList resultDocumentList = resp.getResults();
+        if (resultDocumentList != null && resultDocumentList.size() > 0) {
+          List<List<String>> segments = createSegments(
+              getFieldValuesListFromSolrDocument(resultDocumentList, returnField));
+          doCustomProcessingOfResults(segments, counterBatch);
+        }
+
+        counterProcessed += maxIdsPerBatch;
+        time = System.currentTimeMillis() - time;
+        //Logging
+        LOGGER.info(LogMarker.currentStateMarker,
+            "*** TIME SPEND FOR MIGRATING THE BATCH " + counterBatch + " with cursorMark: " + cursorMark + " and time: " + time + " MILLISECONDS WHICH IS AROUND "
+                + (int) ((time / 1000) / 60) + " MINUTES "
+                + (int) ((time / 1000) % 60) + " SECONDS. ***");
+        LOGGER.info(LogMarker.currentStateMarker,
+            "*** ADDED " + counterProcessed + " DOCUMENTS. ***");
 
         //Exit if reached the end
         if (cursorMark.equals(nextCursorMark)) {
@@ -118,16 +135,7 @@ public class Migration {
         cursorMark = nextCursorMark;
         //Update the querymark
         FileUtils.write(queryMarkFile, cursorMark, false);
-        counterProcessed += maxIdsPerBatch;
         counterBatch++;
-        time = System.currentTimeMillis() - time;
-        //Logging
-        LOGGER.info(LogMarker.currentStateMarker,
-            "*** TIME SPEND FOR MIGRATING THE BATCH: " + time + " MILLISECONDS WHICH IS AROUND "
-                + (int) ((time / 1000) / 60) + " MINUTES "
-                + (int) ((time / 1000) % 60) + " SECONDS. ***");
-        LOGGER.info(LogMarker.currentStateMarker,
-            "*** ADDED " + counterProcessed + " DOCUMENTS. ***");
       }
       queryMarkFile.delete();
     } catch (SolrServerException | IOException ex) {
@@ -172,6 +180,7 @@ public class Migration {
       final ReadWriter writer = new ReadWriter(segment, counterBatch, counterSegment);
 //        writer.setIdsBatch(batch);
       writer.setSourceMongo(dbConnectionHandler.getSourceMongo());
+      writer.setSourceSolr(dbConnectionHandler.getSourceSolr());
       writer.setLatch(latch);
                 /*
         writer.setTargetsIngestion(
