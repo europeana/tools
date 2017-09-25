@@ -16,9 +16,15 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    <repositories>
+        <repository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.apache.storm</groupId>
@@ -26,6 +32,11 @@
             <version>0.9.2-incubating</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>clj-time</groupId>
+            <artifactId>clj-time</artifactId>
+        <version>0.4.1</version>
+    </dependency>
     </dependencies>
     <distributionManagement>
 	    <repository>
