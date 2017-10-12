@@ -12,16 +12,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.neo4j.kernel.impl.util.StringLogger;
 
 import eu.europeana.corelib.ordering.model.NaturalOrderNode;
 
@@ -41,11 +34,9 @@ public class FakeOrder {
 			.withName("edm:isNextInSequence");
 
 	private GraphDatabaseService db;
-	private ExecutionEngine engine;
 
 	public FakeOrder(@Context GraphDatabaseService db) {
 		this.db = db;
-		  this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
 	}
 
 	/**
@@ -73,7 +64,6 @@ public class FakeOrder {
 				generateFakeRelations(orderedOrphanNodeList);
 				
 				tx.success();
-				tx.finish();
 
 				List<NaturalOrderNode> firstInSequenceNodeList = getFirstInSequenceNodes(getSequenceStartNodes(parentId));
 				if (orderedOrphanNodeList.size() > 0) {
@@ -82,7 +72,6 @@ public class FakeOrder {
 				tx = db.beginTx();
 				generateFakeRelations(firstInSequenceNodeList);
 				tx.success();
-				tx.finish();
 			}
 		}
 		return null;
@@ -91,13 +80,12 @@ public class FakeOrder {
 	// retrieve the children for a parent with given rdf_about = parentId
 	private Iterator<Node> getChildren(String parentId) {
 		Transaction tx = db.beginTx();
-		ExecutionResult result = engine
+		Result result = db
 				.execute("start n = node:edmsearch2(rdf_about=\""
 						+ parentId
 						+ "\") match (n)-[:`dcterms:hasPart`]->(part) RETURN part");
 		Iterator<Node> columns = result.columnAs("part");
 		tx.success();
-		tx.finish();
 		return columns;
 	}
 
@@ -115,7 +103,6 @@ public class FakeOrder {
 			}
 		}
 		tx.success();
-		tx.finish();
 		return orderOrphanNodeList(unorderedOrphanNodeList);
 	}
 
@@ -144,7 +131,6 @@ public class FakeOrder {
 				orderedOrphanNode.setIssued(((String[]) unorderedOrphanNode.getProperty("dcterms:issued_xml:lang_def"))[0]);
 			}
 			tx.success();
-			tx.finish();
 			orderedOrphanNodeList.add(orderedOrphanNode);
 		}
 		Collections.sort(orderedOrphanNodeList);
@@ -158,20 +144,18 @@ public class FakeOrder {
 			Node endNode = db.getNodeById(naturalOrderNodeList.get(i + 1).getNodeId());
 			startNode.createRelationshipTo(endNode, ISFAKEORDER);
 			tx.success();
-			tx.finish();
 		}
 
 	}
 
 	private Iterator<Node> getSequenceStartNodes(String parentId) {
 		Transaction tx = db.beginTx();
-		ExecutionResult result = engine
+		Result result = db
 				.execute("start n = node:edmsearch2(rdf_about=\""
 						+ parentId
 						+ "\") match (n)-[:`isFirstInSequence`]->(part) RETURN part");
 		Iterator<Node> startNodeIterator = result.columnAs("part");
 		tx.success();
-		tx.finish();
 		return startNodeIterator;
 	}
 
@@ -187,8 +171,7 @@ public class FakeOrder {
 					.relationships(EDMISNEXTINSEQUENCE, Direction.OUTGOING)
 					.traverse(startNode);
 			for (Node nodeRet : traverse.nodes()) {
-				if (nodeRet.hasRelationship(ISLASTINSEQUENCE,
-						Direction.INCOMING)) {
+				if (nodeRet.hasRelationship(ISLASTINSEQUENCE, Direction.INCOMING)) {
 					NaturalOrderNode last = new NaturalOrderNode();
 					last.setId(nodeRet.getProperty("rdf:about").toString());
 					last.setNodeId(nodeRet.getId());
@@ -211,7 +194,6 @@ public class FakeOrder {
 				}
 			}
 			tx.success();
-			tx.finish();
 		}
 		for (int i = 0; i < firstChildren.size() - 1; i++) {
 			finalChildren.add(firstChildren.get(i + 1));

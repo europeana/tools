@@ -21,18 +21,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.DynamicRelationshipType;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
-import org.neo4j.kernel.impl.util.StringLogger;
 
 /**
  *
@@ -45,11 +37,9 @@ public class Startup {
     final DynamicRelationshipType ISFAKEORDER = DynamicRelationshipType.withName("isFakeOrder");
 
     private GraphDatabaseService db;
-    private ExecutionEngine engine;
 
     public Startup(@Context GraphDatabaseService db) {
         this.db = db;
-        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
     }
 
     @GET
@@ -152,7 +142,6 @@ public class Startup {
         }
         String obj = new ObjectMapper().toJson(hierarchy);
         tx.success();
-        tx.finish();
         return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
                 "application/json").build();
     }
@@ -181,18 +170,17 @@ public class Startup {
 
     private long getChildrenCount(String rdfAbout) {
         Transaction tx = db.beginTx();
-        ExecutionResult result = engine.execute(
+        Result result = db.execute(
                 "start n = node:edmsearch2(rdf_about=\"" + rdfAbout
                 + "\") MATCH (n)-[:`dcterms:hasPart`]->(part) RETURN COUNT(part) as children");
         Iterator<Long> columns = result.columnAs("children");
         tx.success();
-        tx.finish();
         return columns.next();
     }
     
     private Node getFirstChild(String rdfAbout) {
         Transaction tx = db.beginTx();
-        ExecutionResult result = engine.execute(
+        Result result = db.execute(
                 "start parent = node:edmsearch2(rdf_about=\"" + rdfAbout 
                 + "\") MATCH (parent)-[:`dcterms:hasPart`]->(firstchild) "
                 + "WHERE NOT ()-[:isFakeOrder]->(firstchild) "
@@ -200,7 +188,6 @@ public class Startup {
                 + "RETURN firstchild LIMIT 1;");
         Iterator<Node> firstChild = result.columnAs("firstchild");
         tx.success();
-        tx.finish();
         return firstChild.next();
     }
 }

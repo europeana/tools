@@ -13,7 +13,8 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Uniqueness;
-import org.neo4j.tooling.GlobalGraphOperations;
+import org.neo4j.graphdb.GraphDatabaseService;
+//import org.neo4j.tooling.GlobalGraphOperations;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -100,7 +101,7 @@ public class Children {
     public String getDegreeHistogram(@Context GraphDatabaseService gds) throws IOException {
         SortedMap<Integer, Integer> histogram = new TreeMap<>();
         try (Transaction tx = gds.beginTx()) {
-            for (Node n: GlobalGraphOperations.at(gds).getAllNodes()) {
+            for (Node n: gds.getAllNodes()) {
                 int degree = n.getDegree();
 
                 Integer val = histogram.get(degree);

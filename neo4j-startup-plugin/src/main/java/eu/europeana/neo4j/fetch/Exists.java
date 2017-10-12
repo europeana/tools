@@ -17,7 +17,6 @@
 
 package eu.europeana.neo4j.fetch;
 
-import eu.europeana.neo4j.mapper.ObjectMapper;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -42,11 +41,10 @@ public class Exists {
     @Produces(MediaType.APPLICATION_JSON)
     public Response find(@PathParam("nodeId") String nodeId,
                                 @Context GraphDatabaseService db) throws IOException {
-        String     rdfAbout = ObjectMapper.fixSlashes(nodeId);
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index       = db.index();
             Index<Node>     edmsearch2  = index.forNodes("edmsearch2");
-            IndexHits<Node> hits        = edmsearch2.get("rdf_about", rdfAbout);
+            IndexHits<Node> hits        = edmsearch2.get("rdf_about", nodeId);
             Node            node        = hits.getSingle();
             if (node == null) {
                 tx.success();

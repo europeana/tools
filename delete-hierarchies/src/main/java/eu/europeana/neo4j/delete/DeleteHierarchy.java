@@ -12,14 +12,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang.StringUtils;
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 
 /**
  *
@@ -40,11 +33,10 @@ public class DeleteHierarchy {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response delete(@PathParam("collectionId") String collectionId)
 			throws IOException {
-		ExecutionEngine engine = new ExecutionEngine(db);
 		StringBuilder sb = new StringBuilder();
 		Transaction tx;
 		long started = System.currentTimeMillis();
-		ExecutionResult result = engine.execute(String.format(findNumber,
+		Result result = db.execute(String.format(findNumber,
 				collectionId));
 		ResourceIterator<?> res = result.columnAs("count(n)");
 		long numberOfResults = Long.parseLong(res.next().toString());
@@ -63,13 +55,10 @@ public class DeleteHierarchy {
 		started = System.currentTimeMillis();
 
 		while (i < maxIterations) {
-			ExecutionResult findRecordIds = engine.execute(String.format(
-					findIds, collectionId));
-			sb.append(String.format(
-					findIds, collectionId));
+			Result findRecordIds = db.execute(String.format(findIds, collectionId));
+			sb.append(String.format(findIds, collectionId));
 			sb.append("\n");
-			logger.log(Level.INFO, "Executing: "+ String.format(
-					findIds, collectionId));
+			logger.log(Level.INFO, "Executing: "+ String.format(findIds, collectionId));
 			ResourceIterator<Node> resIterator = findRecordIds.columnAs("n");
 			tx = db.beginTx();
 			while (resIterator.hasNext()) {
@@ -78,16 +67,12 @@ public class DeleteHierarchy {
 				Transaction tx2 = db.beginTx();
 				if(resObject.getRelationships()!=null){
 					Iterator<Relationship> rels = resObject.getRelationships().iterator();
-					while (rels.hasNext()){
-						rels.next().delete();
-					}
+					while (rels.hasNext()) rels.next().delete();
 				}
 				resObject.delete();
 				tx2.success();
-				tx2.finish();
 			}
 			tx.success();
-			tx.finish();
 			i++;
 		}
 		sb.append("Executed query for deletion with relationships of collection ");
