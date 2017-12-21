@@ -55,6 +55,12 @@
             <version>3.2.5</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.neo4j.procedure/apoc -->
+        <dependency>
+            <groupId>org.neo4j.procedure</groupId>
+            <artifactId>apoc</artifactId>
+            <version>3.2.0.4</version>
+        </dependency>
 
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
