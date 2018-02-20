@@ -9,6 +9,7 @@ import com.mongodb.*;
 import com.mongodb.util.JSON;
 import eu.europeana.corelib.solr.entity.AgentImpl;
 import eu.europeana.corelib.solr.entity.ConceptImpl;
+import eu.europeana.corelib.solr.entity.OrganizationImpl;
 import eu.europeana.enrichment.api.internal.*;
 import eu.europeana.enrichment.harvester.api.AgentMap;
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,7 @@ public class DataManager {
 	private static final String CODEURI = "codeUri";
 	private static JacksonDBCollection<AgentTermList, String> aColl;
 	private static JacksonDBCollection<ConceptTermList, String> cColl;
+	private static JacksonDBCollection<OrganizationTermList, String> oColl;
 	private static JacksonDBCollection<PlaceTermList, String> pColl;
 	private static JacksonDBCollection<TimespanTermList, String> tColl;
 	private static JacksonDBCollection<ConceptTermList, String> conceptsColl;
@@ -177,7 +179,30 @@ public class DataManager {
 		}
 	}
 	
+	public void insertOrganization(OrganizationImpl organization) {
+		try {			
+			if (organization.getAbout()!=null && queryToFindConceptDescription(organization.getAbout().trim())){
+				organizationToOrganizationTermList(organization, true);
+			}
+			else
+				System.out.println(organization.getAbout()+", not inserted!");				
+				                              
+		} catch (IOException | JiBXException e) {
+			log.log(Level.SEVERE, e.getMessage());
+		}
+	}
+	
 	public void deleteConcept(String id) {
+		try {
+
+			if (!queryToFindConceptDescription(id.trim()))
+				removeTermList(id.trim());
+		} catch (Exception e) {
+			log.log(Level.SEVERE, e.getMessage());
+		}
+	}
+	
+	public void deleteOrganization(String id) {
 		try {
 
 			if (!queryToFindConceptDescription(id.trim()))
@@ -501,4 +526,50 @@ public class DataManager {
 
 	}
 
+	
+	private void organizationToOrganizationTermList(OrganizationImpl organization, Boolean newOrganization) throws IOException, JiBXException {
+
+		Query<OrganizationTermList> qATL;
+		OrganizationTermList termList = new OrganizationTermList();
+		log.info("*********Organization prefl "+organization.getPrefLabel());
+		if (organization.getPrefLabel() == null || organization.getPrefLabel().entrySet().size()==0)
+			return;
+		termList.setCodeUri(organization.getAbout());
+		List<DBRef<? extends MongoTerm, String>> pList = new ArrayList<>();
+		for (Entry<String, List<String>> prefLabel : organization.getPrefLabel().entrySet()) {
+
+			for (String label : prefLabel.getValue()) {
+				MongoTerm pTerm = new MongoTerm();
+				pTerm.setCodeUri(organization.getAbout());
+				pTerm.setLabel(label.toLowerCase());
+				String lang = prefLabel.getKey();
+
+				pTerm.setOriginalLabel(label);
+
+				pTerm.setLang(lang);
+
+				JacksonDBCollection<MongoTerm, String> pColl = JacksonDBCollection.wrap(db.getCollection("organizations"), MongoTerm.class, String.class);
+				pColl.ensureIndex(CODEURI);
+				pColl.ensureIndex("label");
+				WriteResult<MongoTerm, String> res = pColl.insert(pTerm);
+				DBRef<MongoTerm, String> pTermRef = new DBRef<>(
+						res.getSavedObject().getId(), "organizations");
+				pList.add(pTermRef);
+			}
+		}
+
+		termList.setTerms(pList);
+
+		termList.setRepresentation(organization);
+		termList.setEntityType(OrganizationImpl.class.getSimpleName());
+		if (newOrganization){
+			oColl.insert(termList);		
+		}
+		else {
+			DBQuery.Query all = DBQuery.all(CODEURI,organization.getAbout());
+			 oColl.update(all, termList);
+		}
+	}
+
+	
 }
