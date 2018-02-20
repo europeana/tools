@@ -45,14 +45,15 @@ public class PrecedingSiblings {
     public Response getpreceding(@PathParam("nodeId") String nodeId,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
         List<Node> precedingSiblings = new ArrayList<>();
+        String rdfAbout = ObjectMapper.fixSlashes(nodeId);
         boolean first = false;
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
-            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
             Node            sibling    = hits.getSingle();
             if (sibling==null) {
-                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
 
             // Gather all ye preceding brothers and sisters but take heed! No more than in 'limit' number shall ye come!

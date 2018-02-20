@@ -11,7 +11,8 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <neo4j.version>2.1.8</neo4j.version>
   </properties>
 
    <dependencies>
@@ -29,7 +30,7 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>server-api</artifactId>
-            <version>3.0.0-M02</version>
+            <version>${neo4j.version}</version>
         </dependency>
         
         <dependency>
@@ -45,7 +46,7 @@
          <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-cypher</artifactId>
-            <version>3.0.0-M02</version>
+             <version>${neo4j.version}</version>
         </dependency>
     <dependency>
       <groupId>junit</groupId>
