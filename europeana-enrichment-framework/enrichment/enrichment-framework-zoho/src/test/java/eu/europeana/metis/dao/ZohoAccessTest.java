@@ -4,6 +4,7 @@ package eu.europeana.metis.dao;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -18,6 +19,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import eu.europeana.corelib.solr.entity.OrganizationImpl;
+import eu.europeana.enrichment.harvester.database.DataManager;
 import eu.europeana.metis.exception.BadContentException;
 import eu.europeana.metis.exception.GenericMetisException;
 import junit.framework.Assert;
@@ -30,9 +33,7 @@ import junit.framework.Assert;
 @Configuration
 @ComponentScan(basePackages = {"eu.europeana.metis"})
 @PropertySource("classpath:authentication.properties")
-//@EnableWebMvc
-//@EnableScheduling
-public class ZohoAccessTest { // extends WebMvcConfigurerAdapter {
+public class ZohoAccessTest { 
 
 	private EnrichmentZohoAccessClientDao zohoClient = null;
 	
@@ -47,7 +48,28 @@ public class ZohoAccessTest { // extends WebMvcConfigurerAdapter {
 	private final String ZOHO_AUTHENTICATION_TOKEN = "a0fa7bf7a12c292d209773f29d02e656";
 	private final String START_INDEX = "1"; 
 	private final String END_INDEX = "10"; 
-
+	
+	/** Test fields from Zoho */
+//	Data provider/false
+//	MODIFIEDBY/1482250000001209007
+//	Account Owner/Tamara van Hulst
+//	Image service Opt-in/false
+//	DEA Sent/false
+//	SMOWNERID/1482250000001209007
+//	Modified Time/2018-01-30 10:19:50
+//	Created Time/2018-01-30 10:19:50
+//	Modified By/Tamara van Hulst
+//	Account Name/Restnova, Art Solutions
+//	ACCOUNTID/1482250000005386671
+//	Country/Spain
+//	Last Activity Time/2018-01-30 10:19:50
+//	Data Partner/false
+//	Domain/Creative industries
+//	DEA Signed/false
+	
+//    private final DataManager dm = new DataManager();
+	
+	
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 	    return new PropertySourcesPlaceholderConfigurer();
@@ -59,7 +81,6 @@ public class ZohoAccessTest { // extends WebMvcConfigurerAdapter {
 	@Before
 	@Bean
 	public void mockUp() {
-//		zohoClient = new EnrichmentZohoAccessClientDao();
 //		zohoClient = new EnrichmentZohoAccessClientDao(zohoBaseUrl, zohoAuthenticationToken);
 		zohoClient = new EnrichmentZohoAccessClientDao(ZOHO_BASE_URL, ZOHO_AUTHENTICATION_TOKEN);
 	}
@@ -71,6 +92,25 @@ public class ZohoAccessTest { // extends WebMvcConfigurerAdapter {
 	 * @throws GenericMetisException 
 	 */
 	@Test
+	public void testStoreZohoOrganizationInDB() throws IOException, ParseException, GenericMetisException {
+		
+		DataManager dm = new DataManager();
+		
+		JsonNode organizationsJson = zohoClient.getOrganizations(START_INDEX, END_INDEX);
+		List<OrganizationImpl> organizationsList = zohoClient.getOrganizationsListFromListOfJsonNodes(organizationsJson);
+		OrganizationImpl organization = organizationsList.get(0);
+		dm.insertOrganization(organization);
+		Assert.assertTrue(organizationsList.size() > 0);
+	}
+	
+	/**
+	 * Retrieval of organizations by start and end indexes test
+	 * @throws IOException 
+	 * @throws ParseException 
+	 * @throws GenericMetisException 
+	 */
+	@Test
+	@Ignore
 	public void testGetOrganizationsFromZohoForIndexes() throws IOException, ParseException, GenericMetisException {
 		JsonNode organizationsJson = zohoClient.getOrganizations(START_INDEX, END_INDEX);
 		Map<String,String> organizationsMap = zohoClient.getOrganizationsMapFromListOfJsonNodes(organizationsJson);

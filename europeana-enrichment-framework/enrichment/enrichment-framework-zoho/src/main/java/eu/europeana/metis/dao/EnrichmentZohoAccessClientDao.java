@@ -2,8 +2,10 @@ package eu.europeana.metis.dao;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -16,6 +18,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,6 +55,9 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 	  private static final String ACCOUNTS_MODULE_STRING = "Accounts";
 	  private static final String FROM_INDEX_STRING = "fromIndex";
 	  private static final String TO_INDEX_STRING = "toIndex";
+	  
+	  private static final String ORGANIZATION_OWNER = "Account Owner";
+	  private static final String ORGANIZATION_NAME = "Account Name";
 	
 	  @Value("${zoho.base.url}")
 	  private String zohoBaseUrl;
@@ -240,6 +247,59 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 			      dm.insertOrganization(organization);
 		    }
 		    return res;
+	  }
+
+
+  	  /**
+  	   * Maps Zoho organization to OrganizationImpl
+  	   * @param organizationJsonNode
+  	   * @return
+  	   */
+  	  public OrganizationImpl mapZohoOrganization(JsonNode organizationJsonNode) {
+	      OrganizationImpl organization = new OrganizationImpl();
+	      Iterator<JsonNode> organizationFields = organizationJsonNode.elements();
+	      while (organizationFields.hasNext()) {
+		      JsonNode nextRecordsJsonNode = organizationFields.next();
+	          JsonNode val = nextRecordsJsonNode.get(VALUE_LABEL);
+	          JsonNode content = nextRecordsJsonNode.get(CONTENT_LABEL);
+	          switch (val.textValue()) {
+	          case ORGANIZATION_OWNER:
+	        	  organization.setFoafHomepage(content.textValue());
+	              break;
+	          case ORGANIZATION_NAME:
+	        	  organization.setAbout(content.textValue());
+	              break;
+	          default:
+	        	  break;
+	          }
+	      }
+	      return organization;	  
+  	  }
+	      
+  	  /**
+  	   * This method retrieves list of Zogo organization records, maps them to organization 
+  	   * objects and returns a list of organizations.
+  	   * @param jsonRecordsResponse
+       * @return list representation of the records in JsonNode format
+  	   * @throws IOException 
+  	   * @throws JsonMappingException 
+  	   * @throws JsonParseException 
+  	   */
+  	  protected List<OrganizationImpl> getOrganizationsListFromListOfJsonNodes(JsonNode jsonRecordsResponse) 
+  			  throws JsonParseException, JsonMappingException, IOException {
+
+  		  List<OrganizationImpl> res = new ArrayList<OrganizationImpl>();
+  		  
+		  Iterator<JsonNode> recordsJsonNodes = jsonRecordsResponse.elements();
+		  if (recordsJsonNodes == null || !recordsJsonNodes.hasNext()) {
+		      return null;
+		  }
+		  while (recordsJsonNodes.hasNext()) {
+			  JsonNode nextOrganizationJsonNode = recordsJsonNodes.next().get(FIELDS_LABEL);
+			  OrganizationImpl organization = mapZohoOrganization(nextOrganizationJsonNode);
+			  res.add(organization);
+		  }
+		  return res;
 	  }
 
 }
