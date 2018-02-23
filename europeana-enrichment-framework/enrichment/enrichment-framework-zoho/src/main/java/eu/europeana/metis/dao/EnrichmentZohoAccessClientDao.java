@@ -28,6 +28,7 @@ import eu.europeana.enrichment.harvester.database.DataManager;
 import eu.europeana.metis.authentication.dao.ZohoAccessClientDao;
 import eu.europeana.metis.exception.BadContentException;
 import eu.europeana.metis.exception.GenericMetisException;
+import eu.europeana.organization.view.ZohoOrganizationAdapter;
 
 /**
  * @author Roman Graf 
@@ -41,20 +42,9 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 	
 	  private static final String LEADS_MODULE_STRING = "Leads";
 	  private static final String GET_RECORDS_STRING = "getRecords";
-	  private static final String AUTHENTICATION_TOKEN_STRING = "authtoken";
-	  private static final String RESPONSE_STRING = "response";
-	  private static final String RESULT_STRING = "result";
-	  private static final String ROW_STRING = "row";
-	  private static final String JSON_STRING = "json";
-	  private static final String CRMAPI_STRING = "crmapi";
-	  private static final String ORGANIZATION_NAME_FIELD = "Account Name";
-	  private static final String VALUE_LABEL = "val";
-	  private static final String CONTENT_LABEL = "content";
-	  private static final String FIELDS_LABEL = "FL";
-	  private static final String SCOPE_STRING = "scope";
-	  private static final String ACCOUNTS_MODULE_STRING = "Accounts";
 	  private static final String FROM_INDEX_STRING = "fromIndex";
 	  private static final String TO_INDEX_STRING = "toIndex";
+	  private static final String ID = "id";
 	  
 	  private static final String ORGANIZATION_OWNER = "Account Owner";
 	  private static final String ORGANIZATION_NAME = "Account Name";
@@ -65,7 +55,7 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 	  private String zohoAuthenticationToken;	
 	
       private final String ZOHO_BASE_URL = "https://crm.zoho.com/crm/private";
-	  private final String ZOHO_AUTHENTICATION_TOKEN = "a0fa7bf7a12c292d209773f29d02e656";
+	  private final String ZOHO_AUTHENTICATION_TOKEN = "<>";
 	  
 	  /**
 	   * Constructor with required fields that will be used to access the Zoho service.
@@ -130,6 +120,46 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 	  }
 	
 	  /**
+	   * Retrieve Zoho organization by ID. <p>It will try to fetch the
+	   * organization from the external Zoho CRM. This method returns an organization in JSON
+	   * format.</p>
+	   * 
+	   * Example query:
+	   * https://crm.zoho.com/crm/private/json/Accounts/getRecords?authtoken=<token>&scope=crmapi&id=123
+	   *
+	   * @param organizationId The Zoho ID of organization
+	   * @return the Zoho organizations in JsonNode format
+	   * @throws GenericMetisException which can be one of:
+	   * <ul>
+	   * <li>{@link BadContentException} if any other problem occurred while constructing the user, like an
+	   * organization did not have a role defined or the response cannot be converted to {@link JsonNode}</li>
+	   * </ul>
+	 * @throws IOException 
+	   */
+	  public JsonNode getOrganizationById(String organizationId)
+	      throws GenericMetisException, IOException {
+
+		zohoBaseUrl = ZOHO_BASE_URL;
+		zohoAuthenticationToken = ZOHO_AUTHENTICATION_TOKEN;
+		  
+	    String contactsSearchUrl = String
+	        .format("%s/%s/%s/%s", zohoBaseUrl, JSON_STRING, ACCOUNTS_MODULE_STRING,
+	        		GET_RECORDS_STRING);
+	    UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(contactsSearchUrl)
+	        .queryParam(AUTHENTICATION_TOKEN_STRING, zohoAuthenticationToken)
+	        .queryParam(SCOPE_STRING, CRMAPI_STRING)
+	        .queryParam(ID, organizationId);
+	
+	    RestTemplate restTemplate = new RestTemplate();
+	    String organisationsResponse = restTemplate
+	        .getForObject(builder.build().encode().toUri(), String.class);
+	    LOGGER.info(organisationsResponse);
+	    ObjectMapper mapper = new ObjectMapper();
+	    JsonNode jsonRecordsResponse = mapper.readTree(organisationsResponse);
+	    return findRecordsByType(jsonRecordsResponse, ACCOUNTS_MODULE_STRING);
+	  }
+	
+	  /**
 	   * This method retrieves a list of organisations in {@link JsonNode} format.
 	   * @param jsonLeadsResponse
 	   * @param type of records
@@ -141,7 +171,6 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 		    }
 		    return jsonLeadsResponse.get(RESPONSE_STRING).get(RESULT_STRING)
 			        .get(type).get(ROW_STRING);
-//	        .get(type).get(ROW_STRING).get(FIELDS_LABEL);
 	  }
   
 	  /**
@@ -262,6 +291,8 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 		      JsonNode nextRecordsJsonNode = organizationFields.next();
 	          JsonNode val = nextRecordsJsonNode.get(VALUE_LABEL);
 	          JsonNode content = nextRecordsJsonNode.get(CONTENT_LABEL);
+	          LOGGER.info(val + ": " + content);
+	          
 	          switch (val.textValue()) {
 	          case ORGANIZATION_OWNER:
 	        	  organization.setFoafHomepage(content.textValue());
@@ -277,10 +308,10 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
   	  }
 	      
   	  /**
-  	   * This method retrieves list of Zogo organization records, maps them to organization 
-  	   * objects and returns a list of organizations.
+  	   * This method retrieves list of OrganizationImpl objects from
+  	   * Zogo organization records.
   	   * @param jsonRecordsResponse
-       * @return list representation of the records in JsonNode format
+       * @return list representation of the records in OrganizationImpl format
   	   * @throws IOException 
   	   * @throws JsonMappingException 
   	   * @throws JsonParseException 
@@ -294,12 +325,84 @@ public class EnrichmentZohoAccessClientDao extends ZohoAccessClientDao {
 		  if (recordsJsonNodes == null || !recordsJsonNodes.hasNext()) {
 		      return null;
 		  }
+		  int count = 0;
 		  while (recordsJsonNodes.hasNext()) {
 			  JsonNode nextOrganizationJsonNode = recordsJsonNodes.next().get(FIELDS_LABEL);
+	          LOGGER.info("Organization count: " + count);
 			  OrganizationImpl organization = mapZohoOrganization(nextOrganizationJsonNode);
 			  res.add(organization);
+			  count = count + 1;
 		  }
 		  return res;
+	  }
+
+  	  /**
+  	   * Create OrganizationImpl map from value
+  	   * @param key The field name
+  	   * @param value The value
+  	   * @return map of strings and lists
+  	   */
+  	  private Map<String,List<String>> createMap(String key, String value) {
+  		  Map<String,List<String>> resMap = new HashMap<String,List<String>>();
+  		  List<String> valueList = new ArrayList<String>();
+  		  valueList.add(value);
+  		  resMap.put(key, valueList);
+  		  return resMap;  		  
+  	  }
+  	  
+  	  /**
+  	   * Create OrganizationImpl map of strings from value
+  	   * @param key The field name
+  	   * @param value The value
+  	   * @return map of strings
+  	   */
+  	  private Map<String,String> createMapOfStrings(String key, String value) {
+  		  Map<String,String> resMap = new HashMap<String,String>();
+  		  resMap.put(key, value);
+  		  return resMap;  		  
+  	  }
+  	  
+  	  /**
+  	   * Create OrganizationImpl map from list of values
+  	   * @param key The field name
+  	   * @param value The list of values
+  	   * @return map of strings and lists
+  	   */
+  	  private Map<String,List<String>> createMapFromList(String key, List<String> value) {
+  		  Map<String,List<String>> resMap = new HashMap<String,List<String>>();
+  		  resMap.put(key, value);
+  		  return resMap;  		  
+  	  }
+  	  
+  	  /**
+  	   * This method retrieves OrganizationImpl object from Zoho organization record.
+  	   * @param jsonRecordResponse
+       * @return representation of the Zoho organization record in OrganizatinImpl format
+  	   * @throws IOException 
+  	   * @throws JsonMappingException 
+  	   * @throws JsonParseException 
+  	   */
+  	  protected OrganizationImpl getOrganizationFromJsonNode(JsonNode jsonRecordResponse) 
+  			  throws JsonParseException, JsonMappingException, IOException {
+
+  		  OrganizationImpl res = new OrganizationImpl();
+  		   
+  		  ZohoOrganizationAdapter zoa = new ZohoOrganizationAdapter(jsonRecordResponse.findValue(FIELDS_LABEL));
+  		  
+  		  res.setDcIdentifier(createMap(zoa.getLanguage(), zoa.getZohoId()));
+  		  res.setPrefLabel(createMap(zoa.getLanguage(), zoa.getOrganizationName()));
+  		  res.setAltLabel(createMapFromList(zoa.getLanguage(), zoa.getAlternativeOrganizationName()));
+  		  res.setEdmAcronym(createMap(zoa.getLanguage(), zoa.getAcronym()));
+//  		  res.setFoafLogo(zoa.getLogo());
+  		  res.setFoafHomepage(zoa.getWebsite());
+  		  res.setEdmEuropeanaRole(createMap(zoa.getLanguage(), zoa.getRole()));
+  		  res.setEdmOrganizationDomain(createMapOfStrings(zoa.getLanguage(), zoa.getDomain()));
+  		  res.setEdmOrganizationSector(createMapOfStrings(zoa.getLanguage(), zoa.getSector()));
+  		  res.setEdmOrganizationScope(createMapOfStrings(zoa.getLanguage(), zoa.getScope()));
+  		  res.setEdmGeorgraphicLevel(createMapOfStrings(zoa.getLanguage(), zoa.getGeographicLevel()));
+  		  res.setEdmCountry(zoa.getOrganizationCountry());
+
+  		  return res;
 	  }
 
 }

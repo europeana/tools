@@ -41,35 +41,16 @@ public class ZohoAccessTest {
 	private String zohoBaseUrl;
 	@Value("${zoho.authentication.token}")
 	private String zohoAuthenticationToken;	
-	private final String TEST_ORGANIZATION_NAME = "Memini"; //"Media Deals"; 
-	private final String TEST_ORGANIZATION_ID = "1482250000005593027";
+	private final String TEST_ORGANIZATION_NAME = "National Library of France"; 
+	private final String TEST_ORGANIZATION_ID = "1482250000002112001";
 	private final String COMPANY_FIELD = "Company"; 
 	private final String ZOHO_BASE_URL = "https://crm.zoho.com/crm/private";
-	private final String ZOHO_AUTHENTICATION_TOKEN = "a0fa7bf7a12c292d209773f29d02e656";
+	private final String ZOHO_AUTHENTICATION_TOKEN = "<>";
 	private final String START_INDEX = "1"; 
 	private final String END_INDEX = "10"; 
+	private final String DEFAULT_LANGUAGE = "EN(English)";
 	
-	/** Test fields from Zoho */
-//	Data provider/false
-//	MODIFIEDBY/1482250000001209007
-//	Account Owner/Tamara van Hulst
-//	Image service Opt-in/false
-//	DEA Sent/false
-//	SMOWNERID/1482250000001209007
-//	Modified Time/2018-01-30 10:19:50
-//	Created Time/2018-01-30 10:19:50
-//	Modified By/Tamara van Hulst
-//	Account Name/Restnova, Art Solutions
-//	ACCOUNTID/1482250000005386671
-//	Country/Spain
-//	Last Activity Time/2018-01-30 10:19:50
-//	Data Partner/false
-//	Domain/Creative industries
-//	DEA Signed/false
-	
-//    private final DataManager dm = new DataManager();
-	
-	
+		
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 	    return new PropertySourcesPlaceholderConfigurer();
@@ -86,18 +67,40 @@ public class ZohoAccessTest {
 	}
 
 	/**
+	 * Retrieval of organization by Zoho ID, mapping to OrganizationImpl 
+	 * and storage in DB.
+	 * @throws IOException 
+	 * @throws ParseException 
+	 * @throws GenericMetisException 
+	 */
+	@Test
+	public void testRetrieveZohoOrganizationByIdAndStoreInDB() 
+			throws IOException, ParseException, GenericMetisException {
+		
+//		DataManager dm = new DataManager();
+		
+		JsonNode organizationJson = zohoClient.getOrganizationById(TEST_ORGANIZATION_ID);
+		OrganizationImpl organization = zohoClient.getOrganizationFromJsonNode(
+				organizationJson);
+//		dm.insertOrganization(organization);
+		Assert.assertEquals(organization.getPrefLabel().get(DEFAULT_LANGUAGE).get(0), TEST_ORGANIZATION_NAME);
+	}
+	
+	/**
 	 * Retrieval of organizations by start and end indexes test
 	 * @throws IOException 
 	 * @throws ParseException 
 	 * @throws GenericMetisException 
 	 */
 	@Test
-	public void testStoreZohoOrganizationInDB() throws IOException, ParseException, GenericMetisException {
+	@Ignore
+	public void testStoreZohoOrganizationsInDB() throws IOException, ParseException, GenericMetisException {
 		
 		DataManager dm = new DataManager();
 		
 		JsonNode organizationsJson = zohoClient.getOrganizations(START_INDEX, END_INDEX);
-		List<OrganizationImpl> organizationsList = zohoClient.getOrganizationsListFromListOfJsonNodes(organizationsJson);
+		List<OrganizationImpl> organizationsList = zohoClient.getOrganizationsListFromListOfJsonNodes(
+				organizationsJson);
 		OrganizationImpl organization = organizationsList.get(0);
 		dm.insertOrganization(organization);
 		Assert.assertTrue(organizationsList.size() > 0);
