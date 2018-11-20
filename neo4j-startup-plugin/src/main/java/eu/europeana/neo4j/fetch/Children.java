@@ -31,17 +31,9 @@ import java.util.*;
 @javax.ws.rs.Path("/children")
 public class Children {
 
-    private static final RelationshipType HAS_PART = DynamicRelationshipType.withName("dcterms:hasPart");
-    private static final RelationshipType IS_FAKE  = DynamicRelationshipType.withName("isFakeOrder");
-    private static final RelationshipType IS_NEXT  = DynamicRelationshipType.withName("edm:isNextInSequence");
-
-//    private GraphDatabaseService db;
-//    private ExecutionEngine engine;
-
-//    public Children(@Context GraphDatabaseService db) {
-//        this.db = db;
-//        this.engine = new ExecutionEngine(db, StringLogger.SYSTEM);
-//    }
+    private static final RelationshipType HAS_PART = RelationshipType.withName("dcterms:hasPart");
+    private static final RelationshipType ISFAKEORDER  = RelationshipType.withName("isFakeOrder");
+    private static final RelationshipType ISNEXTINSEQUENCE  = RelationshipType.withName("edm:isNextInSequence");
 
 
     @GET
@@ -52,34 +44,36 @@ public class Children {
                                 @QueryParam("limit") @DefaultValue("10") int limit,
                                 @Context GraphDatabaseService db) throws IOException {
         List<Node> children = new ArrayList<>();
+        String rdfAbout = ObjectMapper.fixSlashes(nodeId);
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
-            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
             Node            parent     = hits.getSingle();
             if (parent==null) {
-                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
             Node first = null;
 
             // Get all children
             for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
                 Node child = r1.getEndNode();
-                if ((child.getDegree(IS_FAKE, Direction.OUTGOING) == 0) &&
-                        (child.getDegree(IS_NEXT, Direction.OUTGOING) == 0)) {
+                if ((child.getDegree(ISFAKEORDER, Direction.OUTGOING) == 0) &&
+                    (child.getDegree(ISNEXTINSEQUENCE, Direction.OUTGOING) == 0)) {
                     first = child;
+                    break;
                 }
             }
 
-            if (first==null) {
+            if (first == null) {
                 throw new IllegalArgumentException("no first child for node " + parent);
             }
 
             // Go up to limit hops away
             TraversalDescription td = db.traversalDescription()
                     .depthFirst()
-                    .relationships(IS_FAKE, Direction.INCOMING)
-                    .relationships(IS_NEXT, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
                     .evaluator(Evaluators.fromDepth(offset))
                     .evaluator(Evaluators.toDepth((offset + limit) - 1));
@@ -98,19 +92,12 @@ public class Children {
 
     @GET
     @javax.ws.rs.Path("degree")
-    public String getDegreeHistogram(@Context GraphDatabaseService gds) throws IOException {
+    public String getDegreeHistogram(@Context GraphDatabaseService gds) {
         SortedMap<Integer, Integer> histogram = new TreeMap<>();
         try (Transaction tx = gds.beginTx()) {
             for (Node n: gds.getAllNodes()) {
                 int degree = n.getDegree();
-
-                Integer val = histogram.get(degree);
-                if (val==null) {
-                    histogram.put(degree, 1);
-                } else {
-                    histogram.put(degree, val+1);
-                }
-
+                histogram.merge(degree, 1, (a, b) -> a + b);
             }
             tx.success();
         }
@@ -121,42 +108,4 @@ public class Children {
         return sb.toString();
     }
 
-
-
-
-//    @GET
-//    @javax.ws.rs.Path("/nodeId/{nodeId}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//
-//    public Response getchildren(@PathParam("nodeId") String nodeId,
-//                                @QueryParam("offset") @DefaultValue("0") int offset,
-//                                @QueryParam("limit") @DefaultValue("10") int limit) {
-//        List<Node> children = new ArrayList<>();
-//        Transaction tx = db.beginTx();
-//        try {
-//            ExecutionResult result = engine.execute(
-//                    "start parent = node:edmsearch2(rdf_about=\"" + nodeId + "\") "
-//                    + "MATCH (parent)-[:`dcterms:hasPart`]->(child) "
-//                    + "WHERE NOT ()-[:isFakeOrder]->(child) "
-//                    + "AND NOT ()-[:`edm:isNextInSequence`]->(child) "
-//                    + "WITH child AS first "
-//                    + "MATCH (first)-[:isFakeOrder|`edm:isNextInSequence`*]->(next) "
-//                    + "WITH DISTINCT first + COLLECT(next) AS spool "
-//                    + "UNWIND spool as children RETURN children "
-//                    + "SKIP " + offset + " LIMIT " + limit);
-//            Iterator<Node> childIterator = result.columnAs("children");
-//            while (childIterator.hasNext()) {
-//                children.add(childIterator.next());
-//            }
-//        } catch (Exception e) {
-//            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE, e.getMessage());
-//        } finally {
-//
-//            String obj = new ObjectMapper().siblingsToJson(children, "siblings");
-//            tx.success();
-//            tx.finish();
-//            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
-//                    "application/json").build();
-//        }
-//    }
 }

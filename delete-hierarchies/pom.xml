@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.europeana.neo4j</groupId>
 	<artifactId>delete-hierarchies</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.5-SNAPSHOT</version>
 
 	<properties>
 		<endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -25,30 +25,25 @@
 			<version>2.0</version>
 		</dependency>
 
-		<!--<dependency>-->
-			<!--<groupId>org.neo4j</groupId>-->
-			<!--<artifactId>server-api</artifactId>-->
-			<!--<version>3.0.0-M02</version>-->
-		<!--</dependency>-->
-
-		<!--<dependency>-->
-			<!--<groupId>org.neo4j</groupId>-->
-			<!--<artifactId>neo4j-cypher</artifactId>-->
-			<!--<version>3.0.0-M02</version>-->
-		<!--</dependency>-->
-
 		<dependency>
 			<groupId>org.neo4j.app</groupId>
 			<artifactId>neo4j-server</artifactId>
-			<version>3.2.5</version>
+			<version>3.4.9</version>
 			<scope>provided</scope>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-tools -->
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-tools</artifactId>
+			<version>3.4.9</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.neo4j.procedure/apoc -->
 		<dependency>
 			<groupId>org.neo4j.procedure</groupId>
 			<artifactId>apoc</artifactId>
-			<version>3.2.0.4</version>
+			<version>3.4.0.3</version>
 		</dependency>
 
 		<dependency>

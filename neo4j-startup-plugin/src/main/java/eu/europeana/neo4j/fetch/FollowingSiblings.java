@@ -30,8 +30,8 @@ import java.util.List;
 public class FollowingSiblings {
 
 
-    private static final RelationshipType IS_FAKE = DynamicRelationshipType.withName("isFakeOrder");
-    private static final RelationshipType IS_NEXT = DynamicRelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISFAKEORDER = RelationshipType.withName("isFakeOrder");
 
     private GraphDatabaseService db;
 
@@ -44,36 +44,33 @@ public class FollowingSiblings {
     @Produces(MediaType.APPLICATION_JSON)
 
     public Response getfollowing(@PathParam("nodeId") String nodeId,
-            @QueryParam("limit") @DefaultValue("10") int limit) {
-
+                                 @QueryParam("offset") @DefaultValue("0") int offset,
+                                 @QueryParam("limit") @DefaultValue("10") int limit) {
+        String rdfAbout = ObjectMapper.fixSlashes(nodeId);
         List<Node> followingSiblings = new ArrayList<>();
-        boolean first = false;
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
-            IndexHits<Node> hits       = edmsearch2.get("rdf_about", nodeId);
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
             Node            sibling    = hits.getSingle();
             if (sibling==null) {
-                throw new IllegalArgumentException("no node found in index for rdf_about = " + nodeId);
+                throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
 
             // Gather all ye following brothers and sisters but take heed! No more than in 'limit' number shall ye come!
             TraversalDescription td = db.traversalDescription()
                     .breadthFirst()
-                    .relationships(IS_FAKE, Direction.INCOMING)
-                    .relationships(IS_NEXT, Direction.INCOMING)
+                    .relationships(ISFAKEORDER, Direction.INCOMING)
+                    .relationships(ISNEXTINSEQUENCE, Direction.INCOMING)
                     .uniqueness(Uniqueness.RELATIONSHIP_GLOBAL)
                     .evaluator(Evaluators.excludeStartPosition())
-                    .evaluator(Evaluators.toDepth(limit ));
+                    .evaluator(Evaluators.fromDepth(offset + 1))
+                    .evaluator(Evaluators.toDepth(offset + limit));
 
             // Add to the results
             for (org.neo4j.graphdb.Path path : td.traverse(sibling)) {
                 Node child = path.endNode();
-//                if (first) {
-                    followingSiblings.add(child);
-//                } else {
-//                    first = true;
-//                }
+                followingSiblings.add(child);
             }
             String obj = new ObjectMapper().siblingsToJson(followingSiblings, "siblings");
             tx.success();

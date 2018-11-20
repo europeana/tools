@@ -12,7 +12,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Traverser;
 
@@ -24,14 +28,20 @@ import eu.europeana.corelib.ordering.model.NaturalOrderNode;
 
 @javax.ws.rs.Path("/fakeorder")
 public class FakeOrder {
-	final DynamicRelationshipType ISFAKEORDER = DynamicRelationshipType
-			.withName("isFakeOrder");
-	final DynamicRelationshipType ISLASTINSEQUENCE = DynamicRelationshipType
-			.withName("isLastInSequence");
-	final DynamicRelationshipType ISFIRSTINSEQUENCE = DynamicRelationshipType
-			.withName("isFirstInSequence");
-	final DynamicRelationshipType EDMISNEXTINSEQUENCE = DynamicRelationshipType
-			.withName("edm:isNextInSequence");
+	private static final RelationshipType ISFAKEORDER          = RelationshipType.withName("isFakeOrder");
+	private static final RelationshipType ISLASTINSEQUENCE     = RelationshipType.withName("isLastInSequence");
+	private static final RelationshipType ISFIRSTINSEQUENCE    = RelationshipType.withName("isFirstInSequence");
+	private static final RelationshipType EDMISNEXTINSEQUENCE  = RelationshipType.withName("edm:isNextInSequence");
+	private static final RelationshipType HAS_PART             = RelationshipType.withName("dcterms:hasPart");
+
+	private static final String DCTITLE 		= "dc:title_xml:lang_def";
+	private static final String DCDESCRIPTION 	= "dc:description_xml:lang_def";
+	private static final String DCDATE 			= "dc:date_xml:lang_def";
+	private static final String DCTERMS_CREATED = "dcterms:created_xml:lang_def";
+	private static final String DCTERMS_ISSUED 	= "dcterms:issued_xml:lang_def";
+	private static final String HAS_CHILDREN 	= "hasChildren";
+	private static final String RDF_ABOUT 		= "rdf:about";
+	private static final String EDMSEARCH2 		= "edmsearch2";
 
 	private GraphDatabaseService db;
 
@@ -53,40 +63,49 @@ public class FakeOrder {
 	@javax.ws.rs.Path("/nodeId/{nodeId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response generate(@PathParam("nodeId") String parentId) {
-
-		Transaction tx = db.beginTx();
-		Node node = db.index().forNodes("edmsearch2").get("rdf_about", parentId).getSingle();
-		if (node != null) {
-			if (node.hasProperty("hasChildren")) {
-				Iterator<Node> childNodeIterator = getChildren(parentId);
-				
-				List<NaturalOrderNode> orderedOrphanNodeList = getOrderedOrphanNodes(childNodeIterator, true);
+		Node node;
+		List<NaturalOrderNode> orderedOrphanNodeList = null;
+		List<NaturalOrderNode> firstInSequenceNodeList;
+		try ( Transaction tx = db.beginTx() ) {
+			node = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, parentId).getSingle();
+			if (node != null && node.hasProperty(HAS_CHILDREN)) {
+				orderedOrphanNodeList = getOrderedOrphanNodes(getChildren(parentId, false), true);
 				generateFakeRelations(orderedOrphanNodeList);
-				
-				tx.success();
-
-				List<NaturalOrderNode> firstInSequenceNodeList = getFirstInSequenceNodes(getSequenceStartNodes(parentId));
-				if (orderedOrphanNodeList.size() > 0) {
+			}
+			tx.success();
+		}
+		try ( Transaction tx = db.beginTx() ) {
+			if (node != null && node.hasProperty(HAS_CHILDREN)) {
+				firstInSequenceNodeList = getFirstInSequenceNodes(getChildren(parentId, true));
+				if (null != orderedOrphanNodeList && !orderedOrphanNodeList.isEmpty()) {
 					firstInSequenceNodeList.add(orderedOrphanNodeList.get(0));
 				}
-				tx = db.beginTx();
 				generateFakeRelations(firstInSequenceNodeList);
-				tx.success();
 			}
+			tx.success();
 		}
 		return null;
 	}
 
 	// retrieve the children for a parent with given rdf_about = parentId
-	private Iterator<Node> getChildren(String parentId) {
-		Transaction tx = db.beginTx();
-		Result result = db
-				.execute("start n = node:edmsearch2(rdf_about=\""
-						+ parentId
-						+ "\") match (n)-[:`dcterms:hasPart`]->(part) RETURN part");
-		Iterator<Node> columns = result.columnAs("part");
-		tx.success();
-		return columns;
+	private Iterator<Node> getChildren(String parentId, boolean seqStartOnly) {
+		String rdfAbout = fixSlashes(parentId);
+		List<Node> children = new ArrayList<>();
+		try ( Transaction tx = db.beginTx() ) {
+			IndexManager    index      = db.index();
+			Index<Node>     edmsearch2 = index.forNodes(EDMSEARCH2);
+			IndexHits<Node> hits       = edmsearch2.get(RDF_ABOUT, rdfAbout);
+			Node            parent     = hits.getSingle();
+			if (parent == null) {
+				throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
+			}
+			// if seqStartOnly, then get sequence start nodes; else, get all children
+			for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, seqStartOnly? ISFIRSTINSEQUENCE : HAS_PART)) {
+				children.add(r1.getEndNode());
+			}
+			tx.success();
+			return children.iterator();
+		}
 	}
 
 	// iterate over child nodes, cherry-pick those who aren't related to their siblings via either a fakeOrder or,
@@ -94,44 +113,47 @@ public class FakeOrder {
 	// Send this list to the orderOrphanNodeList ...
 
 	private List<NaturalOrderNode> getOrderedOrphanNodes(Iterator<Node> childNodeIterator, boolean considerEdmNext) {
-		Transaction tx = db.beginTx();
-		List<Node> unorderedOrphanNodeList = new ArrayList<Node>();
-		while (childNodeIterator.hasNext()) {
-			Node childNode = childNodeIterator.next();
-			if (!((considerEdmNext && childNode.hasRelationship(EDMISNEXTINSEQUENCE)) || childNode.hasRelationship(ISFAKEORDER))) {
-				unorderedOrphanNodeList.add(childNode);
+		try ( Transaction tx = db.beginTx() ) {
+			List<Node> unorderedOrphanNodeList = new ArrayList<>();
+			while (childNodeIterator.hasNext()) {
+				Node childNode = childNodeIterator.next();
+				if (!((considerEdmNext && childNode.hasRelationship(EDMISNEXTINSEQUENCE))
+					|| childNode.hasRelationship(ISFAKEORDER))) {
+					unorderedOrphanNodeList.add(childNode);
+				}
 			}
+			tx.success();
+			return orderOrphanNodeList(unorderedOrphanNodeList);
 		}
-		tx.success();
-		return orderOrphanNodeList(unorderedOrphanNodeList);
 	}
 
 	// takes the list of disjointed child nodes, transforms it to a list of NaturalOrderedNodes and apply the natural
 	// ordering to that list
 	private List<NaturalOrderNode> orderOrphanNodeList(List<Node> unorderedOrphanNodeList) {
-		List<NaturalOrderNode> orderedOrphanNodeList = new ArrayList<NaturalOrderNode>();
+		List<NaturalOrderNode> orderedOrphanNodeList = new ArrayList<>();
 		for (Node unorderedOrphanNode : unorderedOrphanNodeList) {
-			Transaction tx = db.beginTx();
-			NaturalOrderNode orderedOrphanNode = new NaturalOrderNode();
-			orderedOrphanNode.setId(unorderedOrphanNode.getProperty("rdf:about").toString());
-			orderedOrphanNode.setNodeId(unorderedOrphanNode.getId());
-			if (unorderedOrphanNode.hasProperty("dc:title_xml:lang_def")) {
-				orderedOrphanNode.setTitle(((String[]) unorderedOrphanNode.getProperty("dc:title_xml:lang_def"))[0]);
+			try ( Transaction tx = db.beginTx() ) {
+				NaturalOrderNode orderedOrphanNode = new NaturalOrderNode();
+				orderedOrphanNode.setId(unorderedOrphanNode.getProperty(RDF_ABOUT).toString());
+				orderedOrphanNode.setNodeId(unorderedOrphanNode.getId());
+				if (unorderedOrphanNode.hasProperty(DCTITLE)) {
+					orderedOrphanNode.setTitle(((String[]) unorderedOrphanNode.getProperty(DCTITLE))[0]);
+				}
+				if (unorderedOrphanNode.hasProperty(DCDESCRIPTION)) {
+					orderedOrphanNode.setDescription(((String[]) unorderedOrphanNode.getProperty(DCDESCRIPTION))[0]);
+				}
+				if (unorderedOrphanNode.hasProperty(DCDATE)) {
+					orderedOrphanNode.setDate(unorderedOrphanNode.getProperty(DCDATE).toString());
+				}
+				if (unorderedOrphanNode.hasProperty(DCTERMS_CREATED)) {
+					orderedOrphanNode.setCreated(unorderedOrphanNode.getProperty(DCTERMS_CREATED).toString());
+				}
+				if (unorderedOrphanNode.hasProperty(DCTERMS_ISSUED)) {
+					orderedOrphanNode.setIssued(((String[]) unorderedOrphanNode.getProperty(DCTERMS_ISSUED))[0]);
+				}
+				tx.success();
+				orderedOrphanNodeList.add(orderedOrphanNode);
 			}
-			if (unorderedOrphanNode.hasProperty("dc:description_xml:lang_def")) {
-				orderedOrphanNode.setDescription(((String[]) unorderedOrphanNode.getProperty("dc:description_xml:lang_def"))[0]);
-			}
-			if (unorderedOrphanNode.hasProperty("dc:date_xml:lang_def")) {
-				orderedOrphanNode.setDate(unorderedOrphanNode.getProperty("dc:date_xml:lang_def").toString());
-			}
-			if (unorderedOrphanNode.hasProperty("dcterms:created_xml:lang_def")) {
-				orderedOrphanNode.setCreated(unorderedOrphanNode.getProperty("dcterms:created_xml:lang_def").toString());
-			}
-			if (unorderedOrphanNode.hasProperty("dcterms:issued_xml:lang_def")) {
-				orderedOrphanNode.setIssued(((String[]) unorderedOrphanNode.getProperty("dcterms:issued_xml:lang_def"))[0]);
-			}
-			tx.success();
-			orderedOrphanNodeList.add(orderedOrphanNode);
 		}
 		Collections.sort(orderedOrphanNodeList);
 		return orderedOrphanNodeList;
@@ -139,61 +161,51 @@ public class FakeOrder {
 
 	private void generateFakeRelations(List<NaturalOrderNode> naturalOrderNodeList) {
 		for (int i = 0; i < naturalOrderNodeList.size() - 1; i++) {
-			Transaction tx = db.beginTx();
-			Node startNode = db.getNodeById(naturalOrderNodeList.get(i).getNodeId());
-			Node endNode = db.getNodeById(naturalOrderNodeList.get(i + 1).getNodeId());
-			startNode.createRelationshipTo(endNode, ISFAKEORDER);
-			tx.success();
+			try ( Transaction tx = db.beginTx() ) {
+				Node startNode = db.getNodeById(naturalOrderNodeList.get(i).getNodeId());
+				Node endNode = db.getNodeById(naturalOrderNodeList.get(i + 1).getNodeId());
+				startNode.createRelationshipTo(endNode, ISFAKEORDER);
+				tx.success();
+			}
 		}
-
-	}
-
-	private Iterator<Node> getSequenceStartNodes(String parentId) {
-		Transaction tx = db.beginTx();
-		Result result = db
-				.execute("start n = node:edmsearch2(rdf_about=\""
-						+ parentId
-						+ "\") match (n)-[:`isFirstInSequence`]->(part) RETURN part");
-		Iterator<Node> startNodeIterator = result.columnAs("part");
-		tx.success();
-		return startNodeIterator;
 	}
 
 	private List<NaturalOrderNode> getFirstInSequenceNodes(Iterator<Node> startNodeIterator) {
 		List<NaturalOrderNode> firstChildren = getOrderedOrphanNodes(startNodeIterator, false);
-		List<NaturalOrderNode> lastChildren = new ArrayList<NaturalOrderNode>();
-		List<NaturalOrderNode> finalChildren = new ArrayList<NaturalOrderNode>();
+		List<NaturalOrderNode> lastChildren  = new ArrayList<>();
+		List<NaturalOrderNode> finalChildren = new ArrayList<>();
 		for (NaturalOrderNode node : firstChildren) {
-			Transaction tx = db.beginTx();
-			Node startNode = db.getNodeById(node.getNodeId());
-			TraversalDescription traversal = db.traversalDescription();
-			Traverser traverse = traversal.depthFirst()
-					.relationships(EDMISNEXTINSEQUENCE, Direction.OUTGOING)
-					.traverse(startNode);
-			for (Node nodeRet : traverse.nodes()) {
-				if (nodeRet.hasRelationship(ISLASTINSEQUENCE, Direction.INCOMING)) {
-					NaturalOrderNode last = new NaturalOrderNode();
-					last.setId(nodeRet.getProperty("rdf:about").toString());
-					last.setNodeId(nodeRet.getId());
-					if (nodeRet.hasProperty("dc:title_xml:lang_def")) {
-                                            last.setTitle(((String[]) nodeRet.getProperty("dc:title_xml:lang_def"))[0]);
+			try ( Transaction tx = db.beginTx() ) {
+				Node startNode = db.getNodeById(node.getNodeId());
+				TraversalDescription traversal = db.traversalDescription();
+				Traverser traverse = traversal.depthFirst()
+						.relationships(EDMISNEXTINSEQUENCE, Direction.OUTGOING)
+						.traverse(startNode);
+				for (Node nodeRet : traverse.nodes()) {
+					if (nodeRet.hasRelationship(ISLASTINSEQUENCE, Direction.INCOMING)) {
+						NaturalOrderNode last = new NaturalOrderNode();
+						last.setId(nodeRet.getProperty(RDF_ABOUT).toString());
+						last.setNodeId(nodeRet.getId());
+						if (nodeRet.hasProperty(DCTITLE)) {
+							last.setTitle(((String[]) nodeRet.getProperty(DCTITLE))[0]);
+						}
+						if (nodeRet.hasProperty(DCDESCRIPTION)) {
+							last.setDescription(((String[]) nodeRet.getProperty(DCDESCRIPTION))[0]);
+						}
+						if (nodeRet.hasProperty(DCDATE)) {
+							last.setDate(nodeRet.getProperty(DCDATE).toString());
+						}
+						if (nodeRet.hasProperty(DCTERMS_CREATED)) {
+							last.setCreated(nodeRet.getProperty(DCTERMS_CREATED).toString());
+						}
+						if (nodeRet.hasProperty(DCTERMS_ISSUED)) {
+							last.setIssued(((String[]) nodeRet.getProperty(DCTERMS_ISSUED))[0]);
+						}
+						lastChildren.add(last);
 					}
-					if (nodeRet.hasProperty("dc:description_xml:lang_def")) {
-                                            last.setDescription(((String[]) nodeRet.getProperty("dc:description_xml:lang_def"))[0]);
-					}
-					if (nodeRet.hasProperty("dc:date_xml:lang_def")) {
-                                            last.setDate(nodeRet.getProperty("dc:date_xml:lang_def").toString());
-					}
-					if (nodeRet.hasProperty("dcterms:created_xml:lang_def")) {
-                                            last.setCreated(nodeRet.getProperty("dcterms:created_xml:lang_def").toString());
-					}
-					if (nodeRet.hasProperty("dcterms:issued_xml:lang_def")) {
-                                            last.setIssued(((String[]) nodeRet.getProperty("dcterms:issued_xml:lang_def"))[0]);
-					}
-					lastChildren.add(last);
 				}
+				tx.success();
 			}
-			tx.success();
 		}
 		for (int i = 0; i < firstChildren.size() - 1; i++) {
 			finalChildren.add(firstChildren.get(i + 1));
@@ -203,6 +215,14 @@ public class FakeOrder {
 			finalChildren.add(lastChildren.get(lastChildren.size() - 1));
 		}
 		return finalChildren;
+	}
+
+	private String fixSlashes(String rdfAbout){
+		StringUtils.replace(rdfAbout, "%2F", "/");
+		if (rdfAbout.contains("/") && !rdfAbout.startsWith("/")){
+			rdfAbout = "/" + rdfAbout;
+		}
+		return rdfAbout;
 	}
 
 }
