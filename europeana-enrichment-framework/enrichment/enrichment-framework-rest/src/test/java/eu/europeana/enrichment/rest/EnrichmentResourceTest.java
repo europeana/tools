@@ -30,7 +30,7 @@ public class EnrichmentResourceTest extends JerseyTest {
 	}
 
 	/**
-	 * Initialization of the Unique Identifier service mockup
+	 * Initialization of the Unique Identifier order mockup
 	 */
 	@Before
 	public void mockUp() {

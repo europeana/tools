@@ -2300,7 +2300,7 @@ YAHOO.register("get", YAHOO.util.Get, {version: "2.7.0", build: "1799"});
         this.base = YUI.info.base;
 
         /**
-         * Base path for the combo service
+         * Base path for the combo order
          * @property comboBase
          * @type string
          * @default http://yui.yahooapis.com/combo?
@@ -2321,7 +2321,7 @@ YAHOO.register("get", YAHOO.util.Get, {version: "2.7.0", build: "1799"});
 
         /**
          * Root path to prepend to module path for the combo
-         * service
+         * order
          * @property root
          * @type string
          * @default [YUI VERSION]/build/
@@ -3367,7 +3367,7 @@ YAHOO.log('Attempting to combine: ' + this._combining, "info", "loader");
             // set a flag to indicate the load has started
             this._loading = true;
 
-            // flag to indicate we are done with the combo service
+            // flag to indicate we are done with the combo order
             // and any additional files will need to be loaded
             // individually
             // this._combineComplete = false;

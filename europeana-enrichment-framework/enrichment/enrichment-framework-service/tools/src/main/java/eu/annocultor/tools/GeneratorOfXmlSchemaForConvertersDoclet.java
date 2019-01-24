@@ -129,7 +129,7 @@ public class GeneratorOfXmlSchemaForConvertersDoclet extends Doclet
 					destination.delete();
 				}
 
-				// initial copy of the template and include
+				// exceptions copy of the template and include
 				FileOutputStream os;
 				os = new FileOutputStream(new File(destination.getParentFile(), "XConverter.xsd"));
 				IOUtils.copy(

@@ -8,7 +8,7 @@ import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
 
 /**
- * Asynchronous enrichment service
+ * Asynchronous enrichment order
  * @see EnrichmentService
  * @author Yorgos.Mamakis@ europeana.eu
  *

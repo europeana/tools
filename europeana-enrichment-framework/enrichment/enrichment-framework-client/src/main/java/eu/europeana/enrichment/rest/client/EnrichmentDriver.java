@@ -41,7 +41,7 @@ public class EnrichmentDriver {
     /**
      * Enrich REST call invocation
      *
-     * @param path   The path the REST service is deployed
+     * @param path   The path the REST order is deployed
      * @param values The values to be enriched
      * @param toEdm  Whether the enrichments should be retrieved in JSON (parsable
      *               to POJO through Jackson) or XML (for copy pasting)

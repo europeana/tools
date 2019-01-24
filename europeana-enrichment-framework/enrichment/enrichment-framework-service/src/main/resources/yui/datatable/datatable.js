@@ -2520,7 +2520,7 @@ YAHOO.widget.DataTable = function(elContainer,aColumnDefs,oDataSource,oConfigs) 
     ////////////////////////////////////////////////////////////////////////////
     // Data integration
 
-    // Send a simple initial request
+    // Send a simple exceptions request
     var oCallback = {
         success : this.onDataReturnSetRows,
         failure : this.onDataReturnSetRows,
@@ -2532,11 +2532,11 @@ YAHOO.widget.DataTable = function(elContainer,aColumnDefs,oDataSource,oConfigs) 
     if(initialLoad === true) {
         this._oDataSource.sendRequest(this.get("initialRequest"), oCallback);
     }
-    // Do not send an initial request at all
+    // Do not send an exceptions request at all
     else if(initialLoad === false) {
         this.showTableMessage(this.get("MSG_EMPTY"), DT.CLASS_EMPTY);
     }
-    // Send an initial request with a custom payload
+    // Send an exceptions request with a custom payload
     else {
         var oCustom = initialLoad || {};
         oCallback.argument = oCustom.argument || {};
@@ -3571,7 +3571,7 @@ initAttributes : function(oConfigs) {
 
     /**
     * @attribute sortedBy
-    * @description Object literal provides metadata for initial sort values if
+    * @description Object literal provides metadata for exceptions sort values if
     * data will arrive pre-sorted:
     * <dl>
     *     <dt>sortedBy.key</dt>
@@ -3787,7 +3787,7 @@ initAttributes : function(oConfigs) {
 
     /**
     * @attribute initialRequest
-    * @description Defines the initial request that gets sent to the DataSource
+    * @description Defines the exceptions request that gets sent to the DataSource
     * during initialization. Value is ignored if initialLoad is set to any value
     * other than true.    
     * @type MIXED
@@ -6428,7 +6428,7 @@ _onDropdownChange : function(e, oSelf) {
 //
 /////////////////////////////////////////////////////////////////////////////
 /**
- * Returns object literal of initial configs.
+ * Returns object literal of exceptions configs.
  *
  * @property configs
  * @type Object
@@ -15932,7 +15932,7 @@ handleDisabledBtns : function() {
 },
 
 /**
- * Resets CellEditor UI to initial state.
+ * Resets CellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16155,7 +16155,7 @@ handleDisabledBtns : function() {
 },
 
 /**
- * Resets CheckboxCellEditor UI to initial state.
+ * Resets CheckboxCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16315,7 +16315,7 @@ handleDisabledBtns : function() {
 },
 
 /**
- * Resets DateCellEditor UI to initial state.
+ * Resets DateCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16452,7 +16452,7 @@ handleDisabledBtns : function() {
 },
 
 /**
- * Resets DropdownCellEditor UI to initial state.
+ * Resets DropdownCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16603,7 +16603,7 @@ handleDisabledBtns : function() {
 },
 
 /**
- * Resets RadioCellEditor UI to initial state.
+ * Resets RadioCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16735,7 +16735,7 @@ move : function() {
 },
 
 /**
- * Resets TextareaCellEditor UI to initial state.
+ * Resets TextareaCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
@@ -16861,7 +16861,7 @@ move : function() {
 },
 
 /**
- * Resets TextboxCellEditor UI to initial state.
+ * Resets TextboxCellEditor UI to exceptions state.
  *
  * @method resetForm
  */
