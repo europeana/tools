@@ -31,8 +31,8 @@ import org.neo4j.graphdb.traversal.TraversalDescription;
 @javax.ws.rs.Path("/hierarchy")
 public class CountHierarchy {
 
-    final   RelationshipType     ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
-    final   RelationshipType     ISFAKEORDER      = RelationshipType.withName("isFakeOrder");
+    private static final RelationshipType ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType ISFAKEORDER      = RelationshipType.withName("isFakeOrder");
     private GraphDatabaseService db;
 
     public CountHierarchy(@Context GraphDatabaseService db) {

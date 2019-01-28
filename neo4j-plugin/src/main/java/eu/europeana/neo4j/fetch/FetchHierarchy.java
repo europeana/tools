@@ -8,6 +8,7 @@ package eu.europeana.neo4j.fetch;
 import eu.europeana.neo4j.exceptions.Neo4jDataConsistencyException;
 import eu.europeana.neo4j.utils.FamilyTherapist;
 import eu.europeana.neo4j.model.Family;
+import eu.europeana.neo4j.count.CountChildren;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -178,29 +179,23 @@ public class FetchHierarchy {
     private long getChildrenCount(String rdfAbout) {
         rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         try ( Transaction tx = db.beginTx() ) {
-            IndexManager    index      = db.index();
-            Index<Node>     edmsearch2 = index.forNodes(EDMSEARCH2);
-            IndexHits<Node> hits       = edmsearch2.get(RDFABOUT, rdfAbout);
-            Node            parent     = hits.getSingle();
-            if (parent == null) throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
+            Node node = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            if (node == null) throw new IllegalArgumentException("no node found in index for rdf:about = " + rdfAbout);
             tx.success();
-            return parent.getDegree(HAS_PART, Direction.OUTGOING);
-//            return (long) IteratorUtil.count(parent.getRelationships(Direction.OUTGOING, HAS_PART));
+            return (long) node.getDegree(HAS_PART, Direction.OUTGOING);
         }
     }
     
     private Node getFirstChild(String rdfAbout) {
         rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         try ( Transaction tx = db.beginTx() ) {
-            IndexManager    index       = db.index();
-            Index<Node>     edmsearch2  = index.forNodes(EDMSEARCH2);
-            IndexHits<Node> hits        = edmsearch2.get(RDFABOUT, rdfAbout);
-            Node            first       = null;
-            Node            parent      = hits.getSingle();
-            if (parent == null) throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
+
+            Node first = null;
+            Node node  = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            if (node == null) throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
 
             // the child node which has no fakeOrder or NextInSequence relationships pointing to it, is the first
-            for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
+            for (Relationship r1 : node.getRelationships(Direction.OUTGOING, HAS_PART)) {
                 Node child = r1.getEndNode();
                 if ((child.getDegree(ISFAKEORDER, Direction.OUTGOING) == 0) &&
                     (child.getDegree(ISNEXTINSEQUENCE, Direction.OUTGOING) == 0)) {
@@ -208,7 +203,8 @@ public class FetchHierarchy {
                     break;
                 }
             }
-            if (first == null) throw new IllegalArgumentException("no first child for node " + parent);
+
+            if (first == null) throw new IllegalArgumentException("no first child for node " + node);
             tx.success();
             return first;
         }

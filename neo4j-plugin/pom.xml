@@ -17,6 +17,7 @@
         <javaxWsRsApi.version>2.1.1</javaxWsRsApi.version>
         <neo4j.version>3.5.2</neo4j.version>
         <neo4jTools.version>3.4.12</neo4jTools.version>
+        <!--<neo4jApoc.version>3.4.0.4</neo4jApoc.version>-->
         <neo4jApoc.version>3.5.0.1</neo4jApoc.version>
         <fasterXml.version>2.9.8</fasterXml.version>
     </properties>

@@ -31,9 +31,11 @@ import java.util.*;
 @javax.ws.rs.Path("/children")
 public class FetchChildren {
 
-    private static final RelationshipType HAS_PART = RelationshipType.withName("dcterms:hasPart");
-    private static final RelationshipType ISFAKEORDER  = RelationshipType.withName("isFakeOrder");
-    private static final RelationshipType ISNEXTINSEQUENCE  = RelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType HAS_PART         = RelationshipType.withName("dcterms:hasPart");
+    private static final RelationshipType ISFAKEORDER      = RelationshipType.withName("isFakeOrder");
+    private static final RelationshipType ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
+    private static final String           RDF_ABOUT        = "rdf_about";
+    private static final String           EDMSEARCH2       = "edmsearch2";
 
 
     @GET
@@ -42,15 +44,13 @@ public class FetchChildren {
     public Response getChildren(@PathParam("nodeId") String nodeId,
                                 @QueryParam("offset") @DefaultValue("0") int offset,
                                 @QueryParam("limit") @DefaultValue("10") int limit,
-                                @Context GraphDatabaseService db) throws IOException {
+                                @Context GraphDatabaseService db) {
         List<Node> children = new ArrayList<>();
         String rdfAbout = FamilyTherapist.fixSlashes(nodeId);
         try ( Transaction tx = db.beginTx() ) {
-            IndexManager    index      = db.index();
-            Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
-            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
-            Node            parent     = hits.getSingle();
-            if (parent==null) {
+
+            Node parent = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            if (parent == null) {
                 throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
             Node first = null;
