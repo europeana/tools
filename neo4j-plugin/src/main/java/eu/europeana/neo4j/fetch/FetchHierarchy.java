@@ -36,7 +36,7 @@ import org.neo4j.graphdb.traversal.Traverser;
  *
  * @author gmamakis, luthien
  */
-@javax.ws.rs.Path("/hierarchy")
+@javax.ws.rs.Path("/")
 public class FetchHierarchy {
 
     private static final RelationshipType HAS_PART          = RelationshipType.withName("dcterms:hasPart");
@@ -51,19 +51,54 @@ public class FetchHierarchy {
     private static final String RELBEFORE                   = "relBefore";
 
     private GraphDatabaseService db;
+    private FamilyTherapist familyTherapist;
 
     public FetchHierarchy(@Context GraphDatabaseService db) {
+        familyTherapist = new FamilyTherapist();
         this.db = db;
     }
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("self/rdfAbout/{rdfAbout}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSelf(@PathParam("rdfAbout") String rdfAbout){
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
+        List<Node> selfList  = new ArrayList<>();
+        String     obj;
+        Node       self;
+
+        try ( Transaction tx = db.beginTx() ) {
+            self = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            setChildCountAndRelBefore(self);
+            selfList.add(self);
+            obj = new FamilyTherapist().siblingsToJson(selfList, "self");
+            tx.success();
+            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+
+        } catch (Neo4jDataConsistencyException ne) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
+                    ne.getRdfAbout() + "\n" + ne.getCause() + "\n" + ne.getMessage());
+            obj = error2Json("INCONSISTENT_DATA");
+            return Response.status(502).entity(obj).header(HttpHeaders.CONTENT_TYPE,
+                    "application/json").build();
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
+                    e.getCause() + "\n" + e.getMessage());
+            obj = error2Json("ERROR");
+            return Response.status(500).entity(obj).header(HttpHeaders.CONTENT_TYPE,
+                    "application/json").build();
+        }
+    }
+
+
+    @GET
+    @javax.ws.rs.Path("hierarchy/rdfAbout/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Response getHierarchy(@PathParam("nodeId") String nodeId,
+    public Response getHierarchy(@PathParam("rdfAbout") String rdfAbout,
                                  @QueryParam("length") @DefaultValue("32") int length,
                                  @QueryParam("lengthBefore") @DefaultValue("8") int lengthBefore) {
-        String     rdfAbout = FamilyTherapist.fixSlashes(nodeId);
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         Family     family   = new Family();
         List<Node> parents  = new ArrayList<>();
         String     obj;
@@ -133,7 +168,7 @@ public class FetchHierarchy {
             family.setFollowingSiblings(followingSiblings);
             family.setFollowingSiblingChildren(followingSiblingChildren);
 
-            obj = new FamilyTherapist().toJson(family);
+            obj = familyTherapist.toJson(family);
 
             tx.success();
 

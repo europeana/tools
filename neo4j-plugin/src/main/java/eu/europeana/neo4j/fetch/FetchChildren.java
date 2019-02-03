@@ -37,14 +37,14 @@ public class FetchChildren {
 
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("/rdfAbout/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getChildren(@PathParam("nodeId") String nodeId,
+    public Response getChildren(@PathParam("rdfAbout") String rdfAbout,
                                 @QueryParam("offset") @DefaultValue("0") int offset,
                                 @QueryParam("limit") @DefaultValue("10") int limit,
                                 @Context GraphDatabaseService db) throws IOException {
         List<Node> children = new ArrayList<>();
-        String rdfAbout = FamilyTherapist.fixSlashes(nodeId);
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");

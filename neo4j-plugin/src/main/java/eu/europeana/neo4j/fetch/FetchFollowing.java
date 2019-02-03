@@ -40,13 +40,13 @@ public class FetchFollowing {
     }
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("/rdfAbout/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Response getfollowing(@PathParam("nodeId") String nodeId,
+    public Response getfollowing(@PathParam("rdfAbout") String rdfAbout,
                                  @QueryParam("offset") @DefaultValue("0") int offset,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
-        String rdfAbout = FamilyTherapist.fixSlashes(nodeId);
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         List<Node> followingSiblings = new ArrayList<>();
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();

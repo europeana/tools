@@ -40,13 +40,13 @@ public class FetchPreceding {
     }
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("/rdfAbout/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getpreceding(@PathParam("nodeId") String nodeId,
+    public Response getpreceding(@PathParam("rdfAbout") String rdfAbout,
                                  @QueryParam("offset") @DefaultValue("0") int offset,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
         List<Node> precedingSiblings = new ArrayList<>();
-        String rdfAbout = FamilyTherapist.fixSlashes(nodeId);
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
