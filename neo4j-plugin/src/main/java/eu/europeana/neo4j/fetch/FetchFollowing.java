@@ -31,9 +31,7 @@ public class FetchFollowing {
 
 
     private static final RelationshipType ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
-    private static final RelationshipType ISFAKEORDER      = RelationshipType.withName("isFakeOrder");
-    private static final String           RDF_ABOUT        = "rdf_about";
-    private static final String           EDMSEARCH2       = "edmsearch2";
+    private static final RelationshipType ISFAKEORDER = RelationshipType.withName("isFakeOrder");
 
     private GraphDatabaseService db;
 
@@ -42,17 +40,20 @@ public class FetchFollowing {
     }
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("/rdfAbout/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Response getfollowing(@PathParam("nodeId") String nodeId,
+    public Response getfollowing(@PathParam("rdfAbout") String rdfAbout,
                                  @QueryParam("offset") @DefaultValue("0") int offset,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
-        String rdfAbout = FamilyTherapist.fixSlashes(nodeId);
+        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
         List<Node> followingSiblings = new ArrayList<>();
         try ( Transaction tx = db.beginTx() ) {
-            Node sibling = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
-            if (sibling == null) {
+            IndexManager    index      = db.index();
+            Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
+            IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
+            Node            sibling    = hits.getSingle();
+            if (sibling==null) {
                 throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
             }
 
@@ -73,7 +74,8 @@ public class FetchFollowing {
             }
             String obj = new FamilyTherapist().siblingsToJson(followingSiblings, "siblings");
             tx.success();
-            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
+                    "application/json").build();
         }
     }
 }

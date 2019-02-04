@@ -37,14 +37,14 @@ public class Exists {
 
 
     @GET
-    @javax.ws.rs.Path("/nodeId/{nodeId}")
+    @javax.ws.rs.Path("/nodeId/{rdfAbout}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response find(@PathParam("nodeId") String nodeId,
+    public Response find(@PathParam("rdfAbout") String rdfAbout,
                                 @Context GraphDatabaseService db) throws IOException {
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index       = db.index();
             Index<Node>     edmsearch2  = index.forNodes("edmsearch2");
-            IndexHits<Node> hits        = edmsearch2.get("rdf_about", nodeId);
+            IndexHits<Node> hits        = edmsearch2.get("rdf_about", rdfAbout);
             Node            node        = hits.getSingle();
             if (node == null) {
                 tx.success();

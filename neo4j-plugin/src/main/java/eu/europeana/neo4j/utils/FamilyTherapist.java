@@ -22,17 +22,17 @@ public class FamilyTherapist {
 
     public String toJson(Family family) {
         ObjectNode json = JsonNodeFactory.instance.objectNode();
-        json.put("parents", assimilate(family.getParents(), json.arrayNode()));
-        json.put("followingSiblings", assimilate(family.getFollowingSiblings(), json.arrayNode()));
-        json.put("precedingSiblings", assimilate(family.getPrecedingSiblings(), json.arrayNode()));
-        json.put("followingSiblingChildren", assimilate(family.getFollowingSiblingChildren(), json.arrayNode()));
-        json.put("precedingSiblingChildren", assimilate(family.getPrecedingSiblingChildren(), json.arrayNode()));
+        json.set("parents", assimilate(family.getParents(), json.arrayNode()));
+        json.set("followingSiblings", assimilate(family.getFollowingSiblings(), json.arrayNode()));
+        json.set("precedingSiblings", assimilate(family.getPrecedingSiblings(), json.arrayNode()));
+        json.set("followingSiblingChildren", assimilate(family.getFollowingSiblingChildren(), json.arrayNode()));
+        json.set("precedingSiblingChildren", assimilate(family.getPrecedingSiblingChildren(), json.arrayNode()));
         return json.toString();
     }
 
     public String siblingsToJson(List<Node> siblingsList, String title) {
         ObjectNode json = JsonNodeFactory.instance.objectNode();
-        json.put(title, assimilate(siblingsList, json.arrayNode()));
+        json.set(title, assimilate(siblingsList, json.arrayNode()));
         return json.toString();
     }
 
