@@ -5,6 +5,7 @@
  */
 package eu.europeana.neo4j.fetch;
 
+import eu.europeana.neo4j.count.CountHierarchy;
 import eu.europeana.neo4j.exceptions.Neo4jDataConsistencyException;
 import eu.europeana.neo4j.utils.FamilyTherapist;
 import eu.europeana.neo4j.model.Family;
@@ -49,6 +50,7 @@ public class FetchHierarchy {
     private static final String HAS_CHILDREN                = "hasChildren";
     private static final String CHILDRENCOUNT               = "childrenCount";
     private static final String RELBEFORE                   = "relBefore";
+    private static final String INDEX                       = "index";
 
     private GraphDatabaseService db;
     private FamilyTherapist familyTherapist;
@@ -70,6 +72,7 @@ public class FetchHierarchy {
         try ( Transaction tx = db.beginTx() ) {
             self = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
             setChildCountAndRelBefore(self);
+            consolidateIndex(db, self);
             selfList.add(self);
             obj = new FamilyTherapist().siblingsToJson(selfList, "self");
             tx.success();
@@ -116,6 +119,7 @@ public class FetchHierarchy {
                 Node newNode = db.index().forNodes(EDMSEARCH2)
                                  .get(RDF_ABOUT, testNode.getProperty(HAS_PARENT)).getSingle();
                 setChildCountAndRelBefore(newNode);
+                consolidateIndex(db, node);
                 parents.add(newNode);
                 testNode = newNode;
             }
@@ -186,6 +190,29 @@ public class FetchHierarchy {
             obj = error2Json("ERROR");
             return Response.status(500).entity(obj).header(HttpHeaders.CONTENT_TYPE,
                     "application/json").build();
+        }
+
+    }
+
+    private void consolidateIndex(GraphDatabaseService db, Node node){
+        if (node.hasProperty(INDEX) && node.getProperty(INDEX) instanceof String){
+            node.removeProperty(INDEX);
+        }
+        if (!node.hasProperty(INDEX)){
+            long traverseLength = 0L;
+            TraversalDescription traversal = db.traversalDescription();
+            Traverser traverse = traversal
+                    .depthFirst()
+                    .relationships(ISNEXTINSEQUENCE, Direction.OUTGOING)
+                    .relationships(ISFAKEORDER, Direction.OUTGOING)
+                    .traverse(node);
+
+            for (Path path : traverse) {
+                if (path.length() > traverseLength) {
+                    traverseLength = path.length();
+                }
+            }
+            node.setProperty(INDEX, traverseLength + 1L);
         }
 
     }
