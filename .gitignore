@@ -25,6 +25,4 @@ reindexing/enrichment-topology/.gitignore
 reindexing/recordread/.gitignore
 reindexing/recordwrite-bolt/.gitignore
 reindexing/reindexing-common-external/.gitignore
-reindexing/reindexing-common-external/reindexing-common-external.iml
 reindexing/reindexing-common/.gitignore
-reindexing/reindexing-entity-cleanup/reindexing-entity-cleanup.iml
