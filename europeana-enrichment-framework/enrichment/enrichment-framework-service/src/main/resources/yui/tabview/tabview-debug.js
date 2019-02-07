@@ -35,7 +35,7 @@ version: 2.8.0r4
      * element that represents the TabView, or the attribute object to use. 
      * An element will be created if none provided.
      * @param {Object} attr (optional) A key map of the tabView's 
-     * exceptions attributes.  Ignored if first arg is attributes object.
+     * initial attributes.  Ignored if first arg is attributes object.
      */
     TabView = function(el, attr) {
         attr = attr || {};
@@ -255,7 +255,7 @@ version: 2.8.0r4
         /**
          * setAttributeConfigs TabView specific properties.
          * @method initAttributes
-         * @param {Object} attr Hash of exceptions attributes
+         * @param {Object} attr Hash of initial attributes
          */
         initAttributes: function(attr) {
             TabView.superclass.initAttributes.call(this, attr);
@@ -539,7 +539,7 @@ version: 2.8.0r4
      * @constructor
      * @param element {HTMLElement | String} (optional) The html element that 
      * represents the Tab. An element will be created if none provided.
-     * @param {Object} properties A key map of exceptions properties
+     * @param {Object} properties A key map of initial properties
      */
     Tab = function(el, attr) {
         attr = attr || {};
@@ -645,7 +645,7 @@ version: 2.8.0r4
         /**
          * setAttributeConfigs Tab specific properties.
          * @method initAttributes
-         * @param {Object} attr Hash of exceptions attributes
+         * @param {Object} attr Hash of initial attributes
          */
         initAttributes: function(attr) {
             attr = attr || {};

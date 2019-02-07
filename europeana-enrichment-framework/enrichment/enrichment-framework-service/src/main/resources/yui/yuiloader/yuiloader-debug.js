@@ -2300,7 +2300,7 @@ YAHOO.register("get", YAHOO.util.Get, {version: "2.7.0", build: "1799"});
         this.base = YUI.info.base;
 
         /**
-         * Base path for the combo order
+         * Base path for the combo service
          * @property comboBase
          * @type string
          * @default http://yui.yahooapis.com/combo?

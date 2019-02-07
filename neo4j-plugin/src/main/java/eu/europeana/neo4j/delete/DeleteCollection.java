@@ -27,7 +27,7 @@ public class DeleteCollection {
 	private final static Logger logger = Logger.getLogger(DeleteCollection.class.getName());
 
 	@GET
-	@javax.ws.rs.Path("/collection/{collectionId}")
+	@javax.ws.rs.Path("/{collectionId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response delete(@PathParam("collectionId") String collectionId) throws IOException {
 		String findNumber = "MATCH (n) where n.`rdf:about` =~ \"/%s/.*\" RETURN count(n)";

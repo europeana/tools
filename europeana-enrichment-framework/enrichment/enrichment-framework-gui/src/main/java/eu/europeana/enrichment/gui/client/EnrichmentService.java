@@ -8,7 +8,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import eu.europeana.enrichment.gui.shared.EntityWrapperDTO;
 import eu.europeana.enrichment.gui.shared.InputValueDTO;
 /**
- * Main enrichment order interface exposing the enrich functionality
+ * Main enrichment service interface exposing the enrich functionality
  * @author Yorgos.Mamakis@ europeana.eu
  *
  */

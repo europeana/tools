@@ -57,7 +57,7 @@ YAHOO.util.Attribute.prototype = {
     writeOnce: false,
 
     /**
-     * The attribute's exceptions configuration.
+     * The attribute's initial configuration.
      * @private
      * @property _initialConfig
      * @type Object
@@ -180,7 +180,7 @@ YAHOO.util.Attribute.prototype = {
      * Allows for configuring the Attribute's properties.
      * @method configure
      * @param {Object} map A key-value map of Attribute properties.
-     * @param {Boolean} init Whether or not this should become the exceptions config.
+     * @param {Boolean} init Whether or not this should become the initial config.
      */
     configure: function(map, init) {
         map = map || {};
@@ -202,7 +202,7 @@ YAHOO.util.Attribute.prototype = {
     },
     
     /**
-     * Resets the value to the exceptions config value.
+     * Resets the value to the initial config value.
      * @method resetValue
      * @return {Boolean} Whether or not the value was set.
      */
@@ -211,7 +211,7 @@ YAHOO.util.Attribute.prototype = {
     },
     
     /**
-     * Resets the attribute config to the exceptions config state.
+     * Resets the attribute config to the initial config state.
      * @method resetConfig
      */
     resetConfig: function() {
@@ -326,7 +326,7 @@ YAHOO.util.Attribute.prototype = {
         },
     
         /**
-         * Resets the specified attribute's value to its exceptions value.
+         * Resets the specified attribute's value to its initial value.
          * @method resetValue
          * @param {String} key The name of the attribute
          * @param {Boolean} silent Whether or not to suppress change events
@@ -510,7 +510,7 @@ var Dom = YAHOO.util.Dom,
  * @constructor
  * @param el {HTMLElement | String} The html element that 
  * represents the Element.
- * @param {Object} map A key-value map of exceptions config names and values
+ * @param {Object} map A key-value map of initial config names and values
  */
 var Element = function(el, map) {
     this.init.apply(this, arguments);
@@ -633,7 +633,7 @@ Element.prototype = {
     /**
      * Registers Element specific attributes.
      * @method initAttributes
-     * @param {Object} map A key-value map of exceptions attribute configs
+     * @param {Object} map A key-value map of initial attribute configs
      */
     initAttributes: function(map) {
     },
@@ -905,7 +905,7 @@ Element.prototype = {
             el.parentNode.removeChild(el); // pull from the DOM
         }
 
-        // revert exceptions configs
+        // revert initial configs
         this._queue = [];
         this._events = {};
         this._configs = {};

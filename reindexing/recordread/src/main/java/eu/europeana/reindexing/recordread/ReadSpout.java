@@ -78,12 +78,12 @@ public class ReadSpout extends BaseRichSpout {
      * The logic for each unfinished task report is the following:
      * <p/>
      * - read an unfinished task report from DB, if there is no one then wait;
-     * - set the status of exceptions task report to PROCESSING if was INITIAL;
+     * - set the status of initial task report to PROCESSING if was INITIAL;
      * - get the cursor mark from a task report;
      * - get the response for task report query and cursor mark;
      * - process (emit) the response for further re-indexing until it gets the number of "processed" equal to number of "total".
      * <p/>
-     * NOTE: 	We DO update only the "total" (one first time when we start the exceptions task).
+     * NOTE: 	We DO update only the "total" (one first time when we start the initial task).
      * We DO update the "queryMark" after processing of the response.
      * We DO NOT change "processed" and "status" fields (except for an empty result set) for a task report during the processing.
      * The fields "processed" and "status" should be updated in RecordWriteBolt.
