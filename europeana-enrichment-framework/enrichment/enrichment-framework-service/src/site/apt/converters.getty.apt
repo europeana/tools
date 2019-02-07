@@ -45,7 +45,7 @@ Converter
  
  * labels to <<<skos:prefLabel>>> and <<<skos:altLabel>>>,
  
- * concept family into the <<<skos:broader>>> relation.
+ * concept hierarchy into the <<<skos:broader>>> relation.
  
  In addition, it creates a number of custom properties, mostly for ULAN.
  

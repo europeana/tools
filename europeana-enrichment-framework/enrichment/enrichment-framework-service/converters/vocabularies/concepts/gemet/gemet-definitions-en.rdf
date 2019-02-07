@@ -3340,7 +3340,7 @@ Implies that residues from degradation are nontoxic. One of the most misleading 
 </rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/2003">
 <skos:prefLabel>decentralisation</skos:prefLabel>
-<skos:definition>Basic organizational leadership concept and process of shifting and delegating power and authority from a higher level to subordinate levels within the administrative/managerial family in order to promote independence, responsibility, and quicker decision-making in applying or interpreting policies and procedures to the needs of these levels.</skos:definition>
+<skos:definition>Basic organizational leadership concept and process of shifting and delegating power and authority from a higher level to subordinate levels within the administrative/managerial hierarchy in order to promote independence, responsibility, and quicker decision-making in applying or interpreting policies and procedures to the needs of these levels.</skos:definition>
 </rdf:Description>
 <rdf:Description rdf:about="http://www.eionet.europa.eu/gemet/concept/2004">
 <skos:prefLabel>deciduous forest</skos:prefLabel>
