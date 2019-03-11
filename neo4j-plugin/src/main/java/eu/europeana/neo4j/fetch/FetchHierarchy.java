@@ -5,8 +5,8 @@
  */
 package eu.europeana.neo4j.fetch;
 
-import eu.europeana.neo4j.count.CountHierarchy;
 import eu.europeana.neo4j.exceptions.Neo4jDataConsistencyException;
+import eu.europeana.neo4j.exceptions.Neo4jNodeNotFoundException;
 import eu.europeana.neo4j.utils.FamilyTherapist;
 import eu.europeana.neo4j.model.Family;
 
@@ -51,6 +51,7 @@ public class FetchHierarchy {
     private static final String CHILDRENCOUNT               = "childrenCount";
     private static final String RELBEFORE                   = "relBefore";
     private static final String INDEX                       = "index";
+    private static final String JSONMIMETYPE                = "application/json";
 
     private GraphDatabaseService db;
     private FamilyTherapist familyTherapist;
@@ -71,25 +72,34 @@ public class FetchHierarchy {
 
         try ( Transaction tx = db.beginTx() ) {
             self = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            if (null == self){
+                throw new Neo4jNodeNotFoundException("Couldn't find node with rdfAbout '" + rdfAbout + "'", rdfAbout);
+            }
             setChildCountAndRelBefore(self);
             consolidateIndex(db, self);
             selfList.add(self);
             obj = new FamilyTherapist().siblingsToJson(selfList, "self");
             tx.success();
-            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
 
-        } catch (Neo4jDataConsistencyException ne) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
-                    ne.getRdfAbout() + "\n" + ne.getCause() + "\n" + ne.getMessage());
-            obj = error2Json("INCONSISTENT_DATA");
-            return Response.status(502).entity(obj).header(HttpHeaders.CONTENT_TYPE,
-                    "application/json").build();
+        } catch (Neo4jDataConsistencyException nce) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(
+                    Level.SEVERE, nce.getRdfAbout() + "\n" + nce.getMessage());
+            obj = FamilyTherapist.error2Json("INCONSISTENT_DATA");
+            return Response.status(502).entity(obj).header(
+                    HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
+        } catch (Neo4jNodeNotFoundException nfe) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(
+                    Level.INFO, nfe.getRdfAbout() + "\n" + nfe.getMessage());
+            obj = FamilyTherapist.error2Json("NODE_NOT_FOUND");
+            return Response.status(404).entity(obj).header(
+                    HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
                     e.getCause() + "\n" + e.getMessage());
-            obj = error2Json("ERROR");
+            obj = FamilyTherapist.error2Json("ERROR");
             return Response.status(500).entity(obj).header(HttpHeaders.CONTENT_TYPE,
-                    "application/json").build();
+                    JSONMIMETYPE).build();
         }
     }
 
@@ -107,9 +117,10 @@ public class FetchHierarchy {
         String     obj;
 
         try ( Transaction tx = db.beginTx() ) {
-            Node node = db.index().forNodes(EDMSEARCH2)
-                          .get(RDF_ABOUT, rdfAbout).getSingle();
-
+            Node node = db.index().forNodes(EDMSEARCH2).get(RDF_ABOUT, rdfAbout).getSingle();
+            if (null == node){
+                throw new Neo4jNodeNotFoundException("Couldn't find node with rdfAbout '" + rdfAbout + "'", rdfAbout);
+            }
             setChildCountAndRelBefore(node);
             parents.add(node);
 
@@ -141,7 +152,7 @@ public class FetchHierarchy {
                 Node endNode = path.endNode();
                 if (endNode.hasProperty(HAS_CHILDREN)) {
                     setChildCountAndRelBefore(endNode);
-                    precedingSiblingChildren.add(getFirstChild(endNode.getProperty(RDFABOUT).toString()));
+                    precedingSiblingChildren.add(getFirstChild(endNode));
                 }
                 precedingSiblings.add(path.endNode());
             }
@@ -164,7 +175,7 @@ public class FetchHierarchy {
                 Node endNode = path.endNode();
                 if (endNode.hasProperty(HAS_CHILDREN)) {
                     setChildCountAndRelBefore(endNode);
-                    followingSiblingChildren.add(getFirstChild(endNode.getProperty(RDFABOUT).toString()));
+                    followingSiblingChildren.add(getFirstChild(endNode));
                 }
                 followingSiblings.add(endNode);
             }
@@ -176,20 +187,26 @@ public class FetchHierarchy {
 
             tx.success();
 
-            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+            return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
 
-        } catch (Neo4jDataConsistencyException ne) {
-            Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
-                    ne.getRdfAbout() + "\n" + ne.getCause() + "\n" + ne.getMessage());
-            obj = error2Json("INCONSISTENT_DATA");
-            return Response.status(502).entity(obj).header(HttpHeaders.CONTENT_TYPE,
-                    "application/json").build();
+        } catch (Neo4jDataConsistencyException nce) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(
+                    Level.SEVERE, nce.getRdfAbout() + "\n" + nce.getMessage());
+            obj = FamilyTherapist.error2Json("INCONSISTENT_DATA");
+            return Response.status(502).entity(obj).header(
+                    HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
+        } catch (Neo4jNodeNotFoundException nfe) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(
+                    Level.INFO, nfe.getRdfAbout() + "\n" + nfe.getMessage());
+            obj = FamilyTherapist.error2Json("NODE_NOT_FOUND");
+            return Response.status(404).entity(obj).header(
+                    HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getCanonicalName()).log(Level.SEVERE,
                     e.getCause() + "\n" + e.getMessage());
-            obj = error2Json("ERROR");
+            obj = FamilyTherapist.error2Json("ERROR");
             return Response.status(500).entity(obj).header(HttpHeaders.CONTENT_TYPE,
-                    "application/json").build();
+                    JSONMIMETYPE).build();
         }
 
     }
@@ -219,11 +236,13 @@ public class FetchHierarchy {
 
     private void setChildCountAndRelBefore(Node node) throws Neo4jDataConsistencyException {
         if (!node.hasProperty(CHILDRENCOUNT) && node.hasProperty(HAS_CHILDREN)) {
-            long childrenCount = getChildrenCount(node.getProperty(RDFABOUT).toString());
+            long childrenCount = node.getDegree(HAS_PART, Direction.OUTGOING);
             if (childrenCount > 0) {
                 node.setProperty(CHILDRENCOUNT, childrenCount);
             } else {
-                throw new Neo4jDataConsistencyException("Inconsistency found between node's hasChildren property and actual unique children", node.getProperty("rdf:about").toString());
+                throw new Neo4jDataConsistencyException(
+                        "Inconsistency found between node's hasChildren property and actual unique children",
+                        node.getProperty("rdf:about").toString());
             }
         }
         if (node.hasRelationship(ISFAKEORDER, Direction.INCOMING)) {
@@ -233,46 +252,18 @@ public class FetchHierarchy {
         }
     }
 
-    private String error2Json(String errMessage){
-        return JsonNodeFactory.instance.textNode(errMessage).toString();
-    }
-
-    private long getChildrenCount(String rdfAbout) {
-        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
-        try ( Transaction tx = db.beginTx() ) {
-            IndexManager    index      = db.index();
-            Index<Node>     edmsearch2 = index.forNodes(EDMSEARCH2);
-            IndexHits<Node> hits       = edmsearch2.get(RDFABOUT, rdfAbout);
-            Node            parent     = hits.getSingle();
-            if (parent == null) throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
-            tx.success();
-            return parent.getDegree(HAS_PART, Direction.OUTGOING);
-//            return (long) IteratorUtil.count(parent.getRelationships(Direction.OUTGOING, HAS_PART));
-        }
-    }
-    
-    private Node getFirstChild(String rdfAbout) {
-        rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
-        try ( Transaction tx = db.beginTx() ) {
-            IndexManager    index       = db.index();
-            Index<Node>     edmsearch2  = index.forNodes(EDMSEARCH2);
-            IndexHits<Node> hits        = edmsearch2.get(RDFABOUT, rdfAbout);
-            Node            first       = null;
-            Node            parent      = hits.getSingle();
-            if (parent == null) throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
-
-            // the child node which has no fakeOrder or NextInSequence relationships pointing to it, is the first
-            for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
-                Node child = r1.getEndNode();
-                if ((child.getDegree(ISFAKEORDER, Direction.OUTGOING) == 0) &&
-                    (child.getDegree(ISNEXTINSEQUENCE, Direction.OUTGOING) == 0)) {
-                    first = child;
-                    break;
-                }
+    // the child node which has no fakeOrder or NextInSequence relationships pointing to it, is the first
+    private Node getFirstChild(Node parent){
+        Node first = null;
+        for (Relationship r1 : parent.getRelationships(Direction.OUTGOING, HAS_PART)) {
+            Node child = r1.getEndNode();
+            if ((child.getDegree(ISFAKEORDER, Direction.OUTGOING) == 0) &&
+                (child.getDegree(ISNEXTINSEQUENCE, Direction.OUTGOING) == 0)) {
+                first = child;
+                break;
             }
-            if (first == null) throw new IllegalArgumentException("no first child for node " + parent);
-            tx.success();
-            return first;
         }
+        if (first == null) throw new IllegalArgumentException("no first child for node " + parent);
+        return first;
     }
 }

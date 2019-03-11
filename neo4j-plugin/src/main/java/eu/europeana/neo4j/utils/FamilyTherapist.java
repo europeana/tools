@@ -70,4 +70,8 @@ public class FamilyTherapist {
         }
         return rdfAbout;
     }
+
+    public static String error2Json(String errMessage){
+        return JsonNodeFactory.instance.textNode(errMessage).toString();
+    }
 }

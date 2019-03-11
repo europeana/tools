@@ -5,6 +5,7 @@
  */
 package eu.europeana.neo4j.fetch;
 
+import eu.europeana.neo4j.exceptions.Neo4jNodeNotFoundException;
 import eu.europeana.neo4j.utils.FamilyTherapist;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
@@ -14,7 +15,7 @@ import org.neo4j.graphdb.traversal.Evaluators;
 import org.neo4j.graphdb.traversal.TraversalDescription;
 import org.neo4j.graphdb.traversal.Uniqueness;
 import org.neo4j.graphdb.GraphDatabaseService;
-//import org.neo4j.tooling.GlobalGraphOperations;
+
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -23,6 +24,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -31,9 +34,10 @@ import java.util.*;
 @javax.ws.rs.Path("/children")
 public class FetchChildren {
 
-    private static final RelationshipType HAS_PART = RelationshipType.withName("dcterms:hasPart");
-    private static final RelationshipType ISFAKEORDER  = RelationshipType.withName("isFakeOrder");
-    private static final RelationshipType ISNEXTINSEQUENCE  = RelationshipType.withName("edm:isNextInSequence");
+    private static final RelationshipType HAS_PART         = RelationshipType.withName("dcterms:hasPart");
+    private static final RelationshipType ISFAKEORDER      = RelationshipType.withName("isFakeOrder");
+    private static final RelationshipType ISNEXTINSEQUENCE = RelationshipType.withName("edm:isNextInSequence");
+    private static final String           JSONMIMETYPE     = "application/json";
 
 
     @GET
@@ -45,13 +49,14 @@ public class FetchChildren {
                                 @Context GraphDatabaseService db) throws IOException {
         List<Node> children = new ArrayList<>();
         rdfAbout = FamilyTherapist.fixSlashes(rdfAbout);
+        String     obj;
         try ( Transaction tx = db.beginTx() ) {
             IndexManager    index      = db.index();
             Index<Node>     edmsearch2 = index.forNodes("edmsearch2");
             IndexHits<Node> hits       = edmsearch2.get("rdf_about", rdfAbout);
             Node            parent     = hits.getSingle();
-            if (parent==null) {
-                throw new IllegalArgumentException("no node found in index for rdf_about = " + rdfAbout);
+            if (null == parent) {
+                throw new Neo4jNodeNotFoundException("Couldn't find node with rdfAbout '" + rdfAbout + "'", rdfAbout);
             }
             Node first = null;
 
@@ -66,7 +71,8 @@ public class FetchChildren {
             }
 
             if (first == null) {
-                throw new IllegalArgumentException("no first child for node " + parent);
+                throw new Neo4jNodeNotFoundException(
+                        "Couldn't find first child of node with rdfAbout '" + rdfAbout + "'", rdfAbout);
             }
 
             // Go up to limit hops away
@@ -83,10 +89,16 @@ public class FetchChildren {
                 Node child = path.endNode();
                 children.add(child);
             }
-            String obj = new FamilyTherapist().siblingsToJson(children, "siblings");
+            obj = new FamilyTherapist().siblingsToJson(children, "siblings");
             tx.success();
             return Response.ok().entity(obj).header(HttpHeaders.CONTENT_TYPE,
                     "application/json").build();
+        } catch (Neo4jNodeNotFoundException nfe) {
+            Logger.getLogger(this.getClass().getCanonicalName()).log(
+                    Level.INFO, nfe.getRdfAbout() + "\n" + nfe.getMessage());
+            obj = FamilyTherapist.error2Json("NODE_NOT_FOUND");
+            return Response.status(404).entity(obj).header(
+                    HttpHeaders.CONTENT_TYPE, JSONMIMETYPE).build();
         }
     }
 
