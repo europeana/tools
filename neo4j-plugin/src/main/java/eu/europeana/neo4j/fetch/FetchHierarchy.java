@@ -122,6 +122,7 @@ public class FetchHierarchy {
                 throw new Neo4jNodeNotFoundException("Couldn't find node with rdfAbout '" + rdfAbout + "'", rdfAbout);
             }
             setChildCountAndRelBefore(node);
+            consolidateIndex(db, node);
             parents.add(node);
 
             Node testNode = node;
@@ -130,7 +131,7 @@ public class FetchHierarchy {
                 Node newNode = db.index().forNodes(EDMSEARCH2)
                                  .get(RDF_ABOUT, testNode.getProperty(HAS_PARENT)).getSingle();
                 setChildCountAndRelBefore(newNode);
-                consolidateIndex(db, node);
+                consolidateIndex(db, newNode);
                 parents.add(newNode);
                 testNode = newNode;
             }
@@ -208,13 +209,9 @@ public class FetchHierarchy {
             return Response.status(500).entity(obj).header(HttpHeaders.CONTENT_TYPE,
                     JSONMIMETYPE).build();
         }
-
     }
 
     private void consolidateIndex(GraphDatabaseService db, Node node){
-        if (node.hasProperty(INDEX) && node.getProperty(INDEX) instanceof String){
-            node.removeProperty(INDEX);
-        }
         if (!node.hasProperty(INDEX)){
             long traverseLength = 0L;
             TraversalDescription traversal = db.traversalDescription();
@@ -231,7 +228,6 @@ public class FetchHierarchy {
             }
             node.setProperty(INDEX, traverseLength + 1L);
         }
-
     }
 
     private void setChildCountAndRelBefore(Node node) throws Neo4jDataConsistencyException {
