@@ -210,7 +210,7 @@
         </dependency>
 	</dependencies>
 	<properties>
-        <spring.version>3.0.5.RELEASE</spring.version>
+        <spring.version>5.2.2.RELEASE</spring.version>
 	    <annocultor.tagger.version>0.1</annocultor.tagger.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
